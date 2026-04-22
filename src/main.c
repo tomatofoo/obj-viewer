@@ -34,12 +34,14 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
     
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        SDL_Log("Failed to initialize SDL: %s\n", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to initialize SDL: %s\n", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
-    if (!SDL_CreateWindowAndRenderer(APPNAME " " APPVERSION, WIDTH, HEIGHT, FLAGS, &window, &renderer)) {
-        SDL_Log("Failed to create window and renderer: %s\n", SDL_GetError());
+    if (!SDL_CreateWindowAndRenderer(
+        APPNAME " " APPVERSION, WIDTH, HEIGHT, FLAGS, &window, &renderer
+    )) {
+        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "Failed to create window and renderer: %s\n", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 

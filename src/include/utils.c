@@ -88,7 +88,10 @@ void vec2_scale_ip(vec2 *vec, double mag) {
 }
 
 vec2 vec2_lerp(vec2 term1, vec2 term2, double t) {
-    return (vec2) {term1.x + (term2.x - term1.x) * t, term1.y + (term2.y - term1.y) * t};
+    return (vec2) {
+        term1.x + (term2.x - term1.x) * t,
+        term1.y + (term2.y - term1.y) * t,
+    };
 }
 
 void vec2_lerp_ip(vec2 *term1, vec2 term2, double t) {
@@ -109,7 +112,10 @@ void vec2_mov_ip(vec2 *term1, vec2 term2, double disp) {
 vec2 vec2_rot(vec2 vec, double angle) {
     double cosine = SDL_cos(angle);
     double sine = SDL_sin(angle);
-    return (vec2) {vec.x * cosine - vec.y * sine, vec.x * sine + vec.y * cosine};
+    return (vec2) {
+        vec.x * cosine - vec.y * sine,
+        vec.x * sine + vec.y * cosine,
+    };
 }
 
 void vec2_rot_ip(vec2 *vec, double angle) {
@@ -146,7 +152,9 @@ double vec2_dist_sq(vec2 term1, vec2 term2) {
 }
 
 double vec2_angle_to(vec2 term1, vec2 term2) {
-    return SDL_acos(vec2_dot(term1, term2) / (vec2_mag(term1) * vec2_mag(term2)));
+    return SDL_acos(
+        vec2_dot(term1, term2) / (vec2_mag(term1) * vec2_mag(term2))
+    );
 }
 
 
@@ -206,7 +214,9 @@ void vec3_proj_ip(vec3 *term1, vec3 term2) {
 }
 
 vec3 vec3_add(vec3 addend1, vec3 addend2) {
-    return (vec3) {addend1.x + addend2.x, addend1.y + addend2.y, addend1.z + addend2.z};
+    return (vec3) {
+        addend1.x + addend2.x, addend1.y + addend2.y, addend1.z + addend2.z,
+    };
 }
 
 void vec3_add_ip(vec3 *addend1, vec3 addend2) {
@@ -244,7 +254,9 @@ void vec3_mul_ip(vec3 *multiplicand, double multiplier) {
 }
 
 vec3 vec3_div(vec3 dividend, double divisor) {
-    return (vec3) {dividend.x / divisor, dividend.y / divisor, dividend.z / divisor};
+    return (vec3) {
+        dividend.x / divisor, dividend.y / divisor, dividend.z / divisor,
+    };
 }
 
 void vec3_div_ip(vec3 *dividend, double divisor) {
@@ -292,7 +304,9 @@ void vec3_mov_ip(vec3 *term1, vec3 term2, double disp) {
 vec3 vec3_rot_x(vec3 vec, double angle) {
     double cosine = SDL_cos(angle);
     double sine = SDL_sin(angle);
-    return (vec3) {vec.x, vec.y * cosine - vec.z * sine, vec.y * sine + vec.z * cosine};
+    return (vec3) {
+        vec.x, vec.y * cosine - vec.z * sine, vec.y * sine + vec.z * cosine,
+    };
 }
 
 void vec3_rot_x_ip(vec3 *vec, double angle) {
@@ -313,7 +327,9 @@ void vec3_rot_x_deg_ip(vec3 *vec, double angle) {
 vec3 vec3_rot_y(vec3 vec, double angle) {
     double cosine = SDL_cos(angle);
     double sine = SDL_sin(angle);
-    return (vec3) {vec.x * cosine + vec.z * sine, vec.y, -vec.x * sine + vec.z * cosine};
+    return (vec3) {
+        vec.x * cosine + vec.z * sine, vec.y, -vec.x * sine + vec.z * cosine,
+    };
 }
 
 void vec3_rot_y_ip(vec3 *vec, double angle) {
@@ -334,7 +350,9 @@ void vec3_rot_y_deg_ip(vec3 *vec, double angle) {
 vec3 vec3_rot_z(vec3 vec, double angle) {
     double cosine = SDL_cos(angle);
     double sine = SDL_sin(angle);
-    return (vec3) {vec.x * cosine - vec.y * sine, vec.x * sine + vec.y * cosine, vec.z};
+    return (vec3) {
+        vec.x * cosine - vec.y * sine, vec.x * sine + vec.y * cosine, vec.z,
+    };
 }
 
 void vec3_rot_z_ip(vec3 *vec, double angle) {
@@ -382,7 +400,9 @@ double vec3_dist_sq(vec3 term1, vec3 term2) {
 }
 
 double vec3_angle_to(vec3 term1, vec3 term2) {
-    return SDL_acos(vec3_dot(term1, term2) / (vec3_mag(term1) * vec3_mag(term2)));
+    return SDL_acos(
+        vec3_dot(term1, term2) / (vec3_mag(term1) * vec3_mag(term2))
+    );
 }
 
 
