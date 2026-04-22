@@ -1,30 +1,69 @@
-#include <math.h>
+#include "SDL3/SDL.h"
 
 #include "utils.h"
 
 
+double vec2_mag(vec2 vec) {
+    return hypot(vec.x, vec.y);
+}
+
+double vec2_mag_sq(vec2 vec) {
+    return vec.x * vec.x + vec.y * vec.y;
+}
+
+vec2 vec2_normalize(vec2 vec) {
+    double mag = vec2_mag(vec);
+    return (vec2) {vec.x / mag, vec.y / mag};
+}
+
+void vec2_normalize_ip(vec2 *vec) {
+    double mag = vec2_mag(*vec);
+    vec->x /= mag;
+    vec->y /= mag;
+}
+
 double vec2_angle(vec2 vec) {
-    return atan2(vec.y, vec.x);
+    return SDL_atan2(vec.y, vec.x);
 }
 
 double vec2_angle_deg(vec2 vec) {
-    return atan2(vec.y, vec.x) * 180.0 / M_PI;
+    return SDL_atan2(vec.y, vec.x) * 180.0 / SDL_PI_D;
 }
 
 vec2 vec2_add(vec2 addend1, vec2 addend2) {
     return (vec2) {addend1.x + addend2.x, addend1.y + addend2.y};
 }
 
+void vec2_add_ip(vec2 *addend1, vec2 addend2) {
+    addend1->x += addend2.x;
+    addend1->y += addend2.y;
+}
+
 vec2 vec2_sub(vec2 minuend, vec2 subtrahend) {
     return (vec2) {minuend.x - subtrahend.x, minuend.y - subtrahend.y};
+}
+
+void vec2_sub_ip(vec2 *minuend, vec2 subtrahend) {
+    minuend->x -= subtrahend.x;
+    minuend->y -= subtrahend.y;
 }
 
 vec2 vec2_mul(vec2 multiplicand, double multiplier) {
     return (vec2) {multiplicand.x * multiplier, multiplicand.y * multiplier};
 }
 
+void vec2_mul_ip(vec2 *multiplicand, double multiplier) {
+    multiplicand->x *= multiplier;
+    multiplicand->y *= multiplier;
+}
+
 vec2 vec2_div(vec2 dividend, double divisor) {
     return (vec2) {dividend.x / divisor, dividend.y / divisor};
+}
+
+void vec2_div_ip(vec2 *dividend, double divisor) {
+    dividend->x /= divisor;
+    dividend->y /= divisor;
 }
 
 double vec2_dot(vec2 term1, vec2 term2) {
@@ -33,5 +72,10 @@ double vec2_dot(vec2 term1, vec2 term2) {
 
 double vec2_cross(vec2 term1, vec2 term2) {
     return term1.x * term2.y - term1.y * term2.x;
+}
+
+
+double hypot(double x, double y) {
+    return SDL_sqrt(x * x + y * y);
 }
 
