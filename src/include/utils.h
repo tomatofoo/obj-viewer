@@ -21,8 +21,16 @@ vec2 vec2_mul(vec2 multiplicand, double multiplier);
 void vec2_mul_ip(vec2 *multiplicand, double multiplier);
 vec2 vec2_div(vec2 dividend, double divisor);
 void vec2_div_ip(vec2 *dividend, double divisor);
+vec2 vec2_scale(vec2 vec, double mag);
+void vec2_scale_ip(vec2 *vec, double mag);
+vec2 vec2_lerp(vec2 term1, vec2 term2, double t);
+void vec2_lerp_ip(vec2 *term1, vec2 term2, double t);
+vec2 vec2_mov(vec2 term1, vec2 term2, double disp);
+void vec2_mov_ip(vec2 *term1, vec2 term2, double disp);
 double vec2_dot(vec2 term1, vec2 term2);
 double vec2_cross(vec2 term1, vec2 term2);
+double vec2_dist(vec2 term1, vec2 term2);
+double vec2_dist_sq(vec2 term1, vec2 term2);
 
 double hypot(double x, double y);
 

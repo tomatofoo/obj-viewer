@@ -66,12 +66,52 @@ void vec2_div_ip(vec2 *dividend, double divisor) {
     dividend->y /= divisor;
 }
 
+vec2 vec2_scale(vec2 vec, double mag) {
+    double mult = mag / vec2_mag(vec);
+    return (vec2) {vec.x * mult, vec.y * mult};
+}
+
+void vec2_scale_ip(vec2 *vec, double mag) {
+    double mult = mag / vec2_mag(*vec);
+    vec->x *= mult;
+    vec->y *= mult;
+}
+
+vec2 vec2_lerp(vec2 term1, vec2 term2, double t) {
+    return (vec2) {term1.x + (term2.x - term1.x) * t, term1.y + (term2.y - term1.y) * t};
+}
+
+void vec2_lerp_ip(vec2 *term1, vec2 term2, double t) {
+    term1->x += (term2.x - term1->x) * t
+    term1->y += (term2.y - term1->y) * t;
+}
+
+vec2 vec2_mov(vec2 term1, vec2 term2, double disp) {
+    double t = disp / vec2_dist(term1, term2);
+    return vec2_lerp(term1, term2, t);
+}
+
+void vec2_mov_ip(vec2 *term1, vec2 term2, double disp) {
+    double t = disp / vec2_dist(*term1, term2);
+    vec2_lerp_ip(term1, term2, t);
+}
+
 double vec2_dot(vec2 term1, vec2 term2) {
     return term1.x * term2.x + term1.y * term2.y;
 }
 
 double vec2_cross(vec2 term1, vec2 term2) {
     return term1.x * term2.y - term1.y * term2.x;
+}
+
+double vec2_dist(vec2 term1, vec2 term2) {
+    return hypot(term2.x - term1.x, term2.y - term1.y);
+}
+
+double vec2_dist_sq(vec2 term1, vec2 term2) {
+    double x = term2.x - term1.x;
+    double y = term2.y - term1.y;
+    return x * x + y * y;
 }
 
 

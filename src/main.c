@@ -130,8 +130,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     double dt = (now - last) / (double) SDL_GetPerformanceFrequency();
     last = now;
 
-    SDL_Log("FPS: %lf", 1.0 / dt);
-    
     // RENDER
     SDL_SetRenderDrawColor(renderer, BLACK, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
