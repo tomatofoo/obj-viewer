@@ -135,6 +135,10 @@ double vec2_dist_sq(vec2 term1, vec2 term2) {
     return x * x + y * y;
 }
 
+double vec2_angle_to(vec2 term1, vec2 term2) {
+    return SDL_acos(vec2_dot(term1, term2) / (vec2_mag(term1) * vec2_mag(term2)));
+}
+
 
 double hypot(double x, double y) {
     return SDL_sqrt(x * x + y * y);
