@@ -34,14 +34,22 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
     
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to initialize SDL: %s\n", SDL_GetError());
+        SDL_LogError(
+            SDL_LOG_CATEGORY_ERROR,
+            "Failed to initialize SDL: %s\n",
+            SDL_GetError()
+        );
         return SDL_APP_FAILURE;
     }
 
     if (!SDL_CreateWindowAndRenderer(
         APPNAME " " APPVERSION, WIDTH, HEIGHT, FLAGS, &window, &renderer
     )) {
-        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "Failed to create window and renderer: %s\n", SDL_GetError());
+        SDL_LogError(
+            SDL_LOG_CATEGORY_VIDEO,
+            "Failed to create window and renderer: %s\n",
+            SDL_GetError()
+        );
         return SDL_APP_FAILURE;
     }
 
@@ -114,7 +122,11 @@ void render(vec2 v1, vec2 v2, vec2 v3) {
             if (l1 > 1 || l2 > 1 || l3 > 1) {
                 continue;
             }
-            SDL_SetRenderDrawColor(renderer, l1 * 255, l2 * 255, l3 * 255, SDL_ALPHA_OPAQUE);
+            SDL_SetRenderDrawColor(
+                renderer,
+                l1 * 255, l2 * 255, l3 * 255,
+                SDL_ALPHA_OPAQUE
+            );
             SDL_RenderPoint(renderer, x, y);
         }
     }
