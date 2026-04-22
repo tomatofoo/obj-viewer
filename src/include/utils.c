@@ -82,7 +82,7 @@ vec2 vec2_lerp(vec2 term1, vec2 term2, double t) {
 }
 
 void vec2_lerp_ip(vec2 *term1, vec2 term2, double t) {
-    term1->x += (term2.x - term1->x) * t
+    term1->x += (term2.x - term1->x) * t;
     term1->y += (term2.y - term1->y) * t;
 }
 
@@ -94,6 +94,27 @@ vec2 vec2_mov(vec2 term1, vec2 term2, double disp) {
 void vec2_mov_ip(vec2 *term1, vec2 term2, double disp) {
     double t = disp / vec2_dist(*term1, term2);
     vec2_lerp_ip(term1, term2, t);
+}
+
+vec2 vec2_rot(vec2 vec, double angle) {
+    double cosine = SDL_cos(angle);
+    double sine = SDL_sin(angle);
+    return (vec2) {vec.x * cosine - vec.y * sine, vec.x * sine + vec.y * cosine};
+}
+
+void vec2_rot_ip(vec2 *vec, double angle) {
+    double cosine = SDL_cos(angle);
+    double sine = SDL_sin(angle);
+    vec->x = vec->x * cosine - vec->y * sine;
+    vec->y = vec->x * sine + vec->y * cosine;
+}
+
+vec2 vec2_rot_deg(vec2 vec, double angle) {
+    return vec2_rot(vec, angle / 180.0 * SDL_PI_D);
+}
+
+void vec2_rot_deg_ip(vec2 *vec, double angle) {
+    vec2_rot_ip(vec, angle / 180.0 * SDL_PI_D);
 }
 
 double vec2_dot(vec2 term1, vec2 term2) {
