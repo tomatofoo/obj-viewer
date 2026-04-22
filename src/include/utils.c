@@ -361,9 +361,9 @@ vec3 vec3_cross(vec3 term1, vec3 term2) {
 }
 
 void vec3_cross_dest(vec3 term1, vec3 term2, vec3 *dest) {
-    dest.x = term1.y * term2.z - term1.z * term2.y;
-    dest.y = term1.z * term2.x - term1.x * term2.z;
-    dest.z = term1.x * term2.y - term1.y * term2.x;
+    dest->x = term1.y * term2.z - term1.z * term2.y;
+    dest->y = term1.z * term2.x - term1.x * term2.z;
+    dest->z = term1.x * term2.y - term1.y * term2.x;
 }
 
 double vec3_dot(vec3 term1, vec3 term2) {
