@@ -30,6 +30,16 @@ double vec2_angle_deg(vec2 vec) {
     return SDL_atan2(vec.y, vec.x) * 180.0 / SDL_PI_D;
 }
 
+vec2 vec2_proj(vec2 term1, vec2 term2) {
+    return vec2_mul(term2, vec2_dot(term1, term2) / vec2_dot(term2, term2));
+}
+
+void vec2_proj_ip(vec2 *term1, vec2 term2) {
+    double mult = vec2_dot(*term1, term2) / vec2_dot(term2, term2);
+    term1->x *= mult;
+    term1->y *= mult;
+}
+
 vec2 vec2_add(vec2 addend1, vec2 addend2) {
     return (vec2) {addend1.x + addend2.x, addend1.y + addend2.y};
 }

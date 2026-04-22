@@ -13,6 +13,8 @@ vec2 vec2_unit(vec2 vec);
 void vec2_unit_ip(vec2 *vec);
 double vec2_angle(vec2 vec);
 double vec2_angle_deg(vec2 vec);
+vec2 vec2_proj(vec2 term1, vec2 term2);
+void vec2_proj_ip(vec2 *term1, vec2 term2);
 vec2 vec2_add(vec2 addend1, vec2 addend2);
 void vec2_add_ip(vec2 *addend1, vec2 addend2);
 vec2 vec2_sub(vec2 minuend, vec2 subtrahend);
