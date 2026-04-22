@@ -8,15 +8,15 @@ double vec2_mag(vec2 vec) {
 }
 
 double vec2_mag_sq(vec2 vec) {
-    return vec.x * vec.x + vec.y * vec.y;
+    return vec2_dot(vec, vec);
 }
 
-vec2 vec2_normalize(vec2 vec) {
+vec2 vec2_unit(vec2 vec) {
     double mag = vec2_mag(vec);
     return (vec2) {vec.x / mag, vec.y / mag};
 }
 
-void vec2_normalize_ip(vec2 *vec) {
+void vec2_unit_ip(vec2 *vec) {
     double mag = vec2_mag(*vec);
     vec->x /= mag;
     vec->y /= mag;

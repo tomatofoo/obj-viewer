@@ -9,8 +9,8 @@ typedef struct vec2 {
 
 double vec2_mag(vec2 vec);
 double vec2_mag_sq(vec2 vec);
-vec2 vec2_normalize(vec2 vec);
-void vec2_normalize_ip(vec2 *vec);
+vec2 vec2_unit(vec2 vec);
+void vec2_unit_ip(vec2 *vec);
 double vec2_angle(vec2 vec);
 double vec2_angle_deg(vec2 vec);
 vec2 vec2_add(vec2 addend1, vec2 addend2);
