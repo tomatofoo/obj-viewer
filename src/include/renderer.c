@@ -10,7 +10,7 @@ context *create_context(
     int w, int h
 ) {
     size_t datasize;
-    void *data = SDL_LoadFile(path, &datasize);
+    char *data = SDL_LoadFile(path, &datasize);
     if (data == NULL) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
@@ -21,11 +21,14 @@ context *create_context(
     }
     model mdl;
     for (size_t i = 0; i < datasize; i++) {
+        if (data[i] == '\r' || data[i] == '\n') {
+            SDL_Log("detected newline");
+        }
     }
     SDL_free(data);
 
     context *ctx = SDL_malloc(sizeof(context));
-
+    return ctx;
 }
 
 void destroy_context(context *ctx) {
