@@ -28,9 +28,9 @@ context *create_context(
     SDL_free(data);
 
     context *ctx = SDL_malloc(sizeof(context));
-    ctx->model = model;
-    ctx->pos = (vec3) {0, 0, 0}
-    ctx->rotation = (vec3) {0, 0, 0}
+    ctx->model = mdl;
+    ctx->pos = (vec3) {0, 0, 0};
+    ctx->rot = (vec3) {0, 0, 0};
     ctx->texture = SDL_CreateTexture(
         renderer,
         SDL_PIXELFORMAT_RGB24,
