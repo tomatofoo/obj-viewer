@@ -23,16 +23,19 @@ context *create_context(
     context *ctx = SDL_malloc(sizeof(context));
     if (ctx == NULL) {
         SDL_OutOfMemory();
-        SDL_LogError(
-            SDL_LOG_CATEGORY_ERROR,
-            "Failed to allocate memory: %s",
-            SDL_GetError()
+        SDL_SetError(
+            "Failed to allocate memory for context: %s", SDL_GetError()
         );
         return NULL;
     }
-    // error logging is handled at the farthest depth
+    // stacking error messages to help tracing
     model *mdl = parse_obj(path);
-    if (mdl == NULL) { return NULL; }
+    if (mdl == NULL) {
+        SDL_SetError(
+            "Failed to parse OBJ file for context: %s", SDL_GetError()
+        );
+        return NULL;
+    }
     ctx->model = mdl;
     ctx->pos = (vec3) {0, 0, 0};
     ctx->rot = (vec3) {0, 0, 0};
