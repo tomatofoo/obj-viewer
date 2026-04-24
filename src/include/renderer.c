@@ -28,11 +28,22 @@ context *create_context(
     SDL_free(data);
 
     context *ctx = SDL_malloc(sizeof(context));
+    ctx->model = model;
+    ctx->pos = (vec3) {0, 0, 0}
+    ctx->rotation = (vec3) {0, 0, 0}
+    ctx->texture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_RGB24,
+        SDL_TEXTUREACCESS_STREAMING,
+        w, h
+    );
+
     return ctx;
 }
 
 void destroy_context(context *ctx) {
-    // more stuff before this
+    // more stuff here
+    SDL_DestroyTexture(ctx->texture);
     SDL_free(ctx);
 }
 
