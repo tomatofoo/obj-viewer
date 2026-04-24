@@ -42,7 +42,7 @@ typedef struct context {
 } context;
 
 
-context create_context(model model, SDL_Renderer *renderer, int w, int h);
+context create_context(const char *path, SDL_Renderer *renderer, int w, int h);
 void destroy_context(context ctx);
 
 void render(context ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect);
