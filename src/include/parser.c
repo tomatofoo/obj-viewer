@@ -3,6 +3,10 @@
 #include "renderer.h"
 
 
+char *read_until_whitespace(size_t i, ) {
+}
+
+
 model *parse_obj(const char *path) {
     // PREAMBLE
     size_t datasize;

@@ -19,7 +19,6 @@ context *create_context(
     SDL_Renderer *renderer,
     int w, int h
 ) {
-
     context *ctx = SDL_malloc(sizeof(context));
     if (ctx == NULL) {
         SDL_OutOfMemory();
@@ -39,6 +38,7 @@ context *create_context(
     ctx->model = mdl;
     ctx->pos = (vec3) {0, 0, 0};
     ctx->rot = (vec3) {0, 0, 0};
+    ctx->renderer = renderer;
     ctx->texture = SDL_CreateTexture(
         renderer,
         SDL_PIXELFORMAT_RGB24,
@@ -50,7 +50,6 @@ context *create_context(
 }
 
 void destroy_context(context *ctx) {
-    // more stuff here
     destroy_model(ctx->model);
     SDL_DestroyTexture(ctx->texture);
     SDL_free(ctx);
@@ -58,5 +57,7 @@ void destroy_context(context *ctx) {
 
 
 void render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
+    // more stuff here
+    SDL_RenderTexture(ctx->renderer, ctx->texture, srcrect, dstrect);
 }
 

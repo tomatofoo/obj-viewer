@@ -38,6 +38,7 @@ typedef struct context {
     model *model;
     vec3 pos;
     vec3 rot; // rot around x, y, z axes respectively
+    SDL_Renderer *renderer;
     SDL_Texture *texture;
 } context;
 
