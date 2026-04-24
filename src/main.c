@@ -3,8 +3,8 @@
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_main.h"
 
-#include "utils.h"
 #include "renderer.h"
+#include "utils.h"
 
 
 // APP VARIABLES

@@ -1,7 +1,8 @@
 #include "SDL3/SDL.h"
 
-#include "utils.h"
+#include "parser.h"
 #include "renderer.h"
+#include "utils.h"
 
 
 context *create_context(
@@ -9,25 +10,20 @@ context *create_context(
     SDL_Renderer *renderer,
     int w, int h
 ) {
-    size_t datasize;
-    char *data = SDL_LoadFile(path, &datasize);
-    if (data == NULL) {
+
+    context *ctx = SDL_malloc(sizeof(context));
+    if (ctx == NULL) {
+        SDL_OutOfMemory();
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
-            "Failed to load file: %s\n",
+            "Failed to allocate memory: %s",
             SDL_GetError()
         );
         return NULL;
     }
     model mdl;
-    for (size_t i = 0; i < datasize; i++) {
-        if (data[i] == '\r' || data[i] == '\n') {
-            SDL_Log("detected newline");
-        }
-    }
-    SDL_free(data);
-
-    context *ctx = SDL_malloc(sizeof(context));
+    // error logging is handled at the farthest depth
+    if (!parse_obj(path, &mdl))  { return NULL; }
     ctx->model = mdl;
     ctx->pos = (vec3) {0, 0, 0};
     ctx->rot = (vec3) {0, 0, 0};
