@@ -4,11 +4,8 @@
 #include "SDL3/SDL_main.h"
 
 #include "utils.h"
+#include "renderer.h"
 
-
-// COLORS
-#define BLACK 0, 0, 0
-#define WHITE 255, 255, 255
 
 // APP VARIABLES
 #define APPNAME "OBJ Viewer"
@@ -95,7 +92,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     return SDL_APP_CONTINUE;
 }
 
-void render(vec2 v1, vec2 v2, vec2 v3) {
+void _render(vec2 v1, vec2 v2, vec2 v3) {
     vec2 diff12 = vec2_sub(v1, v2);
     vec2 diff23 = vec2_sub(v2, v3);
     vec2 diff31 = vec2_sub(v3, v1);
@@ -150,7 +147,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     
     vertex2.x = SDL_sin(timer) * 120 + WIDTH / 2;
     vertex3.x = SDL_cos(timer) * 120 + WIDTH / 2;
-    render(vertex1, vertex2, vertex3);
+    _render(vertex1, vertex2, vertex3);
 
     SDL_RenderPresent(renderer);
 
@@ -158,5 +155,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 }
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+    SDL_DestroyWindow(window);
+    SDL_DestroyRenderer(renderer);
+    SDL_Quit();
 }
 

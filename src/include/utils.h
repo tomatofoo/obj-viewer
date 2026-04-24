@@ -2,6 +2,16 @@
 #define UTILS_H
 
 
+#define BLACK 0, 0, 0
+#define WHITE 255, 255, 255
+#define RED 255, 0, 0
+#define GREEN 0, 255, 0
+#define BLUE 0, 0, 255
+#define CYAN 0, 255, 255
+#define MAGENTA 255, 0, 255
+#define YELLOW 255, 255, 0
+
+
 typedef struct vec2 {
     double x;
     double y;
@@ -12,6 +22,7 @@ typedef struct vec3 {
     double y;
     double z;
 } vec3;
+
 
 double vec2_mag(vec2 vec);
 double vec2_mag_sq(vec2 vec);
