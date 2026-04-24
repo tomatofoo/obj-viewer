@@ -48,6 +48,7 @@ context *create_context(
 
 void destroy_context(context *ctx) {
     // more stuff here
+    destroy_model(ctx->model);
     SDL_DestroyTexture(ctx->texture);
     SDL_free(ctx);
 }
