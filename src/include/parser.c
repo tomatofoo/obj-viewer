@@ -3,7 +3,7 @@
 #include "renderer.h"
 
 
-bool parse_obj(const char *path, model *mdl) {
+model *parse_obj(const char *path) {
     size_t datasize;
     char *data = SDL_LoadFile(path, &datasize);
     if (data == NULL) {
@@ -12,8 +12,9 @@ bool parse_obj(const char *path, model *mdl) {
             "Failed to load file: %s\n",
             SDL_GetError()
         );
-        return false;
+        return NULL;
     }
+    model *mdl = SDL_malloc(sizeof(mdl));
     char type;
     bool cont = false; // continue (e.g. comment, g)
     for (size_t i = 0; i < datasize; i++) {
@@ -24,6 +25,6 @@ bool parse_obj(const char *path, model *mdl) {
     }
     SDL_free(data);
 
-    return true;
+    return mdl;
 }
 

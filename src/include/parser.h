@@ -7,7 +7,7 @@
 #include "renderer.h"
 
 
-bool parse_obj(const char *path, model *mdl);
+model *parse_obj(const char *path);
 
 #endif
 

@@ -5,6 +5,15 @@
 #include "utils.h"
 
 
+void destroy_model(model *mdl) {
+    SDL_free(mdl->vertices);
+    SDL_free(mdl->normals);
+    SDL_free(mdl->textures);
+    SDL_free(mdl->faces);
+    SDL_free(mdl);
+}
+
+
 context *create_context(
     const char *path,
     SDL_Renderer *renderer,
@@ -21,9 +30,9 @@ context *create_context(
         );
         return NULL;
     }
-    model mdl;
     // error logging is handled at the farthest depth
-    if (!parse_obj(path, &mdl))  { return NULL; }
+    model *mdl = parse_obj(path);
+    if (mdl == NULL) { return NULL; }
     ctx->model = mdl;
     ctx->pos = (vec3) {0, 0, 0};
     ctx->rot = (vec3) {0, 0, 0};
