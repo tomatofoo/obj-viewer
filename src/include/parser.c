@@ -4,6 +4,7 @@
 
 
 model *parse_obj(const char *path) {
+    // PREAMBLE
     size_t datasize;
     char *data = SDL_LoadFile(path, &datasize);
     if (data == NULL) {
@@ -15,14 +16,16 @@ model *parse_obj(const char *path) {
         SDL_OutOfMemory();
         return NULL;
     }
+    // PARSING
     char type;
-    bool cont = false; // continue (e.g. comment, g)
+    bool cont = false; // continue (e.g. comment, group, etc.)
     for (size_t i = 0; i < datasize; i++) {
         // Linebreaks
         if (data[i] == '\r' || data[i] == '\n') {
             type = '\0';
         }
     }
+    // FREE UP DATA AFTER PARSING
     SDL_free(data);
 
     return mdl;
