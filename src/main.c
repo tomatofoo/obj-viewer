@@ -3,6 +3,7 @@
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_main.h"
 
+#include "parser.h"
 #include "renderer.h"
 #include "utils.h"
 
@@ -51,6 +52,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     }
 
     last = SDL_GetPerformanceCounter();
+
+    parse_obj("data/crate.obj");
 
     return SDL_APP_CONTINUE;
 }
