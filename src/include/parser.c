@@ -64,7 +64,7 @@ model *parse_obj(const char *path) {
     }
     mdl->cnormals = ARR_SIZE;
     mdl->nuvs = 0;
-    mdl->uvs = SDL_malloc(sizeof(uv) * ARR_SIZE);
+    mdl->uvs = SDL_malloc(sizeof(vec2) * ARR_SIZE);
     if (mdl->uvs == NULL) {
         SDL_OutOfMemory();
         return NULL;
@@ -83,12 +83,14 @@ model *parse_obj(const char *path) {
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begin; // finished parsing element type; now will parse elem
     size_t n; // index for arrays (resets at start)
-    // PER ITEM
+    // PER ITEM AND MORE
     bool start = true; // start of new item (inside element)
     bool end; // if is last char of current item
     bool neg; // if number value (see below) is negative
     double value; // a number value (vertices, normals, etc.)
     int power = -1; // power for decimal numbers (might need to be size_t)
+    size_t j; // index value
+    size_t d; // an element inDex value (faces)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
             cont = false;
@@ -118,7 +120,7 @@ model *parse_obj(const char *path) {
         }
         if (!begin) { continue; } // will start parsing after beginning
         end = isempty(data[i + 1]) || cont; // check if is end
-        // Number Parsing
+        // Floating-point Number Parsing
         if (elem == VERTEX || elem == NORMAL || elem == UV) {
             if (start) {
                 value = 0;
@@ -173,8 +175,7 @@ model *parse_obj(const char *path) {
                 mdl->nnormals++;
                 if (mdl->nnormals >= mdl->cnormals) {
                     mdl->normals = SDL_realloc(
-                        mdl->normals,
-                        sizeof(vec3) * mdl->cnormals * ARR_FACTOR
+                        mdl->normals, sizeof(vec3) * mdl->cnormals * ARR_FACTOR
                     );
                     if (mdl->normals == NULL) {
                         SDL_OutOfMemory();
@@ -185,9 +186,80 @@ model *parse_obj(const char *path) {
             }
             n++;
         }
-        else if (elem == UV) {
+        else if (elem == UV && end) {
+            if (n == 0) {
+                mdl->uvs[mdl->nuvs].x = value;
+                mdl->uvs[mdl->nuvs].y = 0; // y is optional (default 0)
+                mdl->nuvs++; // y is optional, so incrementing here
+                if (mdl->nuvs >= mdl->cuvs) {
+                    mdl->uvs = SDL_realloc(
+                        mdl->uvs, sizeof(vec2) * mdl->cuvs * ARR_FACTOR
+                    );
+                    if (mdl->uvs == NULL) {
+                        SDL_OutOfMemory();
+                        return NULL;
+                    }
+                    mdl->cuvs *= ARR_FACTOR;
+                }
+            }
+            // -1 because nuvs was incremented
+            else if (n == 1) { mdl->uvs[mdl->nuvs - 1].y = value; }
+            n++;
         }
         else if (elem == FACE) {
+            if (start) {
+                j = 0;
+                d = 0;
+                mdl->faces[mdl->nfaces].uvs[n] = -1;
+                mdl->faces[mdl->nfaces].normals[n] = -1;
+                if (n == 0) { mdl->faces[mdl->nfaces].texture = NULL; }
+                start = false;
+            }
+            if (data[i] == '/') {
+                if (j == 0) { mdl->faces[mdl->nfaces].vertices[n] = d - 1; }
+                else if (j == 1) { mdl->faces[mdl->nfaces].uvs[n] = d - 1; }
+                j++; // only need to increment in this if statement
+                d = 0;
+                continue;
+            }
+            d = d * 10 + (data[i] - '0');
+            if (end) {
+                if (j == 0) { mdl->faces[mdl->nfaces].vertices[n] = d - 1; }
+                else if (j == 1) { mdl->faces[mdl->nfaces].uvs[n] = d - 1; }
+                else if (j == 2) {
+                    mdl->faces[mdl->nfaces].normals[n] = d - 1;
+                }
+                if (n == 2) {
+                    // repurposing j
+                    mdl->faces[mdl->nfaces].normal = (vec3) {0, 0, 0};
+                    j = 0;
+                    for (size_t k = 0; k < 3; k++) {
+                        if (mdl->faces[mdl->nfaces].normals[k] == -1) {
+                            continue;
+                        }
+                        vec3_add_ip(
+                            &mdl->faces[mdl->nfaces].normal,
+                            mdl->normals[mdl->faces[mdl->nfaces].normals[k]]
+                        );
+                        j++;
+                    }
+                    if (j) { vec3_div_ip(&mdl->faces[mdl->nfaces].normal, j); }
+                    else { mdl->faces[mdl->nfaces].normal = (vec3) {0, 0, 0}; }
+                    mdl->nfaces++;
+                    if (mdl->nfaces >= mdl->cfaces) {
+                        mdl->faces = SDL_realloc(
+                            mdl->faces,
+                            sizeof(face) * mdl->cfaces * ARR_FACTOR
+                        );
+                        if (mdl->faces == NULL) {
+                            SDL_OutOfMemory();
+                            return NULL;
+                        }
+                        mdl->cfaces *= ARR_FACTOR;
+                    }
+                }
+                n++;
+            }
         }
     }
     // FREE UP DATA AFTER PARSING

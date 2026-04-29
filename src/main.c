@@ -70,6 +70,30 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
             mdl->normals[i].z
         );
     }
+    for (size_t i = 0; i < mdl->nuvs; i++) {
+        SDL_Log(
+            "UV: vec2(%f, %f)",
+            mdl->uvs[i].x,
+            mdl->uvs[i].y
+        );
+    }
+    for (size_t i = 0; i < mdl->nfaces; i++) {
+        SDL_Log(
+            "FACE: %zu/%d/%d %zu/%d/%d %zu/%d/%d vec3(%f, %f, %f)",
+            mdl->faces[i].vertices[0] + 1,
+            mdl->faces[i].uvs[0] + 1,
+            mdl->faces[i].normals[0] + 1,
+            mdl->faces[i].vertices[1] + 1,
+            mdl->faces[i].uvs[1] + 1,
+            mdl->faces[i].normals[1] + 1,
+            mdl->faces[i].vertices[2] + 1,
+            mdl->faces[i].uvs[2] + 1,
+            mdl->faces[i].normals[2] + 1,
+            mdl->faces[i].normal.x,
+            mdl->faces[i].normal.y,
+            mdl->faces[i].normal.z
+        );
+    }
     destroy_model(mdl);
 
     return SDL_APP_CONTINUE;

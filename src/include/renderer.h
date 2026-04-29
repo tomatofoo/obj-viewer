@@ -7,19 +7,12 @@
 #include "utils.h"
 
 
-typedef struct uv {
-    vec2 v1;
-    vec2 v2;
-    vec2 v3;
-} uv;
-
 typedef struct face {
     // all are indices
-    size_t v1;
-    size_t v2;
-    size_t v3;
-    size_t normal;
-    size_t uv;
+    size_t vertices[3];
+    int uvs[3]; // int because need -1
+    int normals[3];
+    vec3 normal; // average of all normals
     SDL_Texture *texture;
 } face;
 
@@ -32,7 +25,7 @@ typedef struct model {
     vec3 *normals;
     size_t nuvs;
     size_t cuvs;
-    uv *uvs;
+    vec2 *uvs;
     size_t nfaces;
     size_t cfaces;
     face *faces;
