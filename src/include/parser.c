@@ -4,7 +4,7 @@
 #include "renderer.h"
 
 
-#define START_SIZE 8
+#define ARR_SIZE 8 // begninning array size for model
 
 
 typedef enum etype { // Element Types
@@ -42,7 +42,27 @@ model *parse_obj(const char *path) {
         SDL_OutOfMemory();
         return NULL;
     }
-    
+    mdl->vertices = SDL_malloc(sizeof(vec3));
+    if (mdl->vertices == NULL) {
+        SDL_OutOfMemory();
+        return NULL;
+    }
+    mdl->normals = SDL_malloc(sizeof(vec3));
+    if (mdl->normals == NULL) {
+        SDL_OutOfMemory();
+        return NULL;
+    }
+    mdl->textures = SDL_malloc(sizeof(texture));
+    if (mdl->textures == NULL) {
+        SDL_OutOfMemory();
+        return NULL;
+    }
+    mdl->faces = SDL_malloc(sizeof(face));
+    if (mdl->faces == NULL) {
+        SDL_OutOfMemory();
+        return NULL;
+    }
+
     // ACTUAL PARSING
     etype elem = NONE;
     bool begin; // finished parsing element type; now will parse elem
