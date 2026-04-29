@@ -103,9 +103,12 @@ model *parse_obj(const char *path) {
             begin = true;
             continue;
         }
+        if (data[i] == '#') { // comment
+            cont = true;
+            continue;
+        }
         if (elem == NONE) {
-            if (data[i] == '#') { cont = true; }
-            else if (streq_space(data + i, "g")) { cont = true; }
+            if (streq_space(data + i, "g")) { cont = true; }
             else if (streq_space(data + i, "o")) { cont = true; }
             else if (streq_space(data + i, "v")) { elem = VERTEX; }
             else if (streq_space(data + i, "vn")) { elem = NORMAL; }
@@ -163,7 +166,7 @@ model *parse_obj(const char *path) {
         else if (elem == NORMAL && end) {
             if (n == 0) { mdl->normals[mdl->nnormals].x = value; }
             else if (n == 1) { mdl->normals[mdl->nnormals].y = value; }
-            else {
+            else if (n == 2) {
                 mdl->normals[mdl->nnormals].z = value;
                 // .obj doesn't guarantee normalized
                 vec3_unit_ip(mdl->normals + mdl->nnormals);
