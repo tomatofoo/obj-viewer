@@ -138,35 +138,49 @@ model *parse_obj(const char *path) {
                 if (neg) { value = -value; }
             }
         }
-        if (elem == VERTEX) { // don't need to initialize item in array
-            if (end) {
-                if (n == 0) {
-                    mdl->vertices[mdl->nvertices].x = value;
-                }
-                else if (n == 1) {
-                    mdl->vertices[mdl->nvertices].y = value;
-                }
-                else if (n == 2) {
-                    mdl->vertices[mdl->nvertices].z = value;
-                    mdl->nvertices++;
-                    if (mdl->nvertices >= mdl->cvertices) {
-                        mdl->vertices = SDL_realloc(
-                            mdl->vertices, mdl->cvertices * ARR_FACTOR
-                        );
-                        if (mdl->vertices == NULL) {
-                            SDL_OutOfMemory();
-                            return NULL;
-                        }
-                        mdl->cvertices *= ARR_FACTOR;
+        if (elem == VERTEX && end) { // don't need to initialize item in array
+            if (n == 0) { mdl->vertices[mdl->nvertices].x = value; }
+            else if (n == 1) { mdl->vertices[mdl->nvertices].y = value; }
+            else if (n == 2) {
+                mdl->vertices[mdl->nvertices].z = value;
+                mdl->nvertices++;
+                if (mdl->nvertices >= mdl->cvertices) {
+                    mdl->vertices = SDL_realloc(
+                        mdl->vertices,
+                        sizeof(vec3) * mdl->cvertices * ARR_FACTOR
+                    );
+                    if (mdl->vertices == NULL) {
+                        SDL_OutOfMemory();
+                        return NULL;
                     }
+                    mdl->cvertices *= ARR_FACTOR;
                 }
-                else {
-                    vec3_div_ip(mdl->vertices + mdl->nvertices - 1, value);
-                }
-                n++;
             }
+            // w is scaling divisor
+            else { vec3_div_ip(mdl->vertices + mdl->nvertices - 1, value); }
+            n++;
         }
-        else if (elem == NORMAL) {
+        else if (elem == NORMAL && end) {
+            if (n == 0) { mdl->normals[mdl->nnormals].x = value; }
+            else if (n == 1) { mdl->normals[mdl->nnormals].y = value; }
+            else {
+                mdl->normals[mdl->nnormals].z = value;
+                // .obj doesn't guarantee normalized
+                vec3_unit_ip(mdl->normals + mdl->nnormals);
+                mdl->nnormals++;
+                if (mdl->nnormals >= mdl->cnormals) {
+                    mdl->normals = SDL_realloc(
+                        mdl->normals,
+                        sizeof(vec3) * mdl->cnormals * ARR_FACTOR
+                    );
+                    if (mdl->normals == NULL) {
+                        SDL_OutOfMemory();
+                        return NULL;
+                    }
+                    mdl->cnormals *= ARR_FACTOR;
+                }
+            }
+            n++;
         }
         else if (elem == TEXTURE) {
         }

@@ -54,6 +54,22 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     last = SDL_GetPerformanceCounter();
 
     model *mdl = parse_obj("data/crate.obj");
+    for (size_t i = 0; i < mdl->nvertices; i++) {
+        SDL_Log(
+            "VERTEX: vec3(%f, %f, %f)",
+            mdl->vertices[i].x,
+            mdl->vertices[i].y,
+            mdl->vertices[i].z
+        );
+    }
+    for (size_t i = 0; i < mdl->nnormals; i++) {
+        SDL_Log(
+            "NORMAL: vec3(%f, %f, %f)",
+            mdl->normals[i].x,
+            mdl->normals[i].y,
+            mdl->normals[i].z
+        );
+    }
     destroy_model(mdl);
 
     return SDL_APP_CONTINUE;
