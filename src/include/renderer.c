@@ -39,7 +39,7 @@ context *create_context(
         );
         return NULL;
     }
-    ctx->model = mdl;
+    ctx->mdl = mdl;
     ctx->pos = (vec3) {0, 0, 0};
     ctx->rot = (vec3) {0, 0, 0};
     ctx->renderer = renderer;
@@ -54,7 +54,7 @@ context *create_context(
 }
 
 void destroy_context(context *ctx) {
-    destroy_model(ctx->model);
+    destroy_model(ctx->mdl);
     SDL_DestroyTexture(ctx->texture);
     SDL_free(ctx);
 }

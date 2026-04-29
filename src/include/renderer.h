@@ -32,7 +32,7 @@ typedef struct model {
 } model;
 
 typedef struct context {
-    model *model;
+    model *mdl;
     vec3 pos;
     vec3 rot; // rot around x, y, z axes respectively
     SDL_Renderer *renderer;

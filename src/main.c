@@ -17,6 +17,7 @@
 #define FLAGS 0
 static SDL_Window *window;
 static SDL_Renderer *renderer;
+static context *ctx;
 static Uint64 last; // for timer
 
 static int clicking = -1;
@@ -52,8 +53,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     }
 
     last = SDL_GetPerformanceCounter();
-
-    model *mdl = parse_obj("data/crate.obj");
+    
+    ctx = create_context("data/crate.obj", renderer, WIDTH, HEIGHT);
+    model *mdl = ctx->mdl;
     for (size_t i = 0; i < mdl->nvertices; i++) {
         SDL_Log(
             "VERTEX: vec3(%f, %f, %f)",
@@ -94,7 +96,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
             mdl->faces[i].normal.z
         );
     }
-    destroy_model(mdl);
+    destroy_context(ctx);
 
     return SDL_APP_CONTINUE;
 }
@@ -189,9 +191,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_SetRenderDrawColor(renderer, BLACK, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
     
-    vertex2.x = SDL_sin(timer) * 120 + WIDTH / 2;
-    vertex3.x = SDL_cos(timer) * 120 + WIDTH / 2;
-    _render(vertex1, vertex2, vertex3);
+    // vertex2.x = SDL_sin(timer) * 120 + WIDTH / 2;
+    // vertex3.x = SDL_cos(timer) * 120 + WIDTH / 2;
+    // _render(vertex1, vertex2, vertex3);
+    render(ctx, NULL, NULL);
 
     SDL_RenderPresent(renderer);
 
