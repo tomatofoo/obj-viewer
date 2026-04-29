@@ -8,7 +8,11 @@
 void destroy_model(model *mdl) {
     SDL_free(mdl->vertices);
     SDL_free(mdl->normals);
-    SDL_free(mdl->textures);
+    SDL_free(mdl->uvs);
+    for (size_t i = 0; i < mdl->nfaces; i++) {
+        // texture expected to have a refcount
+        SDL_free(mdl->faces[i].texture);
+    }
     SDL_free(mdl->faces);
     SDL_free(mdl);
 }

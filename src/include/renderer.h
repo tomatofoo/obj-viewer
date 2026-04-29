@@ -47,6 +47,7 @@ typedef struct context {
 } context;
 
 
+void destroy_model(model *mdl);
 context *create_context(const char *path, SDL_Renderer *renderer, int w, int h);
 void destroy_context(context *ctx);
 

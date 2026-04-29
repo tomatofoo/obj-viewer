@@ -53,7 +53,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
 
-    parse_obj("data/crate.obj");
+    model *mdl = parse_obj("data/crate.obj");
+    destroy_model(mdl);
 
     return SDL_APP_CONTINUE;
 }

@@ -5,6 +5,7 @@
 
 
 #define ARR_SIZE 8 // begninning array size for model
+#define ARR_FACTOR 2 // factor when resizing
 
 
 typedef enum etype { // Element Types
@@ -16,67 +17,84 @@ typedef enum etype { // Element Types
 } etype;
 
 
+bool isnewline(const char c) {
+    return c == '\r' || c == '\n';
+}
+
+bool isempty(const char c) {
+    return !c || SDL_isspace(c) || isnewline(c);
+}
+
 bool streq_space(const char *str1, const char *str2) {
     while (*str1 == *str2) {
         str1++;
         str2++;
-        if ((SDL_isspace(*str1) || !*str1)
-            && (SDL_isspace(*str2) || !*str2)) {
-            return true;
-        }
+        if (isempty(*str1) && isempty(*str2)) { return true; }
     }
     return false;
 }
 
 
 model *parse_obj(const char *path) {
-    // PREAMBLE
     size_t datasize;
     char *data = SDL_LoadFile(path, &datasize);
     if (data == NULL) {
         SDL_SetError("Failed to load OBJ file: %s", SDL_GetError());
         return NULL;
     }
-    model *mdl = SDL_malloc(sizeof(mdl));
+    model *mdl = SDL_malloc(sizeof(model));
     if (mdl == NULL) {
         SDL_OutOfMemory();
         return NULL;
     }
-    mdl->vertices = SDL_malloc(sizeof(vec3));
+    // Using malloc instead of calloc because we have nvertices
+    // malloc is adequate and faster
+    mdl->nvertices = 0;
+    mdl->vertices = SDL_malloc(sizeof(vec3) * ARR_SIZE);
     if (mdl->vertices == NULL) {
         SDL_OutOfMemory();
         return NULL;
     }
-    mdl->normals = SDL_malloc(sizeof(vec3));
+    mdl->cvertices = ARR_SIZE;
+    mdl->nnormals = 0;
+    mdl->normals = SDL_malloc(sizeof(vec3) * ARR_SIZE);
     if (mdl->normals == NULL) {
         SDL_OutOfMemory();
         return NULL;
     }
-    mdl->textures = SDL_malloc(sizeof(texture));
-    if (mdl->textures == NULL) {
+    mdl->cnormals = ARR_SIZE;
+    mdl->nuvs = 0;
+    mdl->uvs = SDL_malloc(sizeof(uv) * ARR_SIZE);
+    if (mdl->uvs == NULL) {
         SDL_OutOfMemory();
         return NULL;
     }
-    mdl->faces = SDL_malloc(sizeof(face));
+    mdl->cuvs = ARR_SIZE;
+    mdl->nfaces = 0;
+    mdl->faces = SDL_malloc(sizeof(face) * ARR_SIZE);
     if (mdl->faces == NULL) {
         SDL_OutOfMemory();
         return NULL;
     }
+    mdl->cfaces = ARR_SIZE;
 
-    // ACTUAL PARSING
+    // PER ELEMENT
     etype elem = NONE;
-    bool begin; // finished parsing element type; now will parse elem
     bool cont = false; // continue (e.g. comment, group, etc.)
+    bool begin; // finished parsing element type; now will parse elem
+    size_t n; // index for arrays (resets at start)
+    // PER ITEM
     bool start = true; // start of new item (inside element)
     bool end; // if is last char of current item
     bool neg; // if number value (see below) is negative
     double value; // a number value (vertices, normals, etc.)
     int power = -1; // power for decimal numbers (might need to be size_t)
-    size_t n; // index for arrays
     for (size_t i = 0; i < datasize; i++) {
-        if (data[i] == '\r' || data[i] == '\n') {
-            elem = NONE;
+        if (isnewline(data[i])) {
             cont = false;
+            begin = false; // waits until next whitespace to be true
+            n = 0;
+            elem = NONE;
             start = true;
             continue;
         }
@@ -86,7 +104,6 @@ model *parse_obj(const char *path) {
             continue;
         }
         if (elem == NONE) {
-            begin = false; // ^ waits until next whitespace to be true
             if (data[i] == '#') { cont = true; }
             else if (streq_space(data + i, "g")) { cont = true; }
             else if (streq_space(data + i, "o")) { cont = true; }
@@ -97,10 +114,7 @@ model *parse_obj(const char *path) {
             continue;
         }
         if (!begin) { continue; } // will start parsing after beginning
-        end = ( // check if is end
-            data[i + 1] == '\r' || data[i + 1] == '\n'
-            || SDL_isspace(data[i + 1]) || cont
-        );
+        end = isempty(data[i + 1]) || cont; // check if is end
         // Number Parsing
         if (elem == VERTEX || elem == NORMAL || elem == TEXTURE) {
             if (start) {
@@ -124,8 +138,32 @@ model *parse_obj(const char *path) {
                 if (neg) { value = -value; }
             }
         }
-        if (elem == VERTEX) {
+        if (elem == VERTEX) { // don't need to initialize item in array
             if (end) {
+                if (n == 0) {
+                    mdl->vertices[mdl->nvertices].x = value;
+                }
+                else if (n == 1) {
+                    mdl->vertices[mdl->nvertices].y = value;
+                }
+                else if (n == 2) {
+                    mdl->vertices[mdl->nvertices].z = value;
+                    mdl->nvertices++;
+                    if (mdl->nvertices >= mdl->cvertices) {
+                        mdl->vertices = SDL_realloc(
+                            mdl->vertices, mdl->cvertices * ARR_FACTOR
+                        );
+                        if (mdl->vertices == NULL) {
+                            SDL_OutOfMemory();
+                            return NULL;
+                        }
+                        mdl->cvertices *= ARR_FACTOR;
+                    }
+                }
+                else {
+                    vec3_div_ip(mdl->vertices + mdl->nvertices - 1, value);
+                }
+                n++;
             }
         }
         else if (elem == NORMAL) {
