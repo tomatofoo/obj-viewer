@@ -12,7 +12,7 @@ typedef enum etype { // Element Types
     NONE,
     VERTEX,
     NORMAL,
-    TEXTURE,
+    UV,
     FACE,
 } etype;
 
@@ -109,14 +109,14 @@ model *parse_obj(const char *path) {
             else if (streq_space(data + i, "o")) { cont = true; }
             else if (streq_space(data + i, "v")) { elem = VERTEX; }
             else if (streq_space(data + i, "vn")) { elem = NORMAL; }
-            else if (streq_space(data + i, "vt")) { elem = TEXTURE; }
+            else if (streq_space(data + i, "vt")) { elem = UV; }
             else if (streq_space(data + i, "f")) { elem = FACE; }
             continue;
         }
         if (!begin) { continue; } // will start parsing after beginning
         end = isempty(data[i + 1]) || cont; // check if is end
         // Number Parsing
-        if (elem == VERTEX || elem == NORMAL || elem == TEXTURE) {
+        if (elem == VERTEX || elem == NORMAL || elem == UV) {
             if (start) {
                 value = 0;
                 neg = false;
@@ -182,7 +182,7 @@ model *parse_obj(const char *path) {
             }
             n++;
         }
-        else if (elem == TEXTURE) {
+        else if (elem == UV) {
         }
         else if (elem == FACE) {
         }
