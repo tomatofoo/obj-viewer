@@ -216,18 +216,32 @@ model *parse_obj(const char *path) {
                 start = false;
             }
             if (data[i] == '/') {
-                if (j == 0) { mdl->faces[mdl->nfaces].vertices[n] = d - 1; }
-                else if (j == 1) { mdl->faces[mdl->nfaces].uvs[n] = d - 1; }
+                if (j == 0) {
+                    d = d > 0 ? d - 1 : mdl->nvertices + d;
+                    mdl->faces[mdl->nfaces].vertices[n] = d;
+                }
+                else if (j == 1) {
+                    d = d > 0 ? d - 1 : mdl->nuvs + d;
+                    mdl->faces[mdl->nfaces].uvs[n] = d;
+                }
                 j++; // only need to increment in this if statement
                 d = 0;
                 continue;
             }
             d = d * 10 + (data[i] - '0');
             if (end) {
-                if (j == 0) { mdl->faces[mdl->nfaces].vertices[n] = d - 1; }
-                else if (j == 1) { mdl->faces[mdl->nfaces].uvs[n] = d - 1; }
+                // repeated; not sure if there is better way
+                if (j == 0) {
+                    d = d > 0 ? d - 1 : mdl->nvertices + d;
+                    mdl->faces[mdl->nfaces].vertices[n] = d;
+                }
+                else if (j == 1) {
+                    d = d > 0 ? d - 1 : mdl->nuvs + d;
+                    mdl->faces[mdl->nfaces].uvs[n] = d;
+                }
                 else if (j == 2) {
-                    mdl->faces[mdl->nfaces].normals[n] = d - 1;
+                    d = d > 0 ? d - 1 : mdl->nnormals + d;
+                    mdl->faces[mdl->nfaces].normals[n] = d;
                 }
                 if (n == 2) {
                     // repurposing j
