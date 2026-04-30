@@ -18,13 +18,38 @@
 #define GAMESPEED 1 // game speed
 static SDL_Window *window;
 static SDL_Renderer *renderer;
-static context *ctx;
+static context *ctx = NULL;
 static Uint64 last; // for timer
 
 static int clicking = -1;
 static vec2 vertex1 = (vec2) {WIDTH / 2, 120};
 static vec2 vertex2 = (vec2) {WIDTH * 0.75, HEIGHT - 120};
 static vec2 vertex3 = (vec2) {WIDTH / 4, HEIGHT - 120};
+
+
+bool load_file(const char *path) {
+    context *new = create_context(path, renderer, WIDTH, HEIGHT);
+    if (new == NULL) {
+        SDL_SetError(
+            "Failed to create context: %s",
+            SDL_GetError()
+        );
+        return false;
+    }
+    if (!SDL_SetTextureScaleMode(new->texture, SDL_SCALEMODE_NEAREST)) {
+        destroy_context(new);
+        SDL_SetError(
+            "Failed to set texture scale mode: %s",
+            SDL_GetError()
+        );
+        return false;
+    }
+
+    if (ctx != NULL) { destroy_context(ctx); }
+    ctx = new;
+
+    return true;
+}
 
 
 // APP FUNCTIONS
@@ -55,59 +80,14 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
     
-    ctx = create_context("data/armadillo.obj", renderer, WIDTH, HEIGHT);
-    if (ctx == NULL) {
+    if (!load_file("data/cow.obj")) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
-            "Failed to create context: %s",
+            "Failed to load file: %s",
             SDL_GetError()
         );
         return SDL_APP_FAILURE;
     }
-    SDL_SetTextureScaleMode(ctx->texture, SDL_SCALEMODE_NEAREST);
-    /*
-    model *mdl = ctx->mdl;
-    for (size_t i = 0; i < mdl->nvertices; i++) {
-        SDL_Log(
-            "VERTEX: vec3(%f, %f, %f)",
-            mdl->vertices[i].x,
-            mdl->vertices[i].y,
-            mdl->vertices[i].z
-        );
-    }
-    for (size_t i = 0; i < mdl->nnormals; i++) {
-        SDL_Log(
-            "NORMAL: vec3(%f, %f, %f)",
-            mdl->normals[i].x,
-            mdl->normals[i].y,
-            mdl->normals[i].z
-        );
-    }
-    for (size_t i = 0; i < mdl->nuvs; i++) {
-        SDL_Log(
-            "UV: vec2(%f, %f)",
-            mdl->uvs[i].x,
-            mdl->uvs[i].y
-        );
-    }
-    for (size_t i = 0; i < mdl->nfaces; i++) {
-        SDL_Log(
-            "FACE: %zu/%d/%d %zu/%d/%d %zu/%d/%d vec3(%f, %f, %f)",
-            mdl->faces[i].vertices[0] + 1,
-            mdl->faces[i].uvs[0] + 1,
-            mdl->faces[i].normals[0] + 1,
-            mdl->faces[i].vertices[1] + 1,
-            mdl->faces[i].uvs[1] + 1,
-            mdl->faces[i].normals[1] + 1,
-            mdl->faces[i].vertices[2] + 1,
-            mdl->faces[i].uvs[2] + 1,
-            mdl->faces[i].normals[2] + 1,
-            mdl->faces[i].normal.x,
-            mdl->faces[i].normal.y,
-            mdl->faces[i].normal.z
-        );
-    }
-    */
 
     return SDL_APP_CONTINUE;
 }
@@ -117,34 +97,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         case SDL_EVENT_QUIT:
             return SDL_APP_SUCCESS;
             break;
-        case SDL_EVENT_MOUSE_BUTTON_DOWN:
-            if (hypot(event->button.x - vertex1.x, event->button.y - vertex1.y) < 10) {
-                clicking = 0;
-            }
-            else if (hypot(event->button.x - vertex2.x, event->button.y - vertex2.y) < 10) {
-                clicking = 1;
-            }
-            else if (hypot(event->button.x - vertex3.x, event->button.y - vertex3.y) < 10) {
-                clicking = 2;
-            }
-            break;
-        case SDL_EVENT_MOUSE_BUTTON_UP:
-            clicking = -1;
-            break;
-        case SDL_EVENT_MOUSE_MOTION:
-            if (clicking == 0) {
-                vertex1.x += event->motion.xrel;
-                vertex1.y += event->motion.yrel;
-            }
-            if (clicking == 1) {
-                vertex2.x += event->motion.xrel;
-                vertex2.y += event->motion.yrel;
-            }
-
-            if (clicking == 2) {
-                vertex3.x += event->motion.xrel;
-                vertex3.y += event->motion.yrel;
-            }
+        case SDL_EVENT_DROP_FILE:
+            load_file(event->drop.data);
             break;
     }
     
@@ -205,7 +159,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     const bool *keys = SDL_GetKeyboardState(NULL);
 
     double speed = 1;
-    if (keys[SDL_SCANCODE_RSHIFT]) { speed = 20; }
+    if (keys[SDL_SCANCODE_RSHIFT]) { speed = 40; }
 
     ctx->rot.x += (keys[SDL_SCANCODE_DOWN] - keys[SDL_SCANCODE_UP]) * dt;
     ctx->rot.y += (keys[SDL_SCANCODE_RIGHT] - keys[SDL_SCANCODE_LEFT]) * dt;

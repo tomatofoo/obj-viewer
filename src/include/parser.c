@@ -44,6 +44,7 @@ model *parse_obj(const char *path) {
     }
     model *mdl = SDL_malloc(sizeof(model));
     if (mdl == NULL) {
+        SDL_free(data);
         SDL_OutOfMemory();
         return NULL;
     }
@@ -52,6 +53,8 @@ model *parse_obj(const char *path) {
     mdl->nvertices = 0;
     mdl->vertices = SDL_malloc(sizeof(vec3) * ARR_SIZE);
     if (mdl->vertices == NULL) {
+        SDL_free(data);
+        SDL_free(mdl);
         SDL_OutOfMemory();
         return NULL;
     }
@@ -59,6 +62,9 @@ model *parse_obj(const char *path) {
     mdl->nnormals = 0;
     mdl->normals = SDL_malloc(sizeof(vec3) * ARR_SIZE);
     if (mdl->normals == NULL) {
+        SDL_free(data);
+        SDL_free(mdl);
+        SDL_free(mdl->vertices);
         SDL_OutOfMemory();
         return NULL;
     }
@@ -66,6 +72,10 @@ model *parse_obj(const char *path) {
     mdl->nuvs = 0;
     mdl->uvs = SDL_malloc(sizeof(vec2) * ARR_SIZE);
     if (mdl->uvs == NULL) {
+        SDL_free(data);
+        SDL_free(mdl);
+        SDL_free(mdl->vertices);
+        SDL_free(mdl->normals);
         SDL_OutOfMemory();
         return NULL;
     }
@@ -73,6 +83,11 @@ model *parse_obj(const char *path) {
     mdl->nfaces = 0;
     mdl->faces = SDL_malloc(sizeof(face) * ARR_SIZE);
     if (mdl->faces == NULL) {
+        SDL_free(data);
+        SDL_free(mdl);
+        SDL_free(mdl->vertices);
+        SDL_free(mdl->normals);
+        SDL_free(mdl->faces);
         SDL_OutOfMemory();
         return NULL;
     }
