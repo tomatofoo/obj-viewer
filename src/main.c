@@ -12,8 +12,8 @@
 #define APPNAME "OBJ Viewer"
 #define APPVERSION "0.1.0"
 #define APPIDENTIFIER "com.tomatofu.obj-viewer"
-#define WIDTH 640 
-#define HEIGHT 480
+#define WIDTH 1280
+#define HEIGHT 960
 #define FLAGS 0
 #define GAMESPEED 1 // game speed
 static SDL_Window *window;
