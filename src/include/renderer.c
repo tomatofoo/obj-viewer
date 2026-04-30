@@ -128,16 +128,26 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     double z;
     double mult;
     for (size_t i = 0; i < mdl->nfaces; i++) {
+        // Culling
+        if (ctx->proj[mdl->faces[i].vertices[0]].z < 0) { continue; }
+        if (ctx->proj[mdl->faces[i].vertices[1]].z < 0) { continue; }
+        if (ctx->proj[mdl->faces[i].vertices[2]].z < 0) { continue; }
         rel = vec3_sub(mdl->vertices[mdl->faces[i].vertices[0]], ctx->pos);
         mult = vec3_dot(rel, mdl->faces[i].normal);
-        if (mult > 0) { continue; } // backface culling
+        if (mult > 0) { continue; } // Backface culling
+
+        // Lighting 
         if (ctx->brightness == -1) { mult = -mult / vec3_mag(rel); }
         else { mult = SDL_min(-mult / vec3_mag_sq(rel) * ctx->brightness, 1); }
-        z = ( // calculate depth for depth buffer (no faces overlapping)
+
+        // Calculate depth for z buffer (assumes no faces overlapping)
+        z = (
             ctx->proj[mdl->faces[i].vertices[0]].z
             + ctx->proj[mdl->faces[i].vertices[1]].z
             + ctx->proj[mdl->faces[i].vertices[2]].z
-        ) / 3; 
+        ) / 3;
+
+        // Get triangle bounds
         xmin = ctx->texture->w;
         xmax = 0;
         ymin = ctx->texture->h;
@@ -157,7 +167,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 ymax = SDL_min(points[j].y, ctx->texture->h);
             }
         }
-        
+
         // Half-space triangle checking
         // https://sw-shader.sourceforge.net/rasterizer.html
         // ^ use wayback machine
@@ -180,7 +190,6 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 - (ydiff[j] > 0 || (ydiff[j] == 0 && xdiff[j] < 0))
             );
         }
-        
         for (int y = ymin; y < ymax; y++) {
             int xexp[] = {yexp[0], yexp[1], yexp[2]};
             for (int x = xmin; x < xmax; x++) {

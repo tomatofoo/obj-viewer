@@ -12,8 +12,8 @@
 #define APPNAME "OBJ Viewer"
 #define APPVERSION "0.1.0"
 #define APPIDENTIFIER "com.tomatofu.obj-viewer"
-#define WIDTH 640
-#define HEIGHT 480
+#define WIDTH 640 * 4
+#define HEIGHT 480 * 4
 #define FLAGS 0
 #define GAMESPEED 1 // game speed
 static SDL_Window *window;
@@ -55,7 +55,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
     
-    ctx = create_context("data/teapot.obj", renderer, WIDTH, HEIGHT);
+    ctx = create_context("data/stanford_bunny.obj", renderer, WIDTH, HEIGHT);
     if (ctx == NULL) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
