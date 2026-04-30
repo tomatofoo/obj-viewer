@@ -15,6 +15,7 @@
 #define WIDTH 640
 #define HEIGHT 480
 #define FLAGS 0
+#define GAMESPEED 1 // game speed
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static context *ctx;
@@ -35,7 +36,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
-            "Failed to initialize SDL: %s\n",
+            "Failed to initialize SDL: %s",
             SDL_GetError()
         );
         return SDL_APP_FAILURE;
@@ -46,7 +47,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     )) {
         SDL_LogError(
             SDL_LOG_CATEGORY_VIDEO,
-            "Failed to create window and renderer: %s\n",
+            "Failed to create window and renderer: %s",
             SDL_GetError()
         );
         return SDL_APP_FAILURE;
@@ -54,7 +55,14 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
     
-    ctx = create_context("data/crate.obj", renderer, WIDTH, HEIGHT);
+    ctx = create_context("data/sitting_dummy.obj", renderer, WIDTH, HEIGHT);
+    if (ctx == NULL) {
+        SDL_LogError(
+            SDL_LOG_CATEGORY_ERROR,
+            "Failed to create context: %s",
+            SDL_GetError()
+        );
+    }
     model *mdl = ctx->mdl;
     for (size_t i = 0; i < mdl->nvertices; i++) {
         SDL_Log(
@@ -96,45 +104,46 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
             mdl->faces[i].normal.z
         );
     }
-    destroy_context(ctx);
 
     return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
-    if (event->type == SDL_EVENT_QUIT) {
-        return SDL_APP_SUCCESS;
-    }
-    else if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-        if (hypot(event->button.x - vertex1.x, event->button.y - vertex1.y) < 10) {
-            clicking = 0;
-        }
-        else if (hypot(event->button.x - vertex2.x, event->button.y - vertex2.y) < 10) {
-            clicking = 1;
-        }
-        else if (hypot(event->button.x - vertex3.x, event->button.y - vertex3.y) < 10) {
-            clicking = 2;
-        }
-    }
-    else if (event->type == SDL_EVENT_MOUSE_BUTTON_UP) {
-        clicking = -1;
-    }
-    else if (event->type == SDL_EVENT_MOUSE_MOTION) {
-        if (clicking == 0) {
-            vertex1.x += event->motion.xrel;
-            vertex1.y += event->motion.yrel;
-        }
-        if (clicking == 1) {
-            vertex2.x += event->motion.xrel;
-            vertex2.y += event->motion.yrel;
-        }
+    switch (event->type) {
+        case SDL_EVENT_QUIT:
+            return SDL_APP_SUCCESS;
+            break;
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+            if (hypot(event->button.x - vertex1.x, event->button.y - vertex1.y) < 10) {
+                clicking = 0;
+            }
+            else if (hypot(event->button.x - vertex2.x, event->button.y - vertex2.y) < 10) {
+                clicking = 1;
+            }
+            else if (hypot(event->button.x - vertex3.x, event->button.y - vertex3.y) < 10) {
+                clicking = 2;
+            }
+            break;
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+            clicking = -1;
+            break;
+        case SDL_EVENT_MOUSE_MOTION:
+            if (clicking == 0) {
+                vertex1.x += event->motion.xrel;
+                vertex1.y += event->motion.yrel;
+            }
+            if (clicking == 1) {
+                vertex2.x += event->motion.xrel;
+                vertex2.y += event->motion.yrel;
+            }
 
-        if (clicking == 2) {
-            vertex3.x += event->motion.xrel;
-            vertex3.y += event->motion.yrel;
-        }
+            if (clicking == 2) {
+                vertex3.x += event->motion.xrel;
+                vertex3.y += event->motion.yrel;
+            }
+            break;
     }
-
+    
     return SDL_APP_CONTINUE;
 }
 
@@ -183,25 +192,37 @@ void _render(vec2 v1, vec2 v2, vec2 v3) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
     // DELTA TIME
     double now = SDL_GetPerformanceCounter();
-    double timer = now / (double) SDL_GetPerformanceFrequency();
-    double dt = (now - last) / (double) SDL_GetPerformanceFrequency();
+    double freq = SDL_GetPerformanceFrequency();
+    double timer = now / freq;
+    double dt = (now - last) / freq * GAMESPEED;
     last = now;
+    
+    // UPDATE
+    const bool *keys = SDL_GetKeyboardState(NULL);
+    ctx->rot.x += (keys[SDL_SCANCODE_DOWN] - keys[SDL_SCANCODE_UP]) * dt;
+    ctx->rot.y += (keys[SDL_SCANCODE_RIGHT] - keys[SDL_SCANCODE_LEFT]) * dt;
+    vec3 mvt = (vec3) {
+        keys[SDL_SCANCODE_D] - keys[SDL_SCANCODE_A],
+        keys[SDL_SCANCODE_SPACE] - keys[SDL_SCANCODE_LSHIFT],
+        keys[SDL_SCANCODE_W] - keys[SDL_SCANCODE_S]
+    };
+    vec3_rot_y_ip(&mvt, ctx->rot.y);
+    ctx->pos.x += mvt.x * dt;
+    ctx->pos.y += mvt.y * dt;
+    ctx->pos.z += mvt.z * dt;
 
     // RENDER
-    SDL_SetRenderDrawColor(renderer, BLACK, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(renderer);
-    
     // vertex2.x = SDL_sin(timer) * 120 + WIDTH / 2;
     // vertex3.x = SDL_cos(timer) * 120 + WIDTH / 2;
     // _render(vertex1, vertex2, vertex3);
     render(ctx, NULL, NULL);
-
     SDL_RenderPresent(renderer);
 
     return SDL_APP_CONTINUE;
 }
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+    destroy_context(ctx);
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_Quit();

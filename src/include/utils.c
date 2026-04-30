@@ -121,8 +121,10 @@ vec2 vec2_rot(vec2 vec, double angle) {
 void vec2_rot_ip(vec2 *vec, double angle) {
     double cosine = SDL_cos(angle);
     double sine = SDL_sin(angle);
-    vec->x = vec->x * cosine - vec->y * sine;
-    vec->y = vec->x * sine + vec->y * cosine;
+    double x = vec->x;
+    double y = vec->y;
+    vec->x = x * cosine - y * sine;
+    vec->y = x * sine + y * cosine;
 }
 
 vec2 vec2_rot_deg(vec2 vec, double angle) {
@@ -312,8 +314,10 @@ vec3 vec3_rot_x(vec3 vec, double angle) {
 void vec3_rot_x_ip(vec3 *vec, double angle) {
     double cosine = SDL_cos(angle);
     double sine = SDL_sin(angle);
-    vec->y = vec->y * cosine - vec->z * sine;
-    vec->z = vec->y * sine + vec->z * cosine;
+    double y = vec->y;
+    double z = vec->z;
+    vec->y = y * cosine - z * sine;
+    vec->z = y * sine + z * cosine;
 }
 
 vec3 vec3_rot_x_deg(vec3 vec, double angle) {
@@ -335,8 +339,10 @@ vec3 vec3_rot_y(vec3 vec, double angle) {
 void vec3_rot_y_ip(vec3 *vec, double angle) {
     double cosine = SDL_cos(angle);
     double sine = SDL_sin(angle);
-    vec->x = vec->x * cosine + vec->z * sine;
-    vec->z = -vec->x * sine + vec->z * cosine;
+    double x = vec->x;
+    double z = vec->z;
+    vec->x = x * cosine + z * sine;
+    vec->z = -x * sine + z * cosine;
 }
 
 vec3 vec3_rot_y_deg(vec3 vec, double angle) {
@@ -358,8 +364,10 @@ vec3 vec3_rot_z(vec3 vec, double angle) {
 void vec3_rot_z_ip(vec3 *vec, double angle) {
     double cosine = SDL_cos(angle);
     double sine = SDL_sin(angle);
-    vec->x = vec->x * cosine - vec->y * sine;
-    vec->y = vec->x * sine + vec->y * cosine;
+    double x = vec->x;
+    double y = vec->y;
+    vec->x = x * cosine - y * sine;
+    vec->y = x * sine + y * cosine;
 }
 
 vec3 vec3_rot_z_deg(vec3 vec, double angle) {
@@ -408,5 +416,10 @@ double vec3_angle_to(vec3 term1, vec3 term2) {
 
 double hypot(double x, double y) {
     return SDL_sqrt(x * x + y * y);
+}
+
+bool inrange(double x, double l, double h, bool incl, bool inch) {
+    if (incl ? x < l : x <= l) { return false; }
+    return inch ? x <= h : x < h;
 }
 

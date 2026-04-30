@@ -31,8 +31,16 @@ typedef struct model {
     face *faces;
 } model;
 
+typedef struct pixel {
+    int x;
+    int y;
+    double z;
+} pixel;
+
 typedef struct context {
     model *mdl;
+    pixel *proj; // projected vertices in last frame (also includes depth as z)
+    double flength; // focal length
     vec3 pos;
     vec3 rot; // rot around x, y, z axes respectively
     SDL_Renderer *renderer;
@@ -44,7 +52,7 @@ void destroy_model(model *mdl);
 context *create_context(const char *path, SDL_Renderer *renderer, int w, int h);
 void destroy_context(context *ctx);
 
-void render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect);
+bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect);
 
 #endif
 

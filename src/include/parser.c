@@ -82,7 +82,7 @@ model *parse_obj(const char *path) {
     etype elem = NONE;
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begin; // finished parsing element type; now will parse elem
-    size_t n; // index for arrays (resets at start)
+    size_t n = 0; // index for arrays (resets at start)
     // PER ITEM AND MORE
     bool start = true; // start of new item (inside element)
     bool end; // if is last char of current item
