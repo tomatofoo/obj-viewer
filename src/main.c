@@ -55,7 +55,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
     
-    ctx = create_context("data/homer.obj", renderer, WIDTH, HEIGHT);
+    ctx = create_context("data/teapot.obj", renderer, WIDTH, HEIGHT);
     if (ctx == NULL) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,

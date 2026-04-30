@@ -5,6 +5,9 @@
 #include "utils.h"
 
 
+#define ZBUF_RES 10000
+
+
 void destroy_model(model *mdl) {
     SDL_free(mdl->vertices);
     SDL_free(mdl->normals);
@@ -46,6 +49,13 @@ context *create_context(
         );
         return NULL;
     }
+    ctx->zbuf = SDL_malloc(sizeof(uint32_t) * w * h);
+    if (ctx->zbuf == NULL) {
+        SDL_SetError(
+            "Failed allocate memory for z-buffer: %s", SDL_GetError()
+        );
+        return NULL;
+    }
     ctx->pos = (vec3) {0, 0, 0};
     ctx->rot = (vec3) {0, 0, 0};
     ctx->flength = w / 2;
@@ -67,6 +77,8 @@ context *create_context(
 
 void destroy_context(context *ctx) {
     destroy_model(ctx->mdl);
+    SDL_free(ctx->proj);
+    SDL_free(ctx->zbuf);
     SDL_DestroyTexture(ctx->texture);
     SDL_free(ctx);
 }
@@ -80,9 +92,14 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         return false;
     }
 
-    // Clear Texture
+    // Clear Texture and z-buffer
     SDL_memset(pixels, 0, ctx->texture->h * pitch);
-    
+    SDL_memset(
+        ctx->zbuf,
+        SDL_MAX_UINT32,
+        sizeof(uint32_t) * ctx->texture->w * ctx->texture->h
+    );
+
     // Actual Rendering
     model *mdl = ctx->mdl;
     vec3 rel;
@@ -102,17 +119,13 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         };
     }
 
-    vec3 forward = (vec3) {0, 0, 1};
-    vec3_rot_x_ip(&forward, ctx->rot.x);
-    vec3_rot_y_ip(&forward, ctx->rot.y);
-    vec3_rot_z_ip(&forward, ctx->rot.z);
-
     int xmin;
     int xmax;
     int ymin;
     int ymax;
     point points[3];
     size_t n;
+    double z;
     double mult;
     for (size_t i = 0; i < mdl->nfaces; i++) {
         rel = vec3_sub(mdl->vertices[mdl->faces[i].vertices[0]], ctx->pos);
@@ -120,6 +133,11 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         if (mult > 0) { continue; } // backface culling
         if (ctx->brightness == -1) { mult = -mult / vec3_mag(rel); }
         else { mult = SDL_min(-mult / vec3_mag_sq(rel) * ctx->brightness, 1); }
+        z = ( // calculate depth for depth buffer (no faces overlapping)
+            ctx->proj[mdl->faces[i].vertices[0]].z
+            + ctx->proj[mdl->faces[i].vertices[1]].z
+            + ctx->proj[mdl->faces[i].vertices[2]].z
+        ) / 3; 
         xmin = ctx->texture->w;
         xmax = 0;
         ymin = ctx->texture->h;
@@ -155,26 +173,30 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         };
         // Expressions that get added to/subtracted from
         int yexp[3];
-        for (size_t i = 0; i < 3; i++) {
-            yexp[i] = (
-                xdiff[i] * (ymin - points[i].y)
-                - ydiff[i] * (xmin - points[i].x)
-                - (ydiff[i] > 0 || (ydiff[i] == 0 && xdiff[i] < 0))
+        for (size_t j = 0; j < 3; j++) {
+            yexp[j] = (
+                xdiff[j] * (ymin - points[j].y)
+                - ydiff[j] * (xmin - points[j].x)
+                - (ydiff[j] > 0 || (ydiff[j] == 0 && xdiff[j] < 0))
             );
         }
-
+        
         for (int y = ymin; y < ymax; y++) {
             int xexp[] = {yexp[0], yexp[1], yexp[2]};
             for (int x = xmin; x < xmax; x++) {
                 if (xexp[0] < 0 && xexp[1] < 0 && xexp[2] < 0) {
+                    n = y * ctx->texture->w + x;
+                    if (z * ZBUF_RES >= ctx->zbuf[n]) { continue; }
+                    ctx->zbuf[n] = (uint32_t) (z * ZBUF_RES);
+
                     n = y * pitch + x * 3;
                     pixels[n + 0] = 255 * mult;
                     pixels[n + 1] = 255 * mult;
                     pixels[n + 2] = 255 * mult;
                 }
-                for (size_t i = 0; i < 3; i++) { xexp[i] -= ydiff[i]; }
+                for (size_t j = 0; j < 3; j++) { xexp[j] -= ydiff[j]; }
             }
-            for (size_t i = 0; i < 3; i++) { yexp[i] += xdiff[i]; }
+            for (size_t j = 0; j < 3; j++) { yexp[j] += xdiff[j]; }
         }
     }
 
