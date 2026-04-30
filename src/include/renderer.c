@@ -37,6 +37,7 @@ context *create_context(
     // stacking error messages to help tracing
     ctx->mdl = parse_obj(path);
     if (ctx->mdl == NULL) {
+        SDL_free(ctx);
         SDL_SetError(
             "Failed to parse OBJ file for context: %s", SDL_GetError()
         );
@@ -44,6 +45,8 @@ context *create_context(
     }
     ctx->proj = SDL_malloc(sizeof(vec3) * ctx->mdl->cvertices);
     if (ctx->proj == NULL) {
+        destroy_model(ctx->mdl);
+        SDL_free(ctx);
         SDL_SetError(
             "Failed allocate memory for projected points: %s", SDL_GetError()
         );
@@ -51,6 +54,9 @@ context *create_context(
     }
     ctx->zbuf = SDL_malloc(sizeof(uint32_t) * w * h);
     if (ctx->zbuf == NULL) {
+        destroy_model(ctx->mdl);
+        SDL_free(ctx->proj);
+        SDL_free(ctx);
         SDL_SetError(
             "Failed allocate memory for z-buffer: %s", SDL_GetError()
         );
@@ -67,7 +73,11 @@ context *create_context(
         SDL_TEXTUREACCESS_STREAMING,
         w, h
     );
-    if (ctx->texture == NULL) { 
+    if (ctx->texture == NULL) {
+        destroy_model(ctx->mdl);
+        SDL_free(ctx->proj);
+        SDL_free(ctx->zbuf);
+        SDL_free(ctx);
         SDL_SetError("Failed to create texture: %s", SDL_GetError());
         return NULL;
     }
