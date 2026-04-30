@@ -159,13 +159,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     const bool *keys = SDL_GetKeyboardState(NULL);
 
     double speed = 1;
-    if (keys[SDL_SCANCODE_RSHIFT]) { speed = 40; }
+    if (keys[SDL_SCANCODE_LSHIFT]) { speed = 40; }
 
     ctx->rot.x += (keys[SDL_SCANCODE_DOWN] - keys[SDL_SCANCODE_UP]) * dt;
     ctx->rot.y += (keys[SDL_SCANCODE_RIGHT] - keys[SDL_SCANCODE_LEFT]) * dt;
     vec3 mvt = (vec3) {
         keys[SDL_SCANCODE_D] - keys[SDL_SCANCODE_A],
-        keys[SDL_SCANCODE_SPACE] - keys[SDL_SCANCODE_LSHIFT],
+        keys[SDL_SCANCODE_SPACE] - keys[SDL_SCANCODE_TAB],
         keys[SDL_SCANCODE_W] - keys[SDL_SCANCODE_S]
     };
     vec3_rot_y_ip(&mvt, ctx->rot.y);
