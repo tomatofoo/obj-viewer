@@ -199,8 +199,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     double dt = (now - last) / freq * GAMESPEED;
     last = now;
 
-    SDL_Log("FPS: %f", 1 / dt / GAMESPEED);
-    
     // UPDATE
     const bool *keys = SDL_GetKeyboardState(NULL);
     ctx->rot.x += (keys[SDL_SCANCODE_DOWN] - keys[SDL_SCANCODE_UP]) * dt;

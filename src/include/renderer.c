@@ -113,6 +113,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     point points[3];
     size_t n;
     for (size_t i = 0; i < mdl->nfaces; i++) {
+        if (vec3_dot(forward, mdl->faces[i].normal) > 0) { continue; }
         xmin = ctx->texture->w;
         xmax = 0;
         ymin = ctx->texture->h;
