@@ -217,11 +217,11 @@ model *parse_obj(const char *path) {
             }
             if (data[i] == '/') {
                 if (j == 0) {
-                    d = d > 0 ? d - 1 : mdl->nvertices + d;
+                    d = d >= 0 ? d - 1 : mdl->nvertices + d;
                     mdl->faces[mdl->nfaces].vertices[n] = d;
                 }
                 else if (j == 1) {
-                    d = d > 0 ? d - 1 : mdl->nuvs + d;
+                    d = d >= 0 ? d - 1 : mdl->nuvs + d;
                     mdl->faces[mdl->nfaces].uvs[n] = d;
                 }
                 j++; // only need to increment in this if statement
@@ -232,15 +232,15 @@ model *parse_obj(const char *path) {
             if (end) {
                 // repeated; not sure if there is better way
                 if (j == 0) {
-                    d = d > 0 ? d - 1 : mdl->nvertices + d;
+                    d = d >= 0 ? d - 1 : mdl->nvertices + d;
                     mdl->faces[mdl->nfaces].vertices[n] = d;
                 }
                 else if (j == 1) {
-                    d = d > 0 ? d - 1 : mdl->nuvs + d;
+                    d = d >= 0 ? d - 1 : mdl->nuvs + d;
                     mdl->faces[mdl->nfaces].uvs[n] = d;
                 }
                 else if (j == 2) {
-                    d = d > 0 ? d - 1 : mdl->nnormals + d;
+                    d = d >= 0 ? d - 1 : mdl->nnormals + d;
                     mdl->faces[mdl->nfaces].normals[n] = d;
                 }
                 if (n == 2) {

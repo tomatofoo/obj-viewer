@@ -91,24 +91,82 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         vec3_rot_x_ip(&rel, -ctx->rot.x);
         vec3_rot_z_ip(&rel, -ctx->rot.z);
         if (rel.z <= 0) {
-            ctx->proj[i] = (pixel) {-1, -1, -1};
+            ctx->proj[i] = (point) {0, 0, -1};
             continue;
         }
-        ctx->proj[i] = (pixel) {
+        ctx->proj[i] = (point) {
             rel.x / rel.z * ctx->flength + ctx->texture->w / 2,
             -rel.y / rel.z * ctx->flength + ctx->texture->h / 2,
             rel.z,
         };
     }
-    
-    size_t j;
-    for (size_t i = 0; i < mdl->nvertices; i++) {
-        if (inrange(ctx->proj[i].x, 0, ctx->texture->w, true, false)
-            && inrange(ctx->proj[i].y, 0, ctx->texture->h, true, false)) {
-            j = ctx->proj[i].y * pitch + ctx->proj[i].x * 3;
-            pixels[j + 0] = 255;
-            pixels[j + 1] = 255;
-            pixels[j + 2] = 255;
+
+    vec3 forward = (vec3) {0, 0, 1};
+    vec3_rot_x_ip(&forward, ctx->rot.x);
+    vec3_rot_y_ip(&forward, ctx->rot.y);
+    vec3_rot_z_ip(&forward, ctx->rot.z);
+
+    int xmin;
+    int xmax;
+    int ymin;
+    int ymax;
+    point points[3];
+    size_t n;
+    for (size_t i = 0; i < mdl->nfaces; i++) {
+        xmin = ctx->texture->w;
+        xmax = 0;
+        ymin = ctx->texture->h;
+        ymax = 0;
+        for (size_t j = 0; j < 3; j++) {
+            points[j] = ctx->proj[mdl->faces[i].vertices[j]];
+            if (points[j].x < xmin) {
+                xmin = SDL_max(points[j].x, 0);
+            }
+            if (points[j].x > xmax) {
+                xmax = SDL_min(points[j].x, ctx->texture->w);
+            }
+            if (points[j].y < ymin) {
+                ymin = SDL_max(points[j].y, 0);
+            }
+            if (points[j].y > ymax) {
+                ymax = SDL_min(points[j].y, ctx->texture->h);
+            }
+        }
+        
+        // Half-space triangle checking
+        // https://sw-shader.sourceforge.net/rasterizer.html
+        // ^ use wayback machine
+        int xdiff[] = {
+            points[0].x - points[1].x,
+            points[1].x - points[2].x,
+            points[2].x - points[0].x
+        };
+        int ydiff[] = {
+            points[0].y - points[1].y,
+            points[1].y - points[2].y,
+            points[2].y - points[0].y
+        };
+        // Expressions that get added to/subtracted from
+        int yexp[3];
+        for (size_t i = 0; i < 3; i++) {
+            yexp[i] = (
+                xdiff[i] * (ymin - points[i].y)
+                - ydiff[i] * (xmin - points[i].x)
+                + (ydiff[i] < 0 || (ydiff[i] == 0 && xdiff[i] > 0))
+            );
+        }
+        for (int y = ymin; y < ymax; y++) {
+            int xexp[] = {yexp[0], yexp[1], yexp[2]};
+            for (int x = xmin; x < xmax; x++) {
+                if (xexp[0] > 0 && xexp[1] > 0 && xexp[2] > 0) {
+                    n = y * pitch + x * 3;
+                    pixels[n + 0] = 255;
+                    pixels[n + 1] = 255;
+                    pixels[n + 2] = 255;
+                }
+                for (size_t i = 0; i < 3; i++) { xexp[i] -= ydiff[i]; }
+            }
+            for (size_t i = 0; i < 3; i++) { yexp[i] += xdiff[i]; }
         }
     }
 

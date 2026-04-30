@@ -55,14 +55,16 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
     
-    ctx = create_context("data/sitting_dummy.obj", renderer, WIDTH, HEIGHT);
+    ctx = create_context("data/lowpoly_toy_car.obj", renderer, WIDTH, HEIGHT);
     if (ctx == NULL) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
             "Failed to create context: %s",
             SDL_GetError()
         );
+        return SDL_APP_FAILURE;
     }
+    SDL_SetTextureScaleMode(ctx->texture, SDL_SCALEMODE_NEAREST);
     model *mdl = ctx->mdl;
     for (size_t i = 0; i < mdl->nvertices; i++) {
         SDL_Log(
@@ -196,6 +198,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     double timer = now / freq;
     double dt = (now - last) / freq * GAMESPEED;
     last = now;
+
+    SDL_Log("FPS: %f", 1 / dt / GAMESPEED);
     
     // UPDATE
     const bool *keys = SDL_GetKeyboardState(NULL);
@@ -215,7 +219,14 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     // vertex2.x = SDL_sin(timer) * 120 + WIDTH / 2;
     // vertex3.x = SDL_cos(timer) * 120 + WIDTH / 2;
     // _render(vertex1, vertex2, vertex3);
-    render(ctx, NULL, NULL);
+    if (!render(ctx, NULL, NULL)) {
+        SDL_LogError(
+            SDL_LOG_CATEGORY_ERROR,
+            "Failed to render context: %s",
+            SDL_GetError()
+        );
+        return SDL_APP_FAILURE;
+    }
     SDL_RenderPresent(renderer);
 
     return SDL_APP_CONTINUE;

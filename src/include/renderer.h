@@ -31,15 +31,15 @@ typedef struct model {
     face *faces;
 } model;
 
-typedef struct pixel {
+typedef struct point {
     int x;
     int y;
     double z;
-} pixel;
+} point;
 
 typedef struct context {
     model *mdl;
-    pixel *proj; // projected vertices in last frame (also includes depth as z)
+    point *proj; // projected vertices in last frame (also includes depth as z)
     double flength; // focal length
     vec3 pos;
     vec3 rot; // rot around x, y, z axes respectively
