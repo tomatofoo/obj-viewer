@@ -258,7 +258,20 @@ model *parse_obj(const char *path) {
                         j++;
                     }
                     if (j) { vec3_div_ip(&mdl->faces[mdl->nfaces].normal, j); }
-                    else { mdl->faces[mdl->nfaces].normal = (vec3) {0, 0, 0}; }
+                    else { // calculate normal vector using cross product
+                        vec3 term1 = vec3_sub(
+                            mdl->vertices[mdl->faces[mdl->nfaces].vertices[1]],
+                            mdl->vertices[mdl->faces[mdl->nfaces].vertices[0]]
+                        );
+                        vec3 term2 = vec3_sub(
+                            mdl->vertices[mdl->faces[mdl->nfaces].vertices[2]],
+                            mdl->vertices[mdl->faces[mdl->nfaces].vertices[1]]
+                        );
+                        mdl->faces[mdl->nfaces].normal = vec3_cross(
+                            term1, term2
+                        );
+                    }
+                    vec3_unit_ip(&mdl->faces[mdl->nfaces].normal); // normalize
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
                         mdl->faces = SDL_realloc(

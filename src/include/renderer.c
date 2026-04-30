@@ -46,9 +46,10 @@ context *create_context(
         );
         return NULL;
     }
-    ctx->flength = w / 2;
     ctx->pos = (vec3) {0, 0, 0};
     ctx->rot = (vec3) {0, 0, 0};
+    ctx->flength = w / 2;
+    ctx->brightness = -1;
     ctx->renderer = renderer;
     ctx->texture = SDL_CreateTexture(
         renderer,
@@ -112,8 +113,13 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     int ymax;
     point points[3];
     size_t n;
+    double mult;
     for (size_t i = 0; i < mdl->nfaces; i++) {
-        if (vec3_dot(forward, mdl->faces[i].normal) > 0) { continue; }
+        rel = vec3_sub(mdl->vertices[mdl->faces[i].vertices[0]], ctx->pos);
+        mult = vec3_dot(rel, mdl->faces[i].normal);
+        if (mult > 0) { continue; } // backface culling
+        if (ctx->brightness == -1) { mult = -mult / vec3_mag(rel); }
+        else { mult = SDL_min(-mult / vec3_mag_sq(rel) * ctx->brightness, 1); }
         xmin = ctx->texture->w;
         xmax = 0;
         ymin = ctx->texture->h;
@@ -153,17 +159,18 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             yexp[i] = (
                 xdiff[i] * (ymin - points[i].y)
                 - ydiff[i] * (xmin - points[i].x)
-                + (ydiff[i] < 0 || (ydiff[i] == 0 && xdiff[i] > 0))
+                - (ydiff[i] > 0 || (ydiff[i] == 0 && xdiff[i] < 0))
             );
         }
+
         for (int y = ymin; y < ymax; y++) {
             int xexp[] = {yexp[0], yexp[1], yexp[2]};
             for (int x = xmin; x < xmax; x++) {
-                if (xexp[0] > 0 && xexp[1] > 0 && xexp[2] > 0) {
+                if (xexp[0] < 0 && xexp[1] < 0 && xexp[2] < 0) {
                     n = y * pitch + x * 3;
-                    pixels[n + 0] = 255;
-                    pixels[n + 1] = 255;
-                    pixels[n + 2] = 255;
+                    pixels[n + 0] = 255 * mult;
+                    pixels[n + 1] = 255 * mult;
+                    pixels[n + 2] = 255 * mult;
                 }
                 for (size_t i = 0; i < 3; i++) { xexp[i] -= ydiff[i]; }
             }

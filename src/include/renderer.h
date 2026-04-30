@@ -39,10 +39,12 @@ typedef struct point {
 
 typedef struct context {
     model *mdl;
-    point *proj; // projected vertices in last frame (also includes depth as z)
-    double flength; // focal length
     vec3 pos;
     vec3 rot; // rot around x, y, z axes respectively
+    point *proj; // projected vertices in last frame (also includes depth as z)
+    float *zbuf; // depth buffer
+    double flength; // focal length
+    double brightness;
     SDL_Renderer *renderer;
     SDL_Texture *texture;
 } context;
