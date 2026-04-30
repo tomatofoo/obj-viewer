@@ -132,7 +132,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         if (ctx->proj[mdl->faces[i].vertices[0]].z < 0) { continue; }
         if (ctx->proj[mdl->faces[i].vertices[1]].z < 0) { continue; }
         if (ctx->proj[mdl->faces[i].vertices[2]].z < 0) { continue; }
-        rel = vec3_sub(mdl->vertices[mdl->faces[i].vertices[0]], ctx->pos);
+        rel = vec3_sub(mdl->faces[i].centroid, ctx->pos);
         mult = vec3_dot(rel, mdl->faces[i].normal);
         if (mult > 0) { continue; } // Backface culling
 

@@ -244,6 +244,12 @@ model *parse_obj(const char *path) {
                     mdl->faces[mdl->nfaces].normals[n] = d;
                 }
                 if (n == 2) {
+                    mdl->faces[mdl->nfaces].centroid = vec3_add(vec3_add(
+                        mdl->vertices[mdl->faces[mdl->nfaces].vertices[0]],
+                        mdl->vertices[mdl->faces[mdl->nfaces].vertices[1]]),
+                        mdl->vertices[mdl->faces[mdl->nfaces].vertices[2]]
+                    );
+                    vec3_div_ip(&mdl->faces[mdl->nfaces].centroid, 3);
                     // repurposing j
                     mdl->faces[mdl->nfaces].normal = (vec3) {0, 0, 0};
                     j = 0;

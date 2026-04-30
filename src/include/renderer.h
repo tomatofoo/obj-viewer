@@ -10,6 +10,7 @@
 typedef struct face {
     // all are indices
     size_t vertices[3];
+    vec3 centroid;
     int uvs[3]; // int because need -1
     int normals[3];
     vec3 normal; // average of all normals

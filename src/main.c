@@ -12,8 +12,8 @@
 #define APPNAME "OBJ Viewer"
 #define APPVERSION "0.1.0"
 #define APPIDENTIFIER "com.tomatofu.obj-viewer"
-#define WIDTH 640 * 4
-#define HEIGHT 480 * 4
+#define WIDTH 640 
+#define HEIGHT 480
 #define FLAGS 0
 #define GAMESPEED 1 // game speed
 static SDL_Window *window;
@@ -55,7 +55,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
     
-    ctx = create_context("data/stanford_bunny.obj", renderer, WIDTH, HEIGHT);
+    ctx = create_context("data/armadillo.obj", renderer, WIDTH, HEIGHT);
     if (ctx == NULL) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
@@ -65,6 +65,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         return SDL_APP_FAILURE;
     }
     SDL_SetTextureScaleMode(ctx->texture, SDL_SCALEMODE_NEAREST);
+    /*
     model *mdl = ctx->mdl;
     for (size_t i = 0; i < mdl->nvertices; i++) {
         SDL_Log(
@@ -106,6 +107,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
             mdl->faces[i].normal.z
         );
     }
+    */
 
     return SDL_APP_CONTINUE;
 }
@@ -201,6 +203,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     // UPDATE
     const bool *keys = SDL_GetKeyboardState(NULL);
+
+    double speed = 1;
+    if (keys[SDL_SCANCODE_RSHIFT]) { speed = 20; }
+
     ctx->rot.x += (keys[SDL_SCANCODE_DOWN] - keys[SDL_SCANCODE_UP]) * dt;
     ctx->rot.y += (keys[SDL_SCANCODE_RIGHT] - keys[SDL_SCANCODE_LEFT]) * dt;
     vec3 mvt = (vec3) {
@@ -209,9 +215,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         keys[SDL_SCANCODE_W] - keys[SDL_SCANCODE_S]
     };
     vec3_rot_y_ip(&mvt, ctx->rot.y);
-    ctx->pos.x += mvt.x * dt;
-    ctx->pos.y += mvt.y * dt;
-    ctx->pos.z += mvt.z * dt;
+    ctx->pos.x += mvt.x * speed * dt;
+    ctx->pos.y += mvt.y * speed * dt;
+    ctx->pos.z += mvt.z * speed * dt;
 
     // RENDER
     // vertex2.x = SDL_sin(timer) * 120 + WIDTH / 2;
