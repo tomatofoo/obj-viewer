@@ -80,7 +80,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
     
-    if (!load_file("data/cow.obj")) {
+    if (!load_file("data/lucy.obj")) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
             "Failed to load file: %s",
@@ -174,9 +174,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     ctx->pos.z += mvt.z * speed * dt;
 
     // RENDER
-    // vertex2.x = SDL_sin(timer) * 120 + WIDTH / 2;
-    // vertex3.x = SDL_cos(timer) * 120 + WIDTH / 2;
-    // _render(vertex1, vertex2, vertex3);
     if (!render(ctx, NULL, NULL)) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,

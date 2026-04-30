@@ -102,8 +102,10 @@ model *parse_obj(const char *path) {
     bool start = true; // start of new item (inside element)
     bool end; // if is last char of current item
     bool neg; // if number value (see below) is negative
-    double value; // a number value (vertices, normals, etc.)
+    uint32_t whole; // whole part of value
+    uint64_t decimal; // decmial part of value (not power)
     int power = -1; // power for decimal numbers (might need to be size_t)
+    double value; // a number value (vertices, normals, etc.)
     size_t j; // index value
     size_t d; // an element inDex value (faces)
     for (size_t i = 0; i < datasize; i++) {
@@ -138,9 +140,11 @@ model *parse_obj(const char *path) {
         // Floating-point Number Parsing
         if (elem == VERTEX || elem == NORMAL || elem == UV) {
             if (start) {
+                whole = 0;
+                decimal = 0;
+                power = -1;
                 value = 0;
                 neg = false;
-                power = -1;
                 start = false;
                 if (data[i] == '-') {
                     neg = true;
@@ -151,10 +155,14 @@ model *parse_obj(const char *path) {
                 power = 0;
                 continue;
             }
-            if (power > -1) { power++; }
-            value = value * 10 + (data[i] - '0');
+            // This supports some pretty good precision
+            if (power > -1 && decimal < (SDL_MAX_UINT64 - 10) / 10) {
+                power++;
+                decimal = decimal * 10 + (data[i] - '0');
+            }
+            else { whole = whole * 10 + (data[i] - '0'); }
             if (end) {
-                value /= SDL_pow(10, power);
+                value = whole + decimal / SDL_pow(10, power);
                 if (neg) { value = -value; }
             }
         }
