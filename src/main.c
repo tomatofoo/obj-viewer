@@ -88,7 +88,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
     
-    if (!load_file("data/crate.obj")) {
+    if (!load_file("data/toy.obj")) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
             "Failed to load file: %s",

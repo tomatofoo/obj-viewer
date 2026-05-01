@@ -170,9 +170,9 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     int ymin;
     int ymax;
     point points[3];
-    size_t n;
     double z;
     double mult;
+    size_t n;
     for (size_t i = 0; i < mdl->nfaces; i++) {
         // Culling
         if (ctx->proj[mdl->faces[i].vertices[0]].z < 0) { continue; }
@@ -191,7 +191,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             ctx->proj[mdl->faces[i].vertices[0]].z
             + ctx->proj[mdl->faces[i].vertices[1]].z
             + ctx->proj[mdl->faces[i].vertices[2]].z
-        ) / 3;
+        ) / 3.0;
 
         // Get triangle bounds
         xmin = ctx->texture->w;
@@ -208,7 +208,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
 
         // Half-space triangle checking
         // https://sw-shader.sourceforge.net/rasterizer.html
-        // ^ use wayback machine
+        // ^ use Wayback Machine
         // assumes counter-clockwise vertex order
         int xdiff[] = {
             points[1].x - points[0].x,
@@ -220,7 +220,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             points[2].y - points[1].y,
             points[0].y - points[2].y
         };
-        // Expressions that get added to/subtracted from
+        // Expressions that get added to/subtracted fromA
         int yexp[3];
         for (size_t j = 0; j < 3; j++) {
             yexp[j] = (
@@ -234,13 +234,14 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             for (int x = xmin; x < xmax; x++) {
                 if (xexp[0] > 0 && xexp[1] > 0 && xexp[2] > 0) {
                     n = y * ctx->texture->w + x;
-                    if (z * ZBUF_RES >= ctx->zbuf[n]) { continue; }
-                    ctx->zbuf[n] = (uint32_t) (z * ZBUF_RES);
-                    
-                    n = y * pitch + x * 3;
-                    pixels[n + 0] = 255 * mult;
-                    pixels[n + 1] = 255 * mult;
-                    pixels[n + 2] = 255 * mult;
+                    // not using continue because it will not do subtraction
+                    if (z * ZBUFF_RES < ctx->zbuf[n]) {
+                        ctx->zbuf[n] = (uint32_t) (z * ZBUF_RES);
+                        n = y * pitch + x * 3;
+                        pixels[n + 0] = 255 * mult;
+                        pixels[n + 1] = 255 * mult;
+                        pixels[n + 2] = 255 * mult;
+                    }
                 }
                 for (size_t j = 0; j < 3; j++) { xexp[j] -= ydiff[j]; }
             }
