@@ -232,10 +232,11 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         for (int y = ymin; y < ymax; y++) {
             int xexp[] = {yexp[0], yexp[1], yexp[2]};
             for (int x = xmin; x < xmax; x++) {
+                // half-space check
                 if (xexp[0] > 0 && xexp[1] > 0 && xexp[2] > 0) {
                     n = y * ctx->texture->w + x;
                     // not using continue because it will not do subtraction
-                    if (z * ZBUFF_RES < ctx->zbuf[n]) {
+                    if (z * ZBUF_RES < ctx->zbuf[n]) {
                         ctx->zbuf[n] = (uint32_t) (z * ZBUF_RES);
                         n = y * pitch + x * 3;
                         pixels[n + 0] = 255 * mult;
