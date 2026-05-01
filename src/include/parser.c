@@ -104,7 +104,9 @@ model *parse_obj(const char *path) {
     bool neg; // if number value (see below) is negative
     uint32_t whole; // whole part of value
     uint64_t decimal; // decmial part of value (not power)
-    int power = -1; // power for decimal numbers (might need to be size_t)
+    int dpower = -1; // power for decimal numbers
+    bool eneg; // if epower is negative
+    int epower = -1; // general power (for vertices with e in them)
     double value; // a number value (vertices, normals, etc.)
     size_t j; // index value
     size_t d; // an element inDex value (faces)
@@ -140,11 +142,12 @@ model *parse_obj(const char *path) {
         // Floating-point Number Parsing
         if (elem == VERTEX || elem == NORMAL || elem == UV) {
             if (start) {
+                neg = false;
                 whole = 0;
                 decimal = 0;
-                power = -1;
+                dpower = -1;
+                epower = -1;
                 value = 0;
-                neg = false;
                 start = false;
                 if (data[i] == '-') {
                     neg = true;
@@ -152,17 +155,32 @@ model *parse_obj(const char *path) {
                 }
             }
             if (data[i] == '.') {
-                power = 0;
+                dpower = 0;
                 continue;
             }
-            // This supports some pretty good precision
-            if (power > -1 && decimal < (SDL_MAX_UINT64 - 10) / 10) {
-                power++;
-                decimal = decimal * 10 + (data[i] - '0');
+            if (data[i] == 'e') {
+                eneg = false;
+                epower = 0;
+                continue;
             }
-            else { whole = whole * 10 + (data[i] - '0'); }
+            if (epower > -1) {
+                if (data[i] == '-') {
+                    eneg = true;
+                    continue;
+                }
+                epower = epower * 10 + (data[i] - '0');
+            }
+            else {
+                // This supports some pretty good precision
+                if (dpower > -1 && decimal < (SDL_MAX_UINT64 - 10) / 10) {
+                    dpower++;
+                    decimal = decimal * 10 + (data[i] - '0');
+                }
+                else { whole = whole * 10 + (data[i] - '0'); }
+            }
             if (end) {
-                value = whole + decimal / SDL_pow(10, power);
+                value = whole + decimal / SDL_pow(10, dpower);
+                if (epower > -1) { value *= SDL_pow(10, epower); }
                 if (neg) { value = -value; }
             }
         }
@@ -286,8 +304,8 @@ model *parse_obj(const char *path) {
                         );
                         j++;
                     }
-                    if (j) { vec3_div_ip(&mdl->faces[mdl->nfaces].normal, j); }
-                    else { // calculate normal vector using cross product
+                    // ^ don't need to divide by j because normalizing anyway
+                    if (j == 0) { // calculate normal vector using cross product
                         vec3 term1 = vec3_sub(
                             mdl->vertices[mdl->faces[mdl->nfaces].vertices[1]],
                             mdl->vertices[mdl->faces[mdl->nfaces].vertices[0]]
