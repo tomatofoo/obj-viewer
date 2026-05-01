@@ -9,6 +9,7 @@
 
 
 void destroy_model(model *mdl) {
+    if (mdl == NULL) { return; }
     SDL_free(mdl->vertices);
     SDL_free(mdl->normals);
     SDL_free(mdl->uvs);
@@ -86,6 +87,7 @@ context *create_context(
 }
 
 void destroy_context(context *ctx) {
+    if (ctx == NULL) { return; }
     destroy_model(ctx->mdl);
     SDL_free(ctx->proj);
     SDL_free(ctx->zbuf);
@@ -207,7 +209,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     n = y * ctx->texture->w + x;
                     if (z * ZBUF_RES >= ctx->zbuf[n]) { continue; }
                     ctx->zbuf[n] = (uint32_t) (z * ZBUF_RES);
-
+                    
                     n = y * pitch + x * 3;
                     pixels[n + 0] = 255 * mult;
                     pixels[n + 1] = 255 * mult;

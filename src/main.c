@@ -12,8 +12,8 @@
 #define APPNAME "OBJ Viewer"
 #define APPVERSION "0.1.0"
 #define APPIDENTIFIER "com.tomatofu.obj-viewer"
-#define WIDTH 640 * 2
-#define HEIGHT 480 * 2
+#define WIDTH 640
+#define HEIGHT 480
 #define FLAGS 0
 #define GAMESPEED 1 // game speed
 static SDL_Window *window;
@@ -80,7 +80,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
     
-    if (!load_file("data/lucy.obj")) {
+    if (!load_file("data/crate.obj")) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
             "Failed to load file: %s",
