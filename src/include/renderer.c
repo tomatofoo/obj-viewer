@@ -21,6 +21,40 @@ void destroy_model(model *mdl) {
     SDL_free(mdl);
 }
 
+bool normalize_model(model *mdl) {
+    if (mdl == NULL) {
+        SDL_SetError("Model cannot be NULL.");
+        return false;
+    }
+    
+    double largest = 0;
+    for (size_t i = 0; i < mdl->nvertices; i++) {
+        largest = SDL_max(vec3_mag(mdl->vertices[i]), largest);
+    }
+    if (largest == 0) { return true; }
+    for (size_t i = 0; i < mdl->nvertices; i++) {
+        vec3_div_ip(mdl->vertices + i, largest);
+    }
+    for (size_t i = 0; i < mdl->nfaces; i++) {
+        vec3_div_ip(&mdl->faces[i].centroid, largest);
+    }
+
+    return true;
+}
+
+bool scale_model(model *mdl, double scale) {
+    if (mdl == NULL) {
+        SDL_SetError("Model cannot be NULL.");
+        return false;
+    }
+    
+    for (size_t i; i < mdl->nvertices; i++) {
+        vec3_mul_ip(mdl->vertices + i, scale);
+    }
+
+    return true;
+}
+
 
 context *create_context(
     const char *path,

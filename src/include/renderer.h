@@ -52,6 +52,9 @@ typedef struct context {
 
 
 void destroy_model(model *mdl);
+bool normalize_model(model *mdl);
+bool scale_model(model *mdl, double scale);
+
 context *create_context(const char *path, SDL_Renderer *renderer, int w, int h);
 void destroy_context(context *ctx);
 

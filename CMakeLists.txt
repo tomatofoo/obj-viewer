@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 4.3)
 project("OBJ Viewer")
 
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE, "Debug")
+endif()
+
+set(CMAKE_C_FLAGS "")
+set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS_RELEASE "-O3")
+
 option(VENDORED "Use vendored libraries" OFF)
 if(VENDORED)
     add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)

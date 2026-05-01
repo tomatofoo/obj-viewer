@@ -44,6 +44,14 @@ bool load_file(const char *path) {
         );
         return false;
     }
+    if (!normalize_model(new->mdl)) {
+        destroy_context(new);
+        SDL_SetError(
+            "Failed to normalize model: %s",
+            SDL_GetError()
+        );
+        return false;
+    }
 
     if (ctx != NULL) { destroy_context(ctx); }
     ctx = new;
@@ -157,21 +165,26 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     // UPDATE
     const bool *keys = SDL_GetKeyboardState(NULL);
-
-    double speed = 1;
-    if (keys[SDL_SCANCODE_TAB]) { speed = 80; }
-
-    ctx->rot.x += (keys[SDL_SCANCODE_DOWN] - keys[SDL_SCANCODE_UP]) * dt;
-    ctx->rot.y += (keys[SDL_SCANCODE_RIGHT] - keys[SDL_SCANCODE_LEFT]) * dt;
+    
+    double rspeed = 1.2;
+    double mspeed = 0.9;
+    vec3 rot = (vec3) {
+        keys[SDL_SCANCODE_DOWN] - keys[SDL_SCANCODE_UP],
+        keys[SDL_SCANCODE_RIGHT] - keys[SDL_SCANCODE_LEFT],
+        0
+    };
+    ctx->rot.x += rot.x * rspeed * dt;
+    ctx->rot.y += rot.y * rspeed * dt;
+    ctx->rot.z += rot.z * rspeed * dt;
     vec3 mvt = (vec3) {
         keys[SDL_SCANCODE_D] - keys[SDL_SCANCODE_A],
         keys[SDL_SCANCODE_SPACE] - keys[SDL_SCANCODE_LSHIFT],
         keys[SDL_SCANCODE_W] - keys[SDL_SCANCODE_S]
     };
     vec3_rot_y_ip(&mvt, ctx->rot.y);
-    ctx->pos.x += mvt.x * speed * dt;
-    ctx->pos.y += mvt.y * speed * dt;
-    ctx->pos.z += mvt.z * speed * dt;
+    ctx->pos.x += mvt.x * mspeed * dt;
+    ctx->pos.y += mvt.y * mspeed * dt;
+    ctx->pos.z += mvt.z * mspeed * dt;
 
     // RENDER
     if (!render(ctx, NULL, NULL)) {
