@@ -175,15 +175,16 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         // Half-space triangle checking
         // https://sw-shader.sourceforge.net/rasterizer.html
         // ^ use wayback machine
+        // assumes counter-clockwise vertex order
         int xdiff[] = {
-            points[0].x - points[1].x,
-            points[1].x - points[2].x,
-            points[2].x - points[0].x
+            points[1].x - points[0].x,
+            points[2].x - points[1].x,
+            points[0].x - points[2].x
         };
         int ydiff[] = {
-            points[0].y - points[1].y,
-            points[1].y - points[2].y,
-            points[2].y - points[0].y
+            points[1].y - points[0].y,
+            points[2].y - points[1].y,
+            points[0].y - points[2].y
         };
         // Expressions that get added to/subtracted from
         int yexp[3];
@@ -191,13 +192,13 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             yexp[j] = (
                 xdiff[j] * (ymin - points[j].y)
                 - ydiff[j] * (xmin - points[j].x)
-                - (ydiff[j] > 0 || (ydiff[j] == 0 && xdiff[j] < 0))
+                + (ydiff[j] < 0 || (ydiff[j] == 0 && xdiff[j] > 0))
             );
         }
         for (int y = ymin; y < ymax; y++) {
             int xexp[] = {yexp[0], yexp[1], yexp[2]};
             for (int x = xmin; x < xmax; x++) {
-                if (xexp[0] < 0 && xexp[1] < 0 && xexp[2] < 0) {
+                if (xexp[0] > 0 && xexp[1] > 0 && xexp[2] > 0) {
                     n = y * ctx->texture->w + x;
                     if (z * ZBUF_RES >= ctx->zbuf[n]) { continue; }
                     ctx->zbuf[n] = (uint32_t) (z * ZBUF_RES);
