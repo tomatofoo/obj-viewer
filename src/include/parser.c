@@ -171,10 +171,12 @@ model *parse_obj(const char *path) {
                 epower = epower * 10 + (data[i] - '0');
             }
             else {
-                // This supports some pretty good precision
-                if (dpower > -1 && decimal < (SDL_MAX_UINT64 - 10) / 10) {
-                    dpower++;
-                    decimal = decimal * 10 + (data[i] - '0');
+                if (dpower > -1) {
+                    // This supports some pretty good precision
+                    if (decimal < (SDL_MAX_UINT64 - 10) / 10) {
+                        dpower++;
+                        decimal = decimal * 10 + (data[i] - '0');
+                    }
                 }
                 else { whole = whole * 10 + (data[i] - '0'); }
             }
