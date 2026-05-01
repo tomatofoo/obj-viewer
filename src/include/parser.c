@@ -147,7 +147,7 @@ model *parse_obj(const char *path) {
                 decimal = 0;
                 dpower = -1;
                 epower = -1;
-                value = 0;
+                value = 0.0;
                 start = false;
                 if (data[i] == '-') {
                     neg = true;
@@ -158,7 +158,7 @@ model *parse_obj(const char *path) {
                 dpower = 0;
                 continue;
             }
-            if (data[i] == 'e') {
+            if (data[i] == 'e' || data[i] == 'E') {
                 eneg = false;
                 epower = 0;
                 continue;
@@ -182,7 +182,10 @@ model *parse_obj(const char *path) {
             }
             if (end) {
                 value = whole + decimal / SDL_pow(10, dpower);
-                if (epower > -1) { value *= SDL_pow(10, epower); }
+                if (epower > -1) {
+                    if (eneg) { epower = -epower; }
+                    value *= SDL_pow(10, epower);
+                }
                 if (neg) { value = -value; }
             }
         }

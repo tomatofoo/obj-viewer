@@ -166,18 +166,10 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         ymax = 0;
         for (size_t j = 0; j < 3; j++) {
             points[j] = ctx->proj[mdl->faces[i].vertices[j]];
-            if (points[j].x < xmin) {
-                xmin = SDL_max(points[j].x, 0);
-            }
-            if (points[j].x > xmax) {
-                xmax = SDL_min(points[j].x, ctx->texture->w);
-            }
-            if (points[j].y < ymin) {
-                ymin = SDL_max(points[j].y, 0);
-            }
-            if (points[j].y > ymax) {
-                ymax = SDL_min(points[j].y, ctx->texture->h);
-            }
+            xmin = SDL_min(SDL_max(points[j].x, 0), xmin);
+            xmax = SDL_max(SDL_min(points[j].x, ctx->texture->w), xmax);
+            ymin = SDL_min(SDL_max(points[j].y, 0), ymin);
+            ymax = SDL_max(SDL_min(points[j].y, ctx->texture->h), ymax);
         }
 
         // Half-space triangle checking
