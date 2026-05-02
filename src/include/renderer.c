@@ -13,10 +13,10 @@ void destroy_model(model *mdl) {
     SDL_free(mdl->vertices);
     SDL_free(mdl->normals);
     SDL_free(mdl->uvs);
-    for (size_t i = 0; i < mdl->nfaces; i++) {
-        // texture expected to have a refcount
-        SDL_free(mdl->faces[i].texture);
+    for (size_t i = 0; i < mdl->nmats; i++) {
+        SDL_DestroySurface(mdl->mats[i].texture);
     }
+    SDL_free(mdl->mats);
     SDL_free(mdl->faces);
     SDL_free(mdl);
 }
@@ -50,6 +50,9 @@ bool scale_model(model *mdl, double scale) {
     
     for (size_t i; i < mdl->nvertices; i++) {
         vec3_mul_ip(mdl->vertices + i, scale);
+    }
+    for (size_t i = 0; i < mdl->nfaces; i++) {
+        vec3_mul_ip(&mdl->faces[i].centroid, scale);
     }
 
     return true;
@@ -220,7 +223,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             points[2].y - points[1].y,
             points[0].y - points[2].y
         };
-        // Expressions that get added to/subtracted fromA
+        // Expressions that get added to/subtracted from
         int yexp[3];
         for (size_t j = 0; j < 3; j++) {
             yexp[j] = (

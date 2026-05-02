@@ -98,6 +98,7 @@ model *parse_obj(const char *path) {
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begin; // finished parsing element type; now will parse elem
     size_t n = 0; // index for arrays (resets at start)
+    int mat = -1; // material index for faces
     // PER ITEM AND MORE
     bool start = true; // start of new item (inside element)
     bool end; // if is last char of current item
@@ -258,7 +259,6 @@ model *parse_obj(const char *path) {
                 d = 0;
                 mdl->faces[mdl->nfaces].uvs[n] = -1;
                 mdl->faces[mdl->nfaces].normals[n] = -1;
-                if (n == 0) { mdl->faces[mdl->nfaces].texture = NULL; }
                 start = false;
             }
             if (data[i] == '/') {
@@ -324,6 +324,7 @@ model *parse_obj(const char *path) {
                         );
                     }
                     vec3_unit_ip(&mdl->faces[mdl->nfaces].normal); // normalize
+                    mdl->faces[mdl->nfaces].mat = mat;
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
                         mdl->faces = SDL_realloc(

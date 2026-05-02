@@ -7,6 +7,13 @@
 #include "utils.h"
 
 
+typedef struct material {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    SDL_Surface *texture;
+} material;
+
 typedef struct face {
     // all are indices
     size_t vertices[3];
@@ -14,7 +21,7 @@ typedef struct face {
     int uvs[3]; // int because need -1
     int normals[3];
     vec3 normal; // average of all normals
-    SDL_Texture *texture;
+    int mat; // -1 means none
 } face;
 
 typedef struct model {
@@ -30,6 +37,9 @@ typedef struct model {
     size_t nfaces;
     size_t cfaces;
     face *faces;
+    size_t nmats;
+    size_t cmats;
+    material *mats;
 } model;
 
 typedef struct point {
