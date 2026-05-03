@@ -253,11 +253,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         );
         return SDL_APP_FAILURE;
     }
-    if (!render_text(
-        "Loading...",
-        textures + 1,
-        rects + 1
-    )) {
+    if (!render_text("Loading...", textures + 1, rects + 1)) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,
             "Failed to render text: %s",
