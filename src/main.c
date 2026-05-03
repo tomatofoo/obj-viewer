@@ -37,6 +37,9 @@ static SDL_Renderer *renderer;
 static context *ctx = NULL;
 static Uint64 last; // for timer
 
+static bool save_scrshot_failed; // separate because of threads
+static bool drop_file_failed;
+
 static const SDL_DialogFileFilter filters_scrshot[] = {
     { "PNG images",  "png" },
     { "JPEG images", "jpg;jpeg;jpe" },
@@ -47,34 +50,19 @@ static TTF_Font *font;
 static SDL_Texture *textures[2];
 static SDL_FRect rects[2]; // for textures
 
-static int clicking = -1;
-static vec2 vertex1 = (vec2) {WIDTH / 2, 120};
-static vec2 vertex2 = (vec2) {WIDTH * 0.75, HEIGHT - 120};
-static vec2 vertex3 = (vec2) {WIDTH / 4, HEIGHT - 120};
-
-
-
 
 void SDLCALL save_scrshot(void *userdata) {
-    if (ctx == NULL) { return; }
-
     const char * const *filelist = userdata;
+
+    if (ctx == NULL) { return; }
     if (filelist == NULL) {
         SDL_SetError("File list cannot be NULL.");
-        SDL_LogError(
-            SDL_LOG_CATEGORY_ERROR,
-            "Failed to save screenshot: %s",
-            SDL_GetError()
-        );
+        save_scrshot_failed = true;
         return;
     }
     if (*filelist == NULL) {
         SDL_SetError("A file cannot be NULL.");
-        SDL_LogError(
-            SDL_LOG_CATEGORY_ERROR,
-            "Failed to save screenshot: %s",
-            SDL_GetError()
-        );
+        save_scrshot_failed = true;
         return;
     }
     
@@ -86,11 +74,7 @@ void SDLCALL save_scrshot(void *userdata) {
             "Failed to create surface from renderer: %s",
             SDL_GetError()
         );
-        SDL_LogError(
-            SDL_LOG_CATEGORY_ERROR,
-            "Failed to save screenshot: %s",
-            SDL_GetError()
-        );
+        save_scrshot_failed = true;
         return;
     }
 
@@ -105,11 +89,7 @@ void SDLCALL save_scrshot(void *userdata) {
                 "Failed to save to surface to PNG: %s",
                 SDL_GetError()
             );
-            SDL_LogError(
-                SDL_LOG_CATEGORY_ERROR,
-                "Failed to save screenshot: %s",
-                SDL_GetError()
-            );
+            save_scrshot_failed = true;
             return;
         }
         else if (!IMG_SaveJPG(surf, filename, 100)) {
@@ -118,11 +98,7 @@ void SDLCALL save_scrshot(void *userdata) {
                 "Failed to save to surface to JPG: %s",
                 SDL_GetError()
             );
-            SDL_LogError(
-                SDL_LOG_CATEGORY_ERROR,
-                "Failed to save screenshot: %s",
-                SDL_GetError()
-            );
+            save_scrshot_failed = true;
             return;
         }
         filelist++;
@@ -131,11 +107,18 @@ void SDLCALL save_scrshot(void *userdata) {
     SDL_DestroySurface(surf);
 }
 
-
 void SDLCALL save_scrshot_thread(
     void *userdata, const char * const *filelist, int filter
 ) {
     SDL_RunOnMainThread(*save_scrshot, (void *) filelist, true);
+    if (save_scrshot_failed) {
+        SDL_LogError(
+            SDL_LOG_CATEGORY_ERROR,
+            "Failed to save screenshot: %s",
+            SDL_GetError()
+        );
+        return;
+    }
 }
 
 bool load_file(const char *path) {
@@ -196,6 +179,38 @@ bool render_text(const char *text, SDL_Texture **texture, SDL_FRect *rect) {
     SDL_DestroySurface(surf);
 
     return true;
+}
+
+void SDLCALL drop_file(void *userdata) {
+    SDL_Event *event = userdata;
+
+    // Add loading text
+    if (!SDL_RenderClear(renderer)) {
+        SDL_SetError("Failed to clear renderer: %s", SDL_GetError());
+        drop_file_failed = true;
+        return;
+    }
+    if (!SDL_RenderTexture(renderer, textures[1], NULL, rects + 1)) {
+        SDL_SetError("Failed to render texture: %s", SDL_GetError());
+        drop_file_failed = true;
+        return;
+    }
+    if (!SDL_RenderPresent(renderer)) {
+        SDL_SetError("Failed to present renderer: %s", SDL_GetError());
+        drop_file_failed = true;
+        return;
+    }
+    // Load file
+    if (!load_file(event->drop.data)) {
+        SDL_SetError("Failed to load file: %s", SDL_GetError());
+        drop_file_failed = true;
+        return;
+    }
+}
+
+bool drop_file_thread(SDL_Event *event) {
+    SDL_RunOnMainThread(*drop_file, (void *) event, true);
+    return !drop_file_failed;
 }
 
 // APP FUNCTIONS
@@ -282,42 +297,17 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
             return SDL_APP_SUCCESS;
             break;
         case SDL_EVENT_DROP_FILE:
-            // Add loading text
-            if (!SDL_RenderClear(renderer)) {
-                SDL_LogError(
-                    SDL_LOG_CATEGORY_RENDER,
-                    "Failed to clear renderer: %s",
-                    SDL_GetError()
-                );
-                return SDL_APP_FAILURE;
-            }
-            if (!SDL_RenderTexture(renderer, textures[1], NULL, rects + 1)) {
+            if (!drop_file_thread(event)) {
                 SDL_LogError(
                     SDL_LOG_CATEGORY_ERROR,
-                    "Failed to render texture: %s",
-                    SDL_GetError()
-                );
-                return SDL_APP_FAILURE;
-            }
-            if (!SDL_RenderPresent(renderer)) {
-                SDL_LogError(
-                    SDL_LOG_CATEGORY_RENDER,
-                    "Failed to present renderer: %s",
-                    SDL_GetError()
-                );
-                return SDL_APP_FAILURE;
-            }
-            // Load file
-            if (!load_file(event->drop.data)) {
-                SDL_LogError(
-                    SDL_LOG_CATEGORY_ERROR,
-                    "Failed to load file: %s",
+                    "Failed to drop file: %s",
                     SDL_GetError()
                 );
                 return SDL_APP_FAILURE;
             }
             break;
         case SDL_EVENT_KEY_DOWN:
+            // If this fails it won't close app
             if (event->key.scancode == SCANCODE_SCREENSHOT) {
                 SDL_ShowSaveFileDialog(
                     *save_scrshot_thread,
@@ -331,48 +321,6 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     }
     
     return SDL_APP_CONTINUE;
-}
-
-void _render(vec2 v1, vec2 v2, vec2 v3) {
-    vec2 diff12 = vec2_sub(v1, v2);
-    vec2 diff23 = vec2_sub(v2, v3);
-    vec2 diff31 = vec2_sub(v3, v1);
-    double det = vec2_cross(vec2_sub(v1, v3), diff23);
-
-    int left = SDL_max(SDL_min(SDL_min(v1.x, v2.x), v3.x), 0);
-    int right = SDL_min(SDL_max(SDL_max(v1.x, v2.x), v3.x), WIDTH);
-    int top = SDL_max(SDL_min(SDL_min(v1.y, v2.y), v3.y), 0);
-    int bottom = SDL_min(SDL_max(SDL_max(v1.y, v2.y), v3.y), HEIGHT);
-    
-    vec2 vec = {0, 0};
-    for (int y = top; y < bottom; y++) {
-        vec.y = y;
-        for (int x = left; x < right; x++) {
-            vec.x = x;
-            vec2 diff03 = vec2_sub(vec, v3);
-            double l1 = vec2_cross(diff03, diff23) / det;
-            double l2 = vec2_cross(diff03, diff31) / det;
-            double l3 = vec2_cross(vec2_sub(vec, v1), diff12) / det;
-            
-            if (l1 < 0 || l2 < 0 || l3 < 0) {
-                continue;
-            }
-            if (l1 > 1 || l2 > 1 || l3 > 1) {
-                continue;
-            }
-            SDL_SetRenderDrawColor(
-                renderer,
-                l1 * 255, l2 * 255, l3 * 255,
-                SDL_ALPHA_OPAQUE
-            );
-            SDL_RenderPoint(renderer, x, y);
-        }
-    }
-
-    SDL_SetRenderDrawColor(renderer, WHITE, SDL_ALPHA_OPAQUE);
-    SDL_RenderRect(renderer, &(SDL_FRect) {v1.x - 5, v1.y - 5, 10, 10});
-    SDL_RenderRect(renderer, &(SDL_FRect) {v2.x - 5, v2.y - 5, 10, 10});
-    SDL_RenderRect(renderer, &(SDL_FRect) {v3.x - 5, v3.y - 5, 10, 10});
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
