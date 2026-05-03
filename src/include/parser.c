@@ -23,7 +23,6 @@ typedef struct uface { // unconverted face (could be quad)
     int uvs[4]; // int because need -1
     int normals[4];
     vec3 normal; // average of all normals
-    int mat;
 } uface;
 
 
@@ -97,11 +96,24 @@ model *parse_obj(const char *path) {
         SDL_free(mdl);
         SDL_free(mdl->vertices);
         SDL_free(mdl->normals);
-        SDL_free(mdl->faces);
+        SDL_free(mdl->uvs);
         SDL_OutOfMemory();
         return NULL;
     }
     mdl->cfaces = ARR_SIZE;
+    mdl->nmats = 0;
+    mdl->mats = SDL_malloc(sizeof(material) * ARR_SIZE);
+    if (mdl->mats == NULL) {
+        SDL_free(data);
+        SDL_free(mdl);
+        SDL_free(mdl->vertices);
+        SDL_free(mdl->normals);
+        SDL_free(mdl->uvs);
+        SDL_free(mdl->faces);
+        SDL_OutOfMemory();
+        return NULL;
+    }
+    mdl->cmats = ARR_SIZE;
 
     // PER ELEMENT
     etype elem = NONE;
@@ -334,7 +346,6 @@ model *parse_obj(const char *path) {
                     }
                     // not dividing by zero
                     else { vec3_unit_ip(&mdl->faces[mdl->nfaces].normal); }
-                    rface.mat = mat;
                     mdl->faces[mdl->nfaces].vertices[0] = rface.vertices[0];
                     mdl->faces[mdl->nfaces].vertices[1] = rface.vertices[1];
                     mdl->faces[mdl->nfaces].vertices[2] = rface.vertices[2];
@@ -358,33 +369,55 @@ model *parse_obj(const char *path) {
                         mdl->cfaces *= ARR_FACTOR;
                     }
                 }
-                else if (n == 3) { // quadrilateral splitting
-                    rface.centroid = vec3_add(vec3_add(
+                // quadrilateral splitting (only works with convex quads)
+                // split into 012 and 230
+                else if (n == 3) {
+                    rface.centroid = vec3_add(vec3_add(vec3_add(
                         mdl->vertices[rface.vertices[0]],
                         mdl->vertices[rface.vertices[1]]),
-                        mdl->vertices[rface.vertices[2]]
-                    );
-                    vec3_add_ip( // i know this is weird but yes
-                        &rface.centroid, mdl->vertices[rface.vertices[3]]
+                        mdl->vertices[rface.vertices[2]]),
+                        mdl->vertices[rface.vertices[3]]
                     );
                     vec3_div_ip(&rface.centroid, 4);
-
-                    rface.normal = (vec3) {0, 0, 0};
+                    // copy the normal in case j is 0
+                    vec3 normal = rface.normal; 
                     j = 0;
-                    for (size_t k = 0; k < 3; k++) {
+                    for (size_t k = 0; k < 4; k++) {
                         if (rface.normals[k] == -1) { continue; }
                         vec3_add_ip(
                             &rface.normal, mdl->normals[rface.normals[k]]
                         );
                         j++;
                     }
-                    // ^ don't need to divide by j because normalizing anyway
-                    // not dividing by zero
-                    if (j != 0) { vec3_unit_ip(&rface.normal); }
-                    // https://stackoverflow.com/a/12245052
-                    // split quad into two triangles
-                    // get it working in 3d
-                    
+                    if (j == 0) {
+                        vec3 term1 = vec3_sub(
+                            mdl->vertices[rface.vertices[3]],
+                            mdl->vertices[rface.vertices[2]]
+                        );
+                        vec3 term2 = vec3_sub(
+                            mdl->vertices[rface.vertices[0]],
+                            mdl->vertices[rface.vertices[3]]
+                        );
+                        // average both cross product normals
+                        rface.normal = vec3_add(
+                            normal, vec3_unit(vec3_cross(term1, term2))
+                        );
+                    }
+                    vec3_unit_ip(&rface.normal);
+                    mdl->faces[mdl->nfaces - 1].centroid = rface.centroid;
+                    mdl->faces[mdl->nfaces - 1].normal = rface.normal;
+                    mdl->faces[mdl->nfaces].centroid = rface.centroid;
+                    mdl->faces[mdl->nfaces].normal = rface.normal;
+                    mdl->faces[mdl->nfaces].vertices[0] = rface.vertices[2];
+                    mdl->faces[mdl->nfaces].vertices[1] = rface.vertices[3];
+                    mdl->faces[mdl->nfaces].vertices[2] = rface.vertices[0];
+                    mdl->faces[mdl->nfaces].uvs[0] = rface.uvs[2];
+                    mdl->faces[mdl->nfaces].uvs[1] = rface.uvs[3];
+                    mdl->faces[mdl->nfaces].uvs[2] = rface.uvs[0];
+                    mdl->faces[mdl->nfaces].normals[0] = rface.normals[2];
+                    mdl->faces[mdl->nfaces].normals[1] = rface.normals[3];
+                    mdl->faces[mdl->nfaces].normals[2] = rface.normals[0];
+                    mdl->faces[mdl->nfaces].mat = mat;
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
                         mdl->faces = SDL_realloc(

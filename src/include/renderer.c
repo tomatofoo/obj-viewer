@@ -81,7 +81,7 @@ context *create_context(
         );
         return NULL;
     }
-    ctx->proj = SDL_malloc(sizeof(vec3) * ctx->mdl->cvertices);
+    ctx->proj = SDL_malloc(sizeof(point) * ctx->mdl->cvertices);
     if (ctx->proj == NULL) {
         destroy_model(ctx->mdl);
         SDL_free(ctx);
@@ -148,7 +148,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         SDL_MAX_UINT32,
         sizeof(uint32_t) * ctx->texture->w * ctx->texture->h
     );
-
+    
     // Actual Rendering
     model *mdl = ctx->mdl;
     vec3 rel;
