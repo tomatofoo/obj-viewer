@@ -18,7 +18,7 @@
 #define HEIGHT 480
 #define FLAGS 0
 #define GAMESPEED 1 // game speed
-#define FONTSIZE 12
+#define FONTSIZE 14
 
 #define SCANCODE_FORWARD SDL_SCANCODE_W
 #define SCANCODE_BACKWARD SDL_SCANCODE_S
@@ -53,10 +53,12 @@ static vec2 vertex2 = (vec2) {WIDTH * 0.75, HEIGHT - 120};
 static vec2 vertex3 = (vec2) {WIDTH / 4, HEIGHT - 120};
 
 
-void SDLCALL save_screenshot(
-    void *userdata, const char * const *filelist, int filter
-) {
+
+
+void SDLCALL save_scrshot(void *userdata) {
     if (ctx == NULL) { return; }
+
+    const char * const *filelist = userdata;
     if (filelist == NULL) {
         SDL_SetError("File list cannot be NULL.");
         SDL_LogError(
@@ -81,7 +83,7 @@ void SDLCALL save_screenshot(
     SDL_Surface *surf = SDL_RenderReadPixels(renderer, NULL);
     if (surf == NULL) {
         SDL_SetError(
-            "Failed to create surface from texture: %s",
+            "Failed to create surface from renderer: %s",
             SDL_GetError()
         );
         SDL_LogError(
@@ -129,6 +131,13 @@ void SDLCALL save_screenshot(
     SDL_DestroySurface(surf);
 }
 
+
+void SDLCALL save_scrshot_thread(
+    void *userdata, const char * const *filelist, int filter
+) {
+    SDL_RunOnMainThread(*save_scrshot, (void *) filelist, true);
+}
+
 bool load_file(const char *path) {
     context *new = create_context(path, renderer, WIDTH, HEIGHT);
     if (new == NULL) {
@@ -162,8 +171,8 @@ bool load_file(const char *path) {
 }
 
 bool render_text(const char *text, SDL_Texture **texture, SDL_FRect *rect) {
-    SDL_Surface *surf = TTF_RenderText_Solid(
-        font, text, 0, (SDL_Color) {WHITE}
+    SDL_Surface *surf = TTF_RenderText_Shaded(
+        font, text, 0, (SDL_Color) {WHITE}, (SDL_Color) {BLACK}
     );
     if (surf == NULL) {
         SDL_SetError("Failed to render text: %s", SDL_GetError());
@@ -273,7 +282,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
             return SDL_APP_SUCCESS;
             break;
         case SDL_EVENT_DROP_FILE:
-            // Loading text
+            // Add loading text
             if (!SDL_RenderClear(renderer)) {
                 SDL_LogError(
                     SDL_LOG_CATEGORY_RENDER,
@@ -311,7 +320,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         case SDL_EVENT_KEY_DOWN:
             if (event->key.scancode == SCANCODE_SCREENSHOT) {
                 SDL_ShowSaveFileDialog(
-                    *save_screenshot,
+                    *save_scrshot_thread,
                     NULL,
                     window,
                     filters_scrshot,

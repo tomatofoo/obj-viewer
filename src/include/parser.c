@@ -16,6 +16,16 @@ typedef enum etype { // Element Types
     FACE,
 } etype;
 
+typedef struct uface { // unconverted face (could be quad)
+    // all are indices
+    size_t vertices[4];
+    vec3 centroid;
+    int uvs[4]; // int because need -1
+    int normals[4];
+    vec3 normal; // average of all normals
+    int mat;
+} uface;
+
 
 bool isnewline(const char c) {
     return c == '\r' || c == '\n';
@@ -95,6 +105,7 @@ model *parse_obj(const char *path) {
 
     // PER ELEMENT
     etype elem = NONE;
+    uface rface; // raw face; used when parsing faces
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begin; // finished parsing element type; now will parse elem
     size_t n = 0; // index for arrays (resets at start)
@@ -257,18 +268,18 @@ model *parse_obj(const char *path) {
             if (start) {
                 j = 0;
                 d = 0;
-                mdl->faces[mdl->nfaces].uvs[n] = -1;
-                mdl->faces[mdl->nfaces].normals[n] = -1;
+                rface.uvs[n] = -1;
+                rface.normals[n] = -1;
                 start = false;
             }
             if (data[i] == '/') {
                 if (j == 0) {
                     d = d >= 0 ? d - 1 : mdl->nvertices + d;
-                    mdl->faces[mdl->nfaces].vertices[n] = d;
+                    rface.vertices[n] = d;
                 }
                 else if (j == 1) {
                     d = d >= 0 ? d - 1 : mdl->nuvs + d;
-                    mdl->faces[mdl->nfaces].uvs[n] = d;
+                    rface.uvs[n] = d;
                 }
                 j++; // only need to increment in this if statement
                 d = 0;
@@ -279,52 +290,101 @@ model *parse_obj(const char *path) {
                 // repeated; not sure if there is better way
                 if (j == 0) {
                     d = d >= 0 ? d - 1 : mdl->nvertices + d;
-                    mdl->faces[mdl->nfaces].vertices[n] = d;
+                    rface.vertices[n] = d;
                 }
                 else if (j == 1) {
                     d = d >= 0 ? d - 1 : mdl->nuvs + d;
-                    mdl->faces[mdl->nfaces].uvs[n] = d;
+                    rface.uvs[n] = d;
                 }
                 else if (j == 2) {
                     d = d >= 0 ? d - 1 : mdl->nnormals + d;
-                    mdl->faces[mdl->nfaces].normals[n] = d;
+                    rface.normals[n] = d;
                 }
                 if (n == 2) {
                     mdl->faces[mdl->nfaces].centroid = vec3_add(vec3_add(
-                        mdl->vertices[mdl->faces[mdl->nfaces].vertices[0]],
-                        mdl->vertices[mdl->faces[mdl->nfaces].vertices[1]]),
-                        mdl->vertices[mdl->faces[mdl->nfaces].vertices[2]]
+                        mdl->vertices[rface.vertices[0]],
+                        mdl->vertices[rface.vertices[1]]),
+                        mdl->vertices[rface.vertices[2]]
                     );
                     vec3_div_ip(&mdl->faces[mdl->nfaces].centroid, 3);
                     // repurposing j
                     mdl->faces[mdl->nfaces].normal = (vec3) {0, 0, 0};
                     j = 0;
                     for (size_t k = 0; k < 3; k++) {
-                        if (mdl->faces[mdl->nfaces].normals[k] == -1) {
-                            continue;
-                        }
+                        if (rface.normals[k] == -1) { continue; }
                         vec3_add_ip(
                             &mdl->faces[mdl->nfaces].normal,
-                            mdl->normals[mdl->faces[mdl->nfaces].normals[k]]
+                            mdl->normals[rface.normals[k]]
                         );
                         j++;
                     }
                     // ^ don't need to divide by j because normalizing anyway
                     if (j == 0) { // calculate normal vector using cross product
                         vec3 term1 = vec3_sub(
-                            mdl->vertices[mdl->faces[mdl->nfaces].vertices[1]],
-                            mdl->vertices[mdl->faces[mdl->nfaces].vertices[0]]
+                            mdl->vertices[rface.vertices[1]],
+                            mdl->vertices[rface.vertices[0]]
                         );
                         vec3 term2 = vec3_sub(
-                            mdl->vertices[mdl->faces[mdl->nfaces].vertices[2]],
-                            mdl->vertices[mdl->faces[mdl->nfaces].vertices[1]]
+                            mdl->vertices[rface.vertices[2]],
+                            mdl->vertices[rface.vertices[1]]
                         );
-                        mdl->faces[mdl->nfaces].normal = vec3_cross(
-                            term1, term2
-                        );
+                        rface.normal = vec3_cross(term1, term2);
+                        vec3_unit_ip(&rface.normal); // normalize
+                        mdl->faces[mdl->nfaces].normal = rface.normal;
                     }
-                    vec3_unit_ip(&mdl->faces[mdl->nfaces].normal); // normalize
+                    // not dividing by zero
+                    else { vec3_unit_ip(&mdl->faces[mdl->nfaces].normal); }
+                    rface.mat = mat;
+                    mdl->faces[mdl->nfaces].vertices[0] = rface.vertices[0];
+                    mdl->faces[mdl->nfaces].vertices[1] = rface.vertices[1];
+                    mdl->faces[mdl->nfaces].vertices[2] = rface.vertices[2];
+                    mdl->faces[mdl->nfaces].uvs[0] = rface.uvs[0];
+                    mdl->faces[mdl->nfaces].uvs[1] = rface.uvs[1];
+                    mdl->faces[mdl->nfaces].uvs[2] = rface.uvs[2];
+                    mdl->faces[mdl->nfaces].normals[0] = rface.normals[0];
+                    mdl->faces[mdl->nfaces].normals[1] = rface.normals[1];
+                    mdl->faces[mdl->nfaces].normals[2] = rface.normals[2];
                     mdl->faces[mdl->nfaces].mat = mat;
+                    mdl->nfaces++;
+                    if (mdl->nfaces >= mdl->cfaces) {
+                        mdl->faces = SDL_realloc(
+                            mdl->faces,
+                            sizeof(face) * mdl->cfaces * ARR_FACTOR
+                        );
+                        if (mdl->faces == NULL) {
+                            SDL_OutOfMemory();
+                            return NULL;
+                        }
+                        mdl->cfaces *= ARR_FACTOR;
+                    }
+                }
+                else if (n == 3) { // quadrilateral splitting
+                    rface.centroid = vec3_add(vec3_add(
+                        mdl->vertices[rface.vertices[0]],
+                        mdl->vertices[rface.vertices[1]]),
+                        mdl->vertices[rface.vertices[2]]
+                    );
+                    vec3_add_ip( // i know this is weird but yes
+                        &rface.centroid, mdl->vertices[rface.vertices[3]]
+                    );
+                    vec3_div_ip(&rface.centroid, 4);
+
+                    rface.normal = (vec3) {0, 0, 0};
+                    j = 0;
+                    for (size_t k = 0; k < 3; k++) {
+                        if (rface.normals[k] == -1) { continue; }
+                        vec3_add_ip(
+                            &rface.normal, mdl->normals[rface.normals[k]]
+                        );
+                        j++;
+                    }
+                    // ^ don't need to divide by j because normalizing anyway
+                    // not dividing by zero
+                    if (j != 0) { vec3_unit_ip(&rface.normal); }
+                    // https://stackoverflow.com/a/12245052
+                    // split quad into two triangles
+                    // get it working in 3d
+                    
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
                         mdl->faces = SDL_realloc(
