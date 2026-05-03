@@ -423,3 +423,11 @@ bool inrange(double x, double l, double h, bool incl, bool inch) {
     return inch ? x <= h : x < h;
 }
 
+const char *filename_ext(const char *filename) {
+    while (*filename) {
+        if (*filename == '.' && filename[1] != '\0') { return filename + 1; }
+        filename++;
+    }
+    return NULL;
+}
+
