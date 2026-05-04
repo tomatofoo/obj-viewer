@@ -18,7 +18,7 @@
 #define HEIGHT 480
 #define FLAGS 0
 #define GAMESPEED 1 // game speed
-#define FONTSIZE 14
+#define FONTSIZE 20
 
 #define SCANCODE_FORWARD SDL_SCANCODE_W
 #define SCANCODE_BACKWARD SDL_SCANCODE_S
