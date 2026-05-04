@@ -35,6 +35,8 @@ Drag an OBJ file to the app window. The program will open the file.
 - A: Strafe left
 - S: Move backward
 - D: Strafe right
+- Space: Move up
+- Left Shift: Move down
 - Left: Look left
 - Right: Look right
 - Up: Look up
