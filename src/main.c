@@ -35,6 +35,7 @@
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static context *ctx = NULL;
+static TTF_Font *font;
 static Uint64 last; // for timer
 
 static bool save_scrshot_failed; // separate because of threads
@@ -46,7 +47,6 @@ static const SDL_DialogFileFilter filters_scrshot[] = {
     { "All images",  "png;jpg;jpeg;jpe" },
     { "All files",   "*" }
 };
-static TTF_Font *font;
 static SDL_Texture *textures[2];
 static SDL_FRect rects[2]; // for textures
 
@@ -336,8 +336,15 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     double dt = (now - last) / freq * GAMESPEED;
     last = now;
 
-    // UPDATE
     if (ctx == NULL) {
+        if (!SDL_RenderClear(renderer)) {
+            SDL_LogError(
+                SDL_LOG_CATEGORY_RENDER,
+                "Failed to clear renderer: %s",
+                SDL_GetError()
+            );
+            return SDL_APP_FAILURE;
+        }
         if (!SDL_RenderTexture(renderer, textures[0], NULL, rects + 0)) {
             SDL_LogError(
                 SDL_LOG_CATEGORY_RENDER,
@@ -348,6 +355,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         }
     }
     else {
+        // UPDATE
         const bool *keys = SDL_GetKeyboardState(NULL);
         
         double rspeed = 1.2;
@@ -394,12 +402,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 }
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
-    destroy_context(ctx);
     for (size_t i = 0; i < arr_sizeof(textures); i++) {
         SDL_DestroyTexture(textures[i]);
     }
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
+    destroy_context(ctx);
+    TTF_CloseFont(font);
     TTF_Quit();
     SDL_Quit();
 }
