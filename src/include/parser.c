@@ -380,7 +380,8 @@ model *parse_obj(const char *path) {
                     );
                     vec3_div_ip(&rface.centroid, 4);
                     // copy the normal in case j is 0
-                    vec3 normal = rface.normal; 
+                    vec3 normal = rface.normal;
+                    rface.normal = (vec3) {0, 0, 0};
                     j = 0;
                     for (size_t k = 0; k < 4; k++) {
                         if (rface.normals[k] == -1) { continue; }
