@@ -68,6 +68,8 @@ void SDLCALL save_scrshot(void *userdata) {
     
     const char *filename;
     const char *ext;
+    // RenderReadPixels has to be before a RenderPresent
+    SDL_RenderTexture(renderer, ctx->texture, NULL, NULL);
     SDL_Surface *surf = SDL_RenderReadPixels(renderer, NULL);
     if (surf == NULL) {
         SDL_SetError(
@@ -335,16 +337,17 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     double timer = now / freq;
     double dt = (now - last) / freq * GAMESPEED;
     last = now;
-
+    
+    // Recommended to clear even if overwriting every px
+    if (!SDL_RenderClear(renderer)) {
+        SDL_LogError(
+            SDL_LOG_CATEGORY_RENDER,
+            "Failed to clear renderer: %s",
+            SDL_GetError()
+        );
+        return SDL_APP_FAILURE;
+    }
     if (ctx == NULL) {
-        if (!SDL_RenderClear(renderer)) {
-            SDL_LogError(
-                SDL_LOG_CATEGORY_RENDER,
-                "Failed to clear renderer: %s",
-                SDL_GetError()
-            );
-            return SDL_APP_FAILURE;
-        }
         if (!SDL_RenderTexture(renderer, textures[0], NULL, rects + 0)) {
             SDL_LogError(
                 SDL_LOG_CATEGORY_RENDER,
