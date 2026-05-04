@@ -1,4 +1,7 @@
 # obj-viewer
+
+![Stanford Dragon](/images/dragon.png)
+
 An OBJ file viewer that uses software rasterization. Texture support is 
 planned, but not yet implemented.
 
