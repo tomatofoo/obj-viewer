@@ -13,11 +13,11 @@ void destroy_model(model *mdl) {
     SDL_free(mdl->vertices);
     SDL_free(mdl->normals);
     SDL_free(mdl->uvs);
+    SDL_free(mdl->faces);
     for (size_t i = 0; i < mdl->nmats; i++) {
         SDL_DestroySurface(mdl->mats[i].texture);
     }
     SDL_free(mdl->mats);
-    SDL_free(mdl->faces);
     SDL_free(mdl);
 }
 
