@@ -9,6 +9,21 @@ planned, but not yet implemented.
 - Supports OBJ files with convex faces up to four vertices (most models)
 - Flat shading using dot product lighting
 
+## Building from Source
+To build this project from source, run these commands in your favorite terminal
+emulator:
+
+```bash
+git clone https://github.com/tomatofoo/obj-viewer
+cd obj-viewer
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make
+```
+
+The output file is `main.out`.
+
 ## Usage
 Drag an OBJ file to the app window. The program will open the file.
 
