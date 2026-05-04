@@ -86,15 +86,16 @@ void SDLCALL save_scrshot(void *userdata) {
         if (ext != NULL
             && (SDL_strcmp(ext, "jpg") == 0 || SDL_strcmp(ext, "JPG") == 0
                 || SDL_strcmp(ext, "jpeg") == 0 || SDL_strcmp(ext, "JPEG") == 0
-                || SDL_strcmp(ext, "jpe") == 0 || SDL_strcmp(ext, "JPE") == 0)
-            && !IMG_SaveJPG(surf, filename, 100)) {
-            SDL_DestroySurface(surf);
-            SDL_SetError(
-                "Failed to save to surface to JPG: %s",
-                SDL_GetError()
-            );
-            save_scrshot_failed = true;
-            return;
+                || SDL_strcmp(ext, "jpe") == 0 || SDL_strcmp(ext, "JPE") == 0)) {
+            if (!IMG_SaveJPG(surf, filename, 100)) {
+                SDL_DestroySurface(surf);
+                SDL_SetError(
+                    "Failed to save to surface to JPG: %s",
+                    SDL_GetError()
+                );
+                save_scrshot_failed = true;
+                return;
+            }
         }
         else if (!IMG_SavePNG(surf, filename)) {
             SDL_DestroySurface(surf);
