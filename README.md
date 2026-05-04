@@ -24,7 +24,8 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 ```
 
-The output file is `main.out`.
+The output file is `main.out`. Move this to the root directory of the 
+repository for it to run properly.
 
 ## Usage
 Drag an OBJ file to the app window. The program will open the file.
