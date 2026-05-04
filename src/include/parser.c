@@ -344,7 +344,6 @@ model *parse_obj(const char *path) {
                         vec3_unit_ip(&rface.normal); // normalize
                         mdl->faces[mdl->nfaces].normal = rface.normal;
                     }
-                    // not dividing by zero
                     else { vec3_unit_ip(&mdl->faces[mdl->nfaces].normal); }
                     mdl->faces[mdl->nfaces].vertices[0] = rface.vertices[0];
                     mdl->faces[mdl->nfaces].vertices[1] = rface.vertices[1];
