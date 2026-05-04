@@ -18,5 +18,5 @@ Drag an OBJ file to the app window. The program will open the file.
 - Right: Look right
 - Up: Look up
 - Down: Look down
-- F2: Take a screenshot
+- F2: Take a screenshot (supports PNG and JPEG, default PNG)
 
