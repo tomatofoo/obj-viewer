@@ -9,6 +9,7 @@ project in C, and I tried to make the code good. This includes error checking
 
 ## Features
 - Supports OBJ files with convex faces up to four vertices (most models)
+- Backface culling for performance
 - Flat shading using dot product lighting
 
 ## Building from Source
