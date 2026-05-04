@@ -1,5 +1,10 @@
-# obj-viewer (WIP)
-An OBJ file viewer that uses software rasterization.
+# obj-viewer
+An OBJ file viewer that uses software rasterization. Texture support is 
+planned, but not yet implemented.
+
+## Features
+- Supports OBJ files with convex faces up to four vertices (most models)
+- Flat shading using dot product lighting
 
 ## Usage
 Drag an OBJ file to the app window. The program will open the file.
@@ -14,7 +19,4 @@ Drag an OBJ file to the app window. The program will open the file.
 - Up: Look up
 - Down: Look down
 - F2: Take a screenshot
-
-### Remarks
-- This program only supports files with only triangles as faces
 
