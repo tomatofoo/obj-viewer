@@ -11,7 +11,6 @@ set(CMAKE_C_FLAGS "")
 set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
-option(VENDORED "Use vendored libraries" OFF)
 if(VENDORED)
     add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
     add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
@@ -24,6 +23,7 @@ endif()
 
 option(DEV "Create a development executable" ON)
 if(DEV)
+    option(VENDORED "Use vendored libraries" OFF)
     add_executable(main.out src/main.c)
     add_subdirectory(src/include)
     target_include_directories(main.out PRIVATE src/include)
@@ -36,6 +36,7 @@ if(DEV)
 else()
     # https://martin-fieber.de/blog/cmake-cpack-cross-platform-distributables
     add_executable(main WIN32 MACOSX_BUNDLE src/main.c)
+    add_subdirectory(src/include)
     install(
         TARGETS main
         BUNDLE DESTINATION .
@@ -43,19 +44,20 @@ else()
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
-    add_subdirectory(src/include)
-    target_include_directories(main PRIVATE src/include)
-    target_link_libraries(
-        main PRIVATE
-        SDL3::SDL3
-        SDL3_image::SDL3_image
-        SDL3_ttf::SDL3_ttf
-    )
+
     set(SHARED_STATIC_ASSETS "data")
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
       include(plat/darwin/CMakeLists.txt)
     endif ()
+
+    target_include_directories(main PUBLIC src/include)
+    target_link_libraries(
+        main PUBLIC 
+        SDL3::SDL3
+        SDL3_image::SDL3_image
+        SDL3_ttf::SDL3_ttf
+    )
 
     set(CPACK_VERBATIM_VARIABLES YES)
     set(CPACK_PACKAGE_VENDOR "Tomatofu")

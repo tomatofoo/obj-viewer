@@ -15,11 +15,6 @@ add_custom_command(
     $<TARGET_FILE:SDL3_ttf::SDL3_ttf>
     $<TARGET_FILE_DIR:main>/../Frameworks/$<TARGET_FILE_NAME:SDL3_ttf::SDL3_ttf>
 )
-set_target_properties(
-    main PROPERTIES
-    INSTALL_RPATH @executable_path/../Frameworks
-    RESOURCE "${SHARED_STATIC_ASSETS}"
-)
 if (NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
     install(
         FILES
@@ -29,4 +24,9 @@ if (NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
         DESTINATION $<TARGET_FILE_DIR:main>/../Frameworks/
     )
 endif()
+set_target_properties(
+    main PROPERTIES 
+    INSTALL_RPATH "@executable_path/../Frameworks/"
+    RESOURCE "${SHARED_STATIC_ASSETS}"
+)
 
