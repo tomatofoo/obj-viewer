@@ -37,6 +37,9 @@ else()
     # https://martin-fieber.de/blog/cmake-cpack-cross-platform-distributables
     add_executable(main WIN32 MACOSX_BUNDLE src/main.c)
     add_subdirectory(src/include)
+
+    set(SHARED_STATIC_ASSETS "data")
+
     install(
         TARGETS main
         BUNDLE DESTINATION .
@@ -45,12 +48,10 @@ else()
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 
-    set(SHARED_STATIC_ASSETS "data")
-
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
       include(plat/darwin/CMakeLists.txt)
     endif ()
-
+    
     target_include_directories(main PUBLIC src/include)
     target_link_libraries(
         main PUBLIC 
