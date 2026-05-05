@@ -13,8 +13,8 @@ project in C, and I tried to make the code good. This includes error checking
 - Flat shading using dot product lighting
 
 ## Building from Source
-To build this project from source, run these commands in your favorite terminal
-emulator:
+To build this project from source, install `SDL3`, `SDL3_image`, and 
+`SDL3_ttf`, and run these commands in your favorite terminal emulator:
 
 ```bash
 git clone https://github.com/tomatofoo/obj-viewer
