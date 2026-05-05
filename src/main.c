@@ -261,7 +261,27 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         return SDL_APP_FAILURE;
     }
 
-    font = TTF_OpenFont("data/fonts/MonaSans-Regular.ttf", FONTSIZE);
+    // path shenanigans
+    const char *basepath = SDL_GetBasePath();
+    if (basepath == NULL) {
+        SDL_LogError(
+            SDL_LOG_CATEGORY_ERROR,
+            "Failed to get base path: %s",
+            SDL_GetError()
+        );
+        return SDL_APP_FAILURE;
+    }
+    char fontpath[] = "data/fonts/MonaSans-Regular.ttf";
+    size_t baselen = SDL_strlen(basepath);
+    size_t fulllen = baselen + SDL_strlen(fontpath);
+    char *fullpath = SDL_malloc(sizeof(char) * (fulllen + 1));
+    for (size_t i = 0; i < baselen; i++) { fullpath[i] = basepath[i]; }
+    for (size_t i = baselen; i < fulllen; i++) {
+        fullpath[i] = fontpath[i - baselen];
+    }
+    fullpath[fulllen] = '\0';
+
+    font = TTF_OpenFont(fullpath, FONTSIZE);
     if (font == NULL) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR,

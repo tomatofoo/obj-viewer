@@ -62,6 +62,10 @@ Makefile
 install_manifest.txt
 compile_commands.json
 
+# Other directories
+build/
+dist/
+
 # MacOS
 .DS_Store
 
