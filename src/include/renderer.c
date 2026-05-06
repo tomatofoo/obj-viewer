@@ -103,6 +103,10 @@ context *create_context(
     ctx->pos = (vec3) {0, 0, 0};
     ctx->rot = (vec3) {0, 0, 0};
     ctx->flength = w / 2;
+    ctx->ambient = 0;
+    ctx->diffuse = 1;
+    ctx->specular = 0;
+    ctx->sharpness = 8;
     ctx->brightness = -1;
     ctx->renderer = renderer;
     ctx->texture = SDL_CreateTexture(
@@ -174,6 +178,11 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     int ymax;
     point points[3];
     double z;
+    double dot;
+    double invmag;
+    double diffuse = 0;
+    vec3 reflection;
+    double specular = 0;
     double mult;
     size_t n;
     for (size_t i = 0; i < mdl->nfaces; i++) {
@@ -182,12 +191,24 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         if (ctx->proj[mdl->faces[i].vertices[1]].z < 0) { continue; }
         if (ctx->proj[mdl->faces[i].vertices[2]].z < 0) { continue; }
         rel = vec3_sub(mdl->faces[i].centroid, ctx->pos);
-        mult = vec3_dot(rel, mdl->faces[i].normal);
-        if (mult > 0) { continue; } // Backface culling
+        dot = vec3_dot(rel, mdl->faces[i].normal);
+        if (dot > 0) { continue; } // Backface culling
 
-        // Lighting 
-        if (ctx->brightness == -1) { mult = -mult / vec3_mag(rel); }
-        else { mult = SDL_min(-mult / vec3_mag_sq(rel) * ctx->brightness, 1); }
+        // Lighting (Phong lighting)
+        invmag = 1.0 / vec3_mag(rel);
+        if (ctx->diffuse) { diffuse = -dot * invmag * ctx->diffuse; }
+        if (ctx->specular) {
+            reflection = vec3_sub(
+                rel, vec3_mul(mdl->faces[i].normal, 2 * dot)
+            );
+            specular = SDL_pow(
+                SDL_max(-vec3_dot(rel, reflection) * invmag * invmag, 0),
+                ctx->sharpness
+            ) * ctx->specular;
+        }
+        mult = ctx->ambient + diffuse + specular;
+        if (ctx->brightness != -1) { mult *= invmag * ctx->brightness; }
+        mult = SDL_clamp(mult, 0, 1);
 
         // Calculate depth for z buffer (assumes no faces overlapping)
         z = (

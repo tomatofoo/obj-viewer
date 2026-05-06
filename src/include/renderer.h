@@ -53,6 +53,10 @@ typedef struct context {
     uint32_t *zbuf; // depth buffer
     model *mdl;
     double flength; // focal length
+    double ambient;
+    double diffuse;
+    double specular;
+    double sharpness;
     double brightness;
     vec3 pos;
     vec3 rot; // rot around x, y, z axes respectively
