@@ -53,6 +53,7 @@ typedef struct context {
     uint32_t *zbuf; // depth buffer
     model *mdl;
     double flength; // focal length
+    bool blinn; // if using blinn-phong
     double ambient;
     double diffuse;
     double specular;

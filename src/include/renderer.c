@@ -181,7 +181,6 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     double dot;
     double invmag;
     double diffuse = 0;
-    vec3 reflection;
     double specular = 0;
     double mult;
     size_t n;
@@ -198,13 +197,21 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         invmag = 1.0 / vec3_mag(rel);
         if (ctx->diffuse) { diffuse = -dot * invmag * ctx->diffuse; }
         if (ctx->specular) {
-            reflection = vec3_sub(
-                rel, vec3_mul(mdl->faces[i].normal, 2 * dot)
-            );
-            specular = SDL_pow(
-                SDL_max(-vec3_dot(rel, reflection) * invmag * invmag, 0),
-                ctx->sharpness
-            ) * ctx->specular;
+            if (ctx->blinn) {
+                // light source is camera
+                // will have to change this when adding proper light sources
+                specular = SDL_pow(-dot * invmag, ctx->sharpness);
+            }
+            else {
+                vec3 reflection = vec3_sub(
+                    rel, vec3_mul(mdl->faces[i].normal, 2 * dot)
+                );
+                specular = SDL_pow(
+                    SDL_max(-vec3_dot(rel, reflection) * invmag * invmag, 0),
+                    ctx->sharpness
+                );
+            }
+            specular *= ctx->specular;
         }
         mult = ctx->ambient + diffuse + specular;
         if (ctx->brightness != -1) { mult *= invmag * ctx->brightness; }
