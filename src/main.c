@@ -251,7 +251,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         );
         return SDL_APP_FAILURE;
     }
-
     if (!SDL_SetRenderDrawColor(renderer, BLACK, SDL_ALPHA_OPAQUE)) {
         SDL_LogError(
             SDL_LOG_CATEGORY_RENDER,
