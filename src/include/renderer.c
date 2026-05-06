@@ -106,7 +106,7 @@ context *create_context(
     ctx->ambient = 0;
     ctx->diffuse = 1;
     ctx->specular = 0;
-    ctx->sharpness = 8;
+    ctx->sharpness = 16;
     ctx->brightness = -1;
     ctx->renderer = renderer;
     ctx->texture = SDL_CreateTexture(
