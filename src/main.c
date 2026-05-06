@@ -313,6 +313,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     last = SDL_GetPerformanceCounter();
 
+    SDL_free(fullpath);
+
     return SDL_APP_CONTINUE;
 }
 
