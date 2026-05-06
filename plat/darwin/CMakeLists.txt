@@ -24,7 +24,9 @@ if (NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
         DESTINATION $<TARGET_FILE_DIR:main>/../Frameworks/
     )
 endif()
-# NOTE: THE LC_LOAD_DYLIB WILL PROBABLY HAVE AN ABSOLUTE PATH; USE install_name_tool -change
+# NOTE: THE LC_LOAD_DYLIB WILL PROBABLY HAVE AN ABSOLUTE PATH
+# USE install_name_tool -change /usr/local/opt/... @rpath/....dylib main
+# while inside the main.app
 set_target_properties(
     main PROPERTIES
     MACOSX_RPATH TRUE
