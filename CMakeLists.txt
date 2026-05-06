@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 4.3)
-project("OBJ Viewer")
+project(
+    "OBJ Viewer"
+    DESCRIPTION "OBJ Viewer"
+    VERSION 0.1.1
+    LANGUAGES C
+)
 
 include(GNUInstallDirs)
 
@@ -11,6 +16,7 @@ set(CMAKE_C_FLAGS "")
 set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
+option(VENDORED "Use vendored libraries" OFF)
 if(VENDORED)
     add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
     add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
@@ -23,7 +29,6 @@ endif()
 
 option(DEV "Create a development executable" ON)
 if(DEV)
-    option(VENDORED "Use vendored libraries" OFF)
     add_executable(main.out src/main.c)
     add_subdirectory(src/include)
     target_include_directories(main.out PRIVATE src/include)
@@ -51,10 +56,10 @@ else()
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
       include(plat/darwin/CMakeLists.txt)
     endif ()
-    
+
     target_include_directories(main PUBLIC src/include)
     target_link_libraries(
-        main PUBLIC 
+        main PUBLIC
         SDL3::SDL3
         SDL3_image::SDL3_image
         SDL3_ttf::SDL3_ttf
