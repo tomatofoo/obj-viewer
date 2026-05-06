@@ -275,6 +275,15 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     size_t baselen = SDL_strlen(basepath);
     size_t fulllen = baselen + SDL_strlen(fontpath);
     char *fullpath = SDL_malloc(sizeof(char) * (fulllen + 1));
+    if (fullpath == NULL) {
+        SDL_OutOfMemory();
+        SDL_LogError(
+            SDL_LOG_CATEGORY_ERROR,
+            "Failed to allocate memory for font path: %s",
+            SDL_GetError()
+        );
+        return SDL_APP_FAILURE;
+    }
     for (size_t i = 0; i < baselen; i++) { fullpath[i] = basepath[i]; }
     for (size_t i = baselen; i < fulllen; i++) {
         fullpath[i] = fontpath[i - baselen];
