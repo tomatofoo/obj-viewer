@@ -103,7 +103,7 @@ context *create_context(
     ctx->pos = (vec3) {0, 0, 0};
     ctx->rot = (vec3) {0, 0, 0};
     ctx->flength = w / 2;
-    ctx->blinn = false;
+    ctx->blinn = true;
     ctx->ambient = 0;
     ctx->diffuse = 1;
     ctx->specular = 0;
