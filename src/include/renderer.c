@@ -107,7 +107,7 @@ context *create_context(
     ctx->ambient = 0;
     ctx->diffuse = 1;
     ctx->specular = 0;
-    ctx->sharpness = 16;
+    ctx->glossiness = 16;
     ctx->brightness = -1;
     ctx->renderer = renderer;
     ctx->texture = SDL_CreateTexture(
@@ -201,7 +201,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             if (ctx->blinn) {
                 // light source is camera
                 // will have to change this when adding proper light sources
-                specular = SDL_pow(-dot * invmag, ctx->sharpness);
+                specular = SDL_pow(-dot * invmag, ctx->glossiness);
             }
             else {
                 vec3 reflection = vec3_sub(
@@ -209,7 +209,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 );
                 specular = SDL_pow(
                     SDL_max(-vec3_dot(rel, reflection) * invmag * invmag, 0),
-                    ctx->sharpness
+                    ctx->glossiness
                 );
             }
             specular *= ctx->specular;

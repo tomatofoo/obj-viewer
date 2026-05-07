@@ -57,7 +57,7 @@ typedef struct context {
     double ambient;
     double diffuse;
     double specular;
-    double sharpness;
+    double glossiness;
     double brightness;
     vec3 pos;
     vec3 rot; // rot around x, y, z axes respectively
