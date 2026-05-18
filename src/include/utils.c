@@ -431,3 +431,13 @@ const char *filename_ext(const char *filename) {
     return NULL;
 }
 
+// last extension (e.g. .obj.zip will be .zip)
+const char *filename_lext(const char *filename) {
+    const char *lext = NULL;
+    while (*filename) {
+        if (*filename == '.' && filename[1] != '\0') { lext = filename + 1; }
+        filename++;
+    }
+    return lext;
+}
+

@@ -106,6 +106,7 @@ double vec3_angle_to(vec3 term1, vec3 term2);
 double hypot(double x, double y);
 bool inrange(double x, double l, double h, bool incl, bool inch);
 const char *filename_ext(const char *filename);
+const char *filename_lext(const char *filename);
 
 #endif
 
