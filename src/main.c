@@ -38,8 +38,7 @@ static context *ctx = NULL;
 static TTF_Font *font;
 static Uint64 last; // for timer
 
-static bool save_scrshot_failed; // separate because of threads
-static bool drop_file_failed;
+static bool drop_file_failed; // separate because of threads
 
 static const SDL_DialogFileFilter filters_scrshot[] = {
     { "PNG images",  "png" },
@@ -57,13 +56,11 @@ void SDLCALL save_scrshot(void *userdata) {
     if (ctx == NULL) { return; }
     if (filelist == NULL) {
         SDL_SetError("File list cannot be NULL.");
-        save_scrshot_failed = true;
-        return;
+        goto error;
     }
     if (*filelist == NULL) {
         SDL_SetError("A file cannot be NULL.");
-        save_scrshot_failed = true;
-        return;
+        goto error;
     }
     
     const char *filename;
@@ -76,13 +73,12 @@ void SDLCALL save_scrshot(void *userdata) {
             "Failed to create surface from renderer: %s",
             SDL_GetError()
         );
-        save_scrshot_failed = true;
-        return;
+        goto error;
     }
 
     while (*filelist) {
         filename = *filelist;
-        ext = filename_ext(filename);
+        ext = filename_lext(filename);
         if (ext != NULL
             && (SDL_strcmp(ext, "jpg") == 0 || SDL_strcmp(ext, "JPG") == 0
                 || SDL_strcmp(ext, "jpeg") == 0 || SDL_strcmp(ext, "JPEG") == 0
@@ -93,8 +89,7 @@ void SDLCALL save_scrshot(void *userdata) {
                     "Failed to save to surface to JPG: %s",
                     SDL_GetError()
                 );
-                save_scrshot_failed = true;
-                return;
+                goto error;
             }
         }
         else if (!IMG_SavePNG(surf, filename)) {
@@ -103,28 +98,26 @@ void SDLCALL save_scrshot(void *userdata) {
                 "Failed to save to surface to PNG: %s",
                 SDL_GetError()
             );
-            save_scrshot_failed = true;
-            return;
+            goto error;
         }
         filelist++;
     }
 
     SDL_DestroySurface(surf);
+    return;
+
+error: 
+    SDL_LogError(
+        SDL_LOG_CATEGORY_ERROR,
+        "Failed to save screenshot: %s",
+        SDL_GetError()
+    );
+    return;
 }
 
 void SDLCALL save_scrshot_thread(
     void *userdata, const char * const *filelist, int filter
-) {
-    SDL_RunOnMainThread(*save_scrshot, (void *) filelist, true);
-    if (save_scrshot_failed) {
-        SDL_LogError(
-            SDL_LOG_CATEGORY_ERROR,
-            "Failed to save screenshot: %s",
-            SDL_GetError()
-        );
-        return;
-    }
-}
+) { SDL_RunOnMainThread(*save_scrshot, (void *) filelist, true); }
 
 bool load_file(const char *path) {
     context *new = create_context(path, renderer, WIDTH, HEIGHT);
@@ -192,25 +185,31 @@ void SDLCALL drop_file(void *userdata) {
     // Add loading text
     if (!SDL_RenderClear(renderer)) {
         SDL_SetError("Failed to clear renderer: %s", SDL_GetError());
-        drop_file_failed = true;
-        return;
+        goto error;
     }
     if (!SDL_RenderTexture(renderer, textures[1], NULL, rects + 1)) {
         SDL_SetError("Failed to render texture: %s", SDL_GetError());
-        drop_file_failed = true;
-        return;
+        goto error;
     }
     if (!SDL_RenderPresent(renderer)) {
         SDL_SetError("Failed to present renderer: %s", SDL_GetError());
-        drop_file_failed = true;
-        return;
+        goto error;
     }
     // Load file
     if (!load_file(event->drop.data)) {
         SDL_SetError("Failed to load file: %s", SDL_GetError());
-        drop_file_failed = true;
-        return;
+        goto error;
     }
+    return;
+
+error:
+    drop_file_failed = true;
+    SDL_LogError(
+        SDL_LOG_CATEGORY_ERROR,
+        "Failed to drop file: %s",
+        SDL_GetError()
+    );
+    return;
 }
 
 bool drop_file_thread(SDL_Event *event) {
@@ -332,14 +331,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
             return SDL_APP_SUCCESS;
             break;
         case SDL_EVENT_DROP_FILE:
-            if (!drop_file_thread(event)) {
-                SDL_LogError(
-                    SDL_LOG_CATEGORY_ERROR,
-                    "Failed to drop file: %s",
-                    SDL_GetError()
-                );
-                return SDL_APP_FAILURE;
-            }
+            if (!drop_file_thread(event)) { return SDL_APP_FAILURE; }
             break;
         case SDL_EVENT_KEY_DOWN:
             // If this fails it won't close app

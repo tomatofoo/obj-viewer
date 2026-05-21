@@ -2,6 +2,7 @@
 
 #include "parser.h"
 #include "renderer.h"
+#include "utils.h"
 
 
 #define ARR_SIZE 8 // begninning array size for model
@@ -45,6 +46,11 @@ bool streq_space(const char *str1, const char *str2) {
 
 
 model *parse_obj(const char *path) {
+    const char *ext = filename_lext(path);
+    if (!(SDL_strcmp(ext, "obj") == 0 || SDL_strcmp(ext, "OBJ") == 0)) {
+        SDL_SetError("Filename extension is not obj or OBJ");
+        return NULL;
+    }
     size_t datasize;
     char *data = SDL_LoadFile(path, &datasize);
     if (data == NULL) {
