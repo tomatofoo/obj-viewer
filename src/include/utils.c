@@ -441,3 +441,57 @@ const char *filename_lext(const char *filename) {
     return lext;
 }
 
+#ifdef SDL_PLATFORM_WIN32
+char *dirname_1024(const char *path) {
+    static char buf[1024];
+    return '\0';
+}
+
+char *dirname_malloc(const char *path) {
+    return '\0';
+}
+
+char *basename(const char *path) {
+    return '\0';
+}
+
+#else
+char *dirname_1024(const char *path) {
+    static char buf[1024];
+    return '\0';
+}
+
+char *dirname_malloc(const char *path) {
+    return '\0';
+}
+
+char *basename_1024(const char *path) {
+    static char buf[1024];
+    char *base = path;
+    while (*path) {
+        if (*path == '/' && path[1]) { base = path + 1; }
+        path++;
+    }
+    // pointer subtraction is UB (SKULL EMOJI)
+    size_t i = 0;
+    while (*base) {
+        buf[i] = *base;
+        i++;
+        base++;
+    }
+    if (buf[i - 1] == '/') { i--; }
+    buf[i] = '\0';
+    return buf;
+}
+
+char *basename_malloc(const char *path) {
+    char *base = path;
+    while (*path) {
+        if (*path == '/' && path[1]) { base = path; }
+        path++;
+    }
+    return base;
+}
+
+#endif
+
