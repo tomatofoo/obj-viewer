@@ -445,5 +445,20 @@ model *parse_obj(const char *path) {
     SDL_free(data);
 
     return mdl;
+
+invalid: // invalid data
+    SDL_free(data);
+    SDL_free(mdl);
+    SDL_free(mdl->vertices);
+    SDL_free(mdl->normals);
+    SDL_free(mdl->uvs);
+    SDL_free(mdl->faces);
+    SDL_free(mdl->mats);
+    SDL_SetError(
+        SDL_LOG_CATEGORY_ERROR,
+        "Invalid OBJ data",
+        SDL_GetError()
+    );
+    return NULL;
 }
 
