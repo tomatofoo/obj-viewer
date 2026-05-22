@@ -297,10 +297,18 @@ model *parse_obj(const char *path) {
             if (data[i] == '/') {
                 if (j == 0) {
                     d = d >= 0 ? d - 1 : mdl->nvertices + d;
+                    if (d < 0 || d >= mdl->nvertices) {
+                        SDL_SetError("Invalid vertex index received");
+                        goto invalid;
+                    }
                     rface.vertices[n] = d;
                 }
                 else if (j == 1) {
                     d = d >= 0 ? d - 1 : mdl->nuvs + d;
+                    if (d < 0 || d >= mdl->nuvs) {
+                        SDL_SetError("Invalid UV index received");
+                        goto invalid;
+                    }
                     rface.uvs[n] = d;
                 }
                 j++; // only need to increment in this if statement
@@ -316,14 +324,26 @@ model *parse_obj(const char *path) {
                 // repeated; not sure if there is better way
                 if (j == 0) {
                     d = d >= 0 ? d - 1 : mdl->nvertices + d;
+                    if (d < 0 || d >= mdl->nvertices) {
+                        SDL_SetError("Invalid vertex index received");
+                        goto invalid;
+                    }
                     rface.vertices[n] = d;
                 }
                 else if (j == 1) {
                     d = d >= 0 ? d - 1 : mdl->nuvs + d;
+                    if (d < 0 || d >= mdl->nuvs) {
+                        SDL_SetError("Invalid UV index received");
+                        goto invalid;
+                    }
                     rface.uvs[n] = d;
                 }
                 else if (j == 2) {
                     d = d >= 0 ? d - 1 : mdl->nnormals + d;
+                    if (d < 0 || d >= mdl->nnormals) {
+                        SDL_SetError("Invalid normal index received");
+                        goto invalid;
+                    }
                     rface.normals[n] = d;
                 }
                 if (n == 2) {
