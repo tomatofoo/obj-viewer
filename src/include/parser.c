@@ -193,6 +193,10 @@ model *parse_obj(const char *path) {
                 epower = 0;
                 continue;
             }
+            if (!(SDL_isdigit(data[i]) || data[i] == '-')) {
+                SDL_SetError("Invalid digits received");
+                goto invalid;
+            }
             if (epower > -1) {
                 if (data[i] == '-') {
                     eneg = true;
@@ -302,6 +306,10 @@ model *parse_obj(const char *path) {
                 j++; // only need to increment in this if statement
                 d = 0;
                 continue;
+            }
+            if (!SDL_isdigit(data[i])) {
+                SDL_SetError("Invalid digits received");
+                goto invalid;
             }
             d = d * 10 + (data[i] - '0');
             if (end) {
@@ -454,11 +462,7 @@ invalid: // invalid data
     SDL_free(mdl->uvs);
     SDL_free(mdl->faces);
     SDL_free(mdl->mats);
-    SDL_SetError(
-        SDL_LOG_CATEGORY_ERROR,
-        "Invalid OBJ data",
-        SDL_GetError()
-    );
+    SDL_SetError("Invalid OBJ data: %s", SDL_GetError());
     return NULL;
 }
 
