@@ -471,7 +471,7 @@ char *dirname_malloc(const char *path) {
 
 char *basename_1024(const char *path) {
     static char buf[1024];
-    char *base = path;
+    const char *base = path;
     while (*path) {
         if (*path == '/' && path[1]) { base = path + 1; }
         path++;
