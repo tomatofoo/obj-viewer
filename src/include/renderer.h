@@ -46,6 +46,7 @@ typedef struct point {
     int x;
     int y;
     double z;
+    double invz;
 } point;
 
 typedef struct context {
@@ -54,9 +55,10 @@ typedef struct context {
     model *mdl;
     double flength; // focal length
     bool blinn; // if using blinn-phong
-    double ambient;
-    double diffuse;
-    double specular;
+    uint8_t quality;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
     double glossiness;
     double brightness;
     vec3 pos;

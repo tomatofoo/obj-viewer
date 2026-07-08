@@ -26,6 +26,7 @@ typedef struct vec3 {
 } vec3;
 
 
+bool vec2_iszero(vec2 vec);
 double vec2_mag(vec2 vec);
 double vec2_mag_sq(vec2 vec);
 double vec2_angle(vec2 vec);
@@ -58,6 +59,7 @@ double vec2_dist(vec2 term1, vec2 term2);
 double vec2_dist_sq(vec2 term1, vec2 term2);
 double vec2_angle_to(vec2 term1, vec2 term2);
 
+bool vec3_iszero(vec3 vec);
 double vec3_mag(vec3 vec);
 double vec3_mag_sq(vec3 vec);
 double vec3_angle_x(vec3 vec);

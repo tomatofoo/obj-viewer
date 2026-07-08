@@ -104,9 +104,10 @@ context *create_context(
     ctx->rot = (vec3) {0, 0, 0};
     ctx->flength = w / 2;
     ctx->blinn = true;
-    ctx->ambient = 0;
-    ctx->diffuse = 1;
-    ctx->specular = 0;
+    ctx->quality = 2;
+    ctx->ambient = (vec3) {0, 0, 0};
+    ctx->diffuse = (vec3) {1, 1, 1};
+    ctx->specular = (vec3) {0, 0, 0};
     ctx->glossiness = 16;
     ctx->brightness = -1;
     ctx->renderer = renderer;
@@ -137,6 +138,47 @@ void destroy_context(context *ctx) {
     SDL_free(ctx);
 }
 
+vec3 calc_mult(
+    bool blinn,
+    double brightness,
+    double dot,
+    vec3 *rel,
+    vec3 *normal,
+    vec3 *ambi_color,
+    vec3 *diff_color,
+    vec3 *spec_color,
+    double glossiness
+) {
+    double invmag = 1.0 / vec3_mag(*rel);
+    double specular_mult;
+    vec3 diffuse = {0, 0, 0};
+    vec3 specular = {0, 0, 0};
+    if (!vec3_iszero(*diff_color)) {
+        diffuse = vec3_mul(*diff_color, -dot * invmag);
+    }
+    if (!vec3_iszero(*spec_color)) {
+        if (blinn) {
+            // light source is camera
+            // will have to change this when adding proper lighting
+            specular_mult = SDL_pow(-dot * invmag, glossiness);
+        }
+        else {
+            vec3 reflection = vec3_sub(*rel, vec3_mul(*normal, 2 * dot));
+            specular_mult = SDL_pow(
+                SDL_max(-vec3_dot(*rel, reflection) * invmag * invmag, 0),
+                glossiness
+            );
+        }
+        specular = vec3_mul(*spec_color, specular_mult);
+    }
+    vec3 mult = vec3_add(vec3_add(*ambi_color, diffuse), specular);
+    if (brightness != -1) { vec3_mul_ip(&mult, invmag * brightness); }
+    mult.x = SDL_max(mult.x, 0);
+    mult.y = SDL_max(mult.y, 0);
+    mult.z = SDL_max(mult.z, 0);
+
+    return mult;
+}
 
 bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     uint8_t *pixels;
@@ -163,13 +205,14 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         vec3_rot_x_ip(&rel, -ctx->rot.x);
         vec3_rot_z_ip(&rel, -ctx->rot.z);
         if (rel.z <= 0) {
-            ctx->proj[i] = (point) {0, 0, -1};
+            ctx->proj[i] = (point) {0, 0, -1, -1};
             continue;
         }
         ctx->proj[i] = (point) {
             rel.x / rel.z * ctx->flength + ctx->texture->w / 2,
             -rel.y / rel.z * ctx->flength + ctx->texture->h / 2,
             rel.z,
+            1.0 / rel.z,
         };
     }
 
@@ -177,14 +220,14 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     int xmax;
     int ymin;
     int ymax;
-    point points[3];
-    double z;
     double dot;
     double invmag;
-    double diffuse = 0;
-    double specular = 0;
-    double mult;
-    size_t n;
+    vec3 mult = {1, 1, 1};
+    double z;
+    point points[3];
+    vec2 diff10;
+    vec2 diff20;
+    double invdenom;
     for (size_t i = 0; i < mdl->nfaces; i++) {
         // Culling
         if (ctx->proj[mdl->faces[i].vertices[0]].z < 0) { continue; }
@@ -193,37 +236,21 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         rel = vec3_sub(mdl->faces[i].centroid, ctx->pos);
         dot = vec3_dot(rel, mdl->faces[i].normal);
         if (dot > 0) { continue; } // Backface culling
-
-        // Lighting (Phong lighting)
-        invmag = 1.0 / vec3_mag(rel);
-        if (ctx->diffuse) { diffuse = -dot * invmag * ctx->diffuse; }
-        if (ctx->specular) {
-            if (ctx->blinn) {
-                // light source is camera
-                // will have to change this when adding proper light sources
-                specular = SDL_pow(-dot * invmag, ctx->glossiness);
-            }
-            else {
-                vec3 reflection = vec3_sub(
-                    rel, vec3_mul(mdl->faces[i].normal, 2 * dot)
-                );
-                specular = SDL_pow(
-                    SDL_max(-vec3_dot(rel, reflection) * invmag * invmag, 0),
-                    ctx->glossiness
-                );
-            }
-            specular *= ctx->specular;
+        
+        if (ctx->quality == 1) {
+            // Lighting (Phong lighting)
+            mult = calc_mult(
+                ctx->blinn,
+                ctx->brightness,
+                dot,
+                &rel,
+                &mdl->faces[i].normal,
+                &ctx->ambient,
+                &ctx->diffuse,
+                &ctx->specular,
+                ctx->glossiness
+            );
         }
-        mult = ctx->ambient + diffuse + specular;
-        if (ctx->brightness != -1) { mult *= invmag * ctx->brightness; }
-        mult = SDL_clamp(mult, 0, 1);
-
-        // Calculate depth for z buffer (assumes no faces overlapping)
-        z = (
-            ctx->proj[mdl->faces[i].vertices[0]].z
-            + ctx->proj[mdl->faces[i].vertices[1]].z
-            + ctx->proj[mdl->faces[i].vertices[2]].z
-        ) / 3.0;
 
         // Get triangle bounds
         xmin = ctx->texture->w;
@@ -237,6 +264,13 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             ymin = SDL_min(SDL_max(points[j].y, 0), ymin);
             ymax = SDL_max(SDL_min(points[j].y, ctx->texture->h), ymax);
         }
+
+        // Caching some stuff for barycentric calculations
+        diff10.x = points[1].x - points[0].x;
+        diff10.y = points[1].y - points[0].y;
+        diff20.x = points[2].x - points[0].x;
+        diff20.y = points[2].y - points[0].y;
+        invdenom = 1.0 / (diff10.x * diff20.y - diff20.x * diff10.y);
 
         // Half-space triangle checking
         // https://sw-shader.sourceforge.net/rasterizer.html
@@ -253,6 +287,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             points[0].y - points[2].y
         };
         // Expressions that get added to/subtracted from
+        int xexp[3];
         int yexp[3];
         for (size_t j = 0; j < 3; j++) {
             yexp[j] = (
@@ -261,23 +296,73 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 + (ydiff[j] < 0 || (ydiff[j] == 0 && xdiff[j] > 0))
             );
         }
+
+        size_t zbufy = ymin * ctx->texture->w + xmin;
+        size_t pixelsy = ymin * pitch + xmin * 3;
+        size_t zbufn;
+        size_t pixelsn;
+        vec2 diffx0;
+        double u;
+        double v;
+        double w;
         for (int y = ymin; y < ymax; y++) {
-            int xexp[] = {yexp[0], yexp[1], yexp[2]};
+            zbufn = zbufy;
+            pixelsn = pixelsy;
+            xexp[0] = yexp[0];
+            xexp[1] = yexp[1];
+            xexp[2] = yexp[2];
             for (int x = xmin; x < xmax; x++) {
                 // half-space check
                 if (xexp[0] > 0 && xexp[1] > 0 && xexp[2] > 0) {
-                    n = y * ctx->texture->w + x;
+                    // Compute barycentric coordinates in screen space
+                    diffx0 = (vec2) {x - points[0].x, y - points[0].y};
+                    v = (diffx0.x * diff20.y - diff20.x * diffx0.y) * invdenom;
+                    w = (diff10.x * diffx0.y - diffx0.x * diff10.y) * invdenom;
+                    u = 1.0 - v - w;
+                    // Correct perspective
+                    u *= points[0].invz;
+                    v *= points[1].invz;
+                    w *= points[2].invz;
+                    invmag = 1.0 / (u + v + w);
+                    u *= invmag;
+                    v *= invmag;
+                    w *= invmag;
                     // not using continue because it will not do subtraction
-                    if (z * ZBUF_RES < ctx->zbuf[n]) {
-                        ctx->zbuf[n] = (uint32_t) (z * ZBUF_RES);
-                        n = y * pitch + x * 3;
-                        pixels[n + 0] = 255 * mult;
-                        pixels[n + 1] = 255 * mult;
-                        pixels[n + 2] = 255 * mult;
+                    z = u * points[0].z + v * points[1].z + w * points[2].z;
+                    // per-pixel lighting
+                    if (ctx->quality > 1) {
+                        rel = vec3_sub(vec3_add(vec3_add(
+                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[0]], u),
+                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[1]], v)),
+                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[2]], w)),
+                            ctx->pos
+                        );
+                        dot = vec3_dot(rel, mdl->faces[i].normal);
+                        mult = calc_mult(
+                            ctx->blinn,
+                            ctx->brightness,
+                            dot,
+                            &rel,
+                            &mdl->faces[i].normal,
+                            &ctx->ambient,
+                            &ctx->diffuse,
+                            &ctx->specular,
+                            ctx->glossiness
+                        );
+                    }
+                    if (z * ZBUF_RES < ctx->zbuf[zbufn]) {
+                        ctx->zbuf[zbufn] = (uint32_t) (z * ZBUF_RES);
+                        pixels[pixelsn + 0] = SDL_min(mult.x * 255, 255);
+                        pixels[pixelsn + 1] = SDL_min(mult.y * 255, 255);
+                        pixels[pixelsn + 2] = SDL_min(mult.z * 255, 255);
                     }
                 }
+                zbufn++;
+                pixelsn += 3;
                 for (size_t j = 0; j < 3; j++) { xexp[j] -= ydiff[j]; }
             }
+            zbufy += ctx->texture->w;
+            pixelsy += pitch;
             for (size_t j = 0; j < 3; j++) { yexp[j] += xdiff[j]; }
         }
     }

@@ -386,7 +386,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         
         double rspeed = 1.2;
         double mspeed = 0.9;
-        vec3 rot = (vec3) {
+        vec3 rot = {
             keys[SCANCODE_LOOK_DOWN] - keys[SCANCODE_LOOK_UP],
             keys[SCANCODE_LOOK_RIGHT] - keys[SCANCODE_LOOK_LEFT],
             0
@@ -394,7 +394,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         ctx->rot.x += rot.x * rspeed * dt;
         ctx->rot.y += rot.y * rspeed * dt;
         ctx->rot.z += rot.z * rspeed * dt;
-        vec3 mvt = (vec3) {
+        vec3 mvt = {
             keys[SCANCODE_RIGHT] - keys[SCANCODE_LEFT],
             keys[SCANCODE_UP] - keys[SCANCODE_DOWN],
             keys[SCANCODE_FORWARD] - keys[SCANCODE_BACKWARD]

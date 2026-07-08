@@ -3,6 +3,10 @@
 #include "utils.h"
 
 
+bool vec2_iszero(vec2 vec) {
+    return vec.x == 0 && vec.y == 0;
+}
+
 double vec2_mag(vec2 vec) {
     return hypot(vec.x, vec.y);
 }
@@ -159,6 +163,10 @@ double vec2_angle_to(vec2 term1, vec2 term2) {
     );
 }
 
+
+bool vec3_iszero(vec3 vec) {
+    return vec.x == 0 && vec.y == 0 && vec.z == 0;
+}
 
 double vec3_mag(vec3 vec) {
     return SDL_sqrt(vec3_mag_sq(vec));
