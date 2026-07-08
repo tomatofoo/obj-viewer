@@ -18,10 +18,10 @@ typedef struct face {
     // all are indices
     size_t vertices[3];
     vec3 centroid;
-    int uvs[3]; // int because need -1
-    int normals[3];
+    int32_t uvs[3]; // int because need -1
+    int32_t normals[3];
     vec3 normal; // average of all normals
-    int mat; // -1 means none
+    int32_t mat; // -1 means none
 } face;
 
 typedef struct model {

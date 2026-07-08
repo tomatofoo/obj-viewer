@@ -21,8 +21,8 @@ typedef struct uface { // unconverted face (could be quad)
     // all are indices
     size_t vertices[4];
     vec3 centroid;
-    int uvs[4]; // int because need -1
-    int normals[4];
+    int32_t uvs[4]; // int because need -1
+    int32_t normals[4];
     vec3 normal; // average of all normals
 } uface;
 
@@ -127,19 +127,19 @@ model *parse_obj(const char *path) {
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begin; // finished parsing element type; now will parse elem
     size_t n = 0; // index for arrays (resets at start)
-    int mat = -1; // material index for faces
+    int32_t mat = -1; // material index for faces
     // PER ITEM AND MORE
     bool start = true; // start of new item (inside element)
     bool end; // if is last char of current item
     bool neg; // if number value (see below) is negative
     uint32_t whole; // whole part of value
     uint64_t decimal; // decmial part of value (not power)
-    int dpower = -1; // power for decimal numbers
+    int32_t dpower = -1; // power for decimal numbers
     bool eneg; // if epower is negative
-    int epower = -1; // general power (for vertices with e in them)
+    int32_t epower = -1; // general power (for vertices with e in them)
     double value; // a number value (vertices, normals, etc.)
     size_t j; // index value
-    size_t d; // an element inDex value (faces)
+    int32_t d; // an element inDex value (faces) (int because need -1)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
             cont = false;
@@ -298,14 +298,14 @@ model *parse_obj(const char *path) {
                 if (j == 0) {
                     d = d >= 0 ? d - 1 : mdl->nvertices + d;
                     if (d < 0 || d >= mdl->nvertices) {
-                        SDL_SetError("Invalid vertex index received");
+                        SDL_SetError("Invalid vertex index received, %d, %d", d < -1, d);
                         goto invalid;
                     }
                     rface.vertices[n] = d;
                 }
                 else if (j == 1) {
                     d = d >= 0 ? d - 1 : mdl->nuvs + d;
-                    if (d < 0 || d >= mdl->nuvs) {
+                    if (d < -1 || d >= (int32_t) mdl->nuvs) {
                         SDL_SetError("Invalid UV index received");
                         goto invalid;
                     }
@@ -332,7 +332,7 @@ model *parse_obj(const char *path) {
                 }
                 else if (j == 1) {
                     d = d >= 0 ? d - 1 : mdl->nuvs + d;
-                    if (d < 0 || d >= mdl->nuvs) {
+                    if (d < -1 || d >= (int32_t) mdl->nuvs) {
                         SDL_SetError("Invalid UV index received");
                         goto invalid;
                     }
@@ -340,7 +340,7 @@ model *parse_obj(const char *path) {
                 }
                 else if (j == 2) {
                     d = d >= 0 ? d - 1 : mdl->nnormals + d;
-                    if (d < 0 || d >= mdl->nnormals) {
+                    if (d < -1 || d >= (int32_t) mdl->nnormals) {
                         SDL_SetError("Invalid normal index received");
                         goto invalid;
                     }
