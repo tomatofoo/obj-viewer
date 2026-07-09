@@ -305,6 +305,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         double u;
         double v;
         double w;
+        vec3 normal = mdl->faces[i].normal;
         for (int y = ymin; y < ymax; y++) {
             zbufn = zbufy;
             pixelsn = pixelsy;
@@ -337,13 +338,20 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                             vec3_mul(mdl->vertices[mdl->faces[i].vertices[2]], w)),
                             ctx->pos
                         );
-                        dot = vec3_dot(rel, mdl->faces[i].normal);
+                        if (ctx->quality > 2) {
+                            normal = vec3_unit(vec3_add(vec3_add(
+                                vec3_mul(mdl->normals[mdl->faces[i].normals[0]], u),
+                                vec3_mul(mdl->normals[mdl->faces[i].normals[1]], v)),
+                                vec3_mul(mdl->normals[mdl->faces[i].normals[2]], w)
+                            ));
+                        }
+                        dot = vec3_dot(rel, normal);
                         mult = calc_mult(
                             ctx->blinn,
                             ctx->brightness,
                             dot,
                             &rel,
-                            &mdl->faces[i].normal,
+                            &normal,
                             &ctx->ambient,
                             &ctx->diffuse,
                             &ctx->specular,
