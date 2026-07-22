@@ -7,12 +7,10 @@
 #include "utils.h"
 
 
-typedef struct material {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    SDL_Surface *texture;
-} material;
+typedef struct vertex {
+    vec3 vec; // for consistency
+    vec3 normal; 
+} vertex;
 
 typedef struct face {
     // all are indices
@@ -24,10 +22,17 @@ typedef struct face {
     int32_t mat; // -1 means none
 } face;
 
+typedef struct material {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    SDL_Surface *texture;
+} material;
+
 typedef struct model {
     size_t nvertices; // amount
     size_t cvertices; // capacity
-    vec3 *vertices;
+    vertex *vertices;
     size_t nnormals;
     size_t cnormals;
     vec3 *normals;

@@ -66,7 +66,7 @@ model *parse_obj(const char *path) {
     // Using malloc instead of calloc because we have nvertices
     // malloc is adequate and faster
     mdl->nvertices = 0;
-    mdl->vertices = SDL_malloc(sizeof(vec3) * ARR_SIZE);
+    mdl->vertices = SDL_malloc(sizeof(vertex) * ARR_SIZE);
     if (mdl->vertices == NULL) {
         SDL_free(data);
         SDL_free(mdl);
@@ -224,15 +224,15 @@ model *parse_obj(const char *path) {
             }
         }
         if (elem == VERTEX && end) { // don't need to initialize item in array
-            if (n == 0) { mdl->vertices[mdl->nvertices].x = value; }
-            else if (n == 1) { mdl->vertices[mdl->nvertices].y = value; }
+            if (n == 0) { mdl->vertices[mdl->nvertices].vec.x = value; }
+            else if (n == 1) { mdl->vertices[mdl->nvertices].vec.y = value; }
             else if (n == 2) {
-                mdl->vertices[mdl->nvertices].z = value;
+                mdl->vertices[mdl->nvertices].vec.z = value;
                 mdl->nvertices++;
                 if (mdl->nvertices >= mdl->cvertices) {
                     mdl->vertices = SDL_realloc(
                         mdl->vertices,
-                        sizeof(vec3) * mdl->cvertices * ARR_FACTOR
+                        sizeof(vertex) * mdl->cvertices * ARR_FACTOR
                     );
                     if (mdl->vertices == NULL) {
                         SDL_OutOfMemory();
@@ -242,7 +242,9 @@ model *parse_obj(const char *path) {
                 }
             }
             // w is scaling divisor
-            else { vec3_div_ip(mdl->vertices + mdl->nvertices - 1, value); }
+            else {
+                vec3_div_ip(&mdl->vertices[mdl->nvertices - 1].vec, value);
+            }
             n++;
         }
         else if (elem == NORMAL && end) {
@@ -348,9 +350,9 @@ model *parse_obj(const char *path) {
                 }
                 if (n == 2) {
                     mdl->faces[mdl->nfaces].centroid = vec3_add(vec3_add(
-                        mdl->vertices[rface.vertices[0]],
-                        mdl->vertices[rface.vertices[1]]),
-                        mdl->vertices[rface.vertices[2]]
+                        mdl->vertices[rface.vertices[0]].vec,
+                        mdl->vertices[rface.vertices[1]].vec),
+                        mdl->vertices[rface.vertices[2]].vec
                     );
                     vec3_div_ip(&mdl->faces[mdl->nfaces].centroid, 3);
                     // repurposing j
@@ -367,12 +369,12 @@ model *parse_obj(const char *path) {
                     // ^ don't need to divide by j because normalizing anyway
                     if (j == 0) { // calculate normal vector using cross product
                         vec3 term1 = vec3_sub(
-                            mdl->vertices[rface.vertices[1]],
-                            mdl->vertices[rface.vertices[0]]
+                            mdl->vertices[rface.vertices[1]].vec,
+                            mdl->vertices[rface.vertices[0]].vec
                         );
                         vec3 term2 = vec3_sub(
-                            mdl->vertices[rface.vertices[2]],
-                            mdl->vertices[rface.vertices[1]]
+                            mdl->vertices[rface.vertices[2]].vec,
+                            mdl->vertices[rface.vertices[1]].vec
                         );
                         rface.normal = vec3_cross(term1, term2);
                         vec3_unit_ip(&rface.normal); // normalize
@@ -406,10 +408,10 @@ model *parse_obj(const char *path) {
                 // split into 012 and 230
                 else if (n == 3) {
                     rface.centroid = vec3_add(vec3_add(vec3_add(
-                        mdl->vertices[rface.vertices[0]],
-                        mdl->vertices[rface.vertices[1]]),
-                        mdl->vertices[rface.vertices[2]]),
-                        mdl->vertices[rface.vertices[3]]
+                        mdl->vertices[rface.vertices[0]].vec,
+                        mdl->vertices[rface.vertices[1]].vec),
+                        mdl->vertices[rface.vertices[2]].vec),
+                        mdl->vertices[rface.vertices[3]].vec
                     );
                     vec3_div_ip(&rface.centroid, 4);
                     // copy the normal in case j is 0
@@ -425,12 +427,12 @@ model *parse_obj(const char *path) {
                     }
                     if (j == 0) {
                         vec3 term1 = vec3_sub(
-                            mdl->vertices[rface.vertices[3]],
-                            mdl->vertices[rface.vertices[2]]
+                            mdl->vertices[rface.vertices[3]].vec,
+                            mdl->vertices[rface.vertices[2]].vec
                         );
                         vec3 term2 = vec3_sub(
-                            mdl->vertices[rface.vertices[0]],
-                            mdl->vertices[rface.vertices[3]]
+                            mdl->vertices[rface.vertices[0]].vec,
+                            mdl->vertices[rface.vertices[3]].vec
                         );
                         // average both cross product normals
                         rface.normal = vec3_add(

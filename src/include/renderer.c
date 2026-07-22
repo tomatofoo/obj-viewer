@@ -29,11 +29,11 @@ bool normalize_model(model *mdl) {
     
     double largest = 0;
     for (size_t i = 0; i < mdl->nvertices; i++) {
-        largest = SDL_max(vec3_mag(mdl->vertices[i]), largest);
+        largest = SDL_max(vec3_mag(mdl->vertices[i].vec), largest);
     }
     if (largest == 0) { return true; }
     for (size_t i = 0; i < mdl->nvertices; i++) {
-        vec3_div_ip(mdl->vertices + i, largest);
+        vec3_div_ip(&mdl->vertices[i].vec, largest);
     }
     for (size_t i = 0; i < mdl->nfaces; i++) {
         vec3_div_ip(&mdl->faces[i].centroid, largest);
@@ -49,7 +49,7 @@ bool scale_model(model *mdl, double scale) {
     }
     
     for (size_t i; i < mdl->nvertices; i++) {
-        vec3_mul_ip(mdl->vertices + i, scale);
+        vec3_mul_ip(&mdl->vertices[i].vec, scale);
     }
     for (size_t i = 0; i < mdl->nfaces; i++) {
         vec3_mul_ip(&mdl->faces[i].centroid, scale);
@@ -200,7 +200,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     model *mdl = ctx->mdl;
     vec3 rel;
     for (size_t i = 0; i < mdl->nvertices; i++) {
-        rel = vec3_sub(mdl->vertices[i], ctx->pos);
+        rel = vec3_sub(mdl->vertices[i].vec, ctx->pos);
         vec3_rot_y_ip(&rel, -ctx->rot.y);
         vec3_rot_x_ip(&rel, -ctx->rot.x);
         vec3_rot_z_ip(&rel, -ctx->rot.z);
@@ -333,9 +333,9 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     // per-pixel lighting
                     if (ctx->quality > 1) {
                         rel = vec3_sub(vec3_add(vec3_add(
-                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[0]], u),
-                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[1]], v)),
-                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[2]], w)),
+                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[0]].vec, u),
+                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[1]].vec, v)),
+                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[2]].vec, w)),
                             ctx->pos
                         );
                         if (ctx->quality > 2) {
