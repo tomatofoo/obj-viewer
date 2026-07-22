@@ -224,6 +224,7 @@ model *parse_obj(const char *path) {
             }
         }
         if (elem == VERTEX && end) { // don't need to initialize item in array
+            mdl->vertices[mdl->nvertices].normal = (vec3) {0, 0, 0};
             if (n == 0) { mdl->vertices[mdl->nvertices].vec.x = value; }
             else if (n == 1) { mdl->vertices[mdl->nvertices].vec.y = value; }
             else if (n == 2) {
@@ -376,9 +377,14 @@ model *parse_obj(const char *path) {
                             mdl->vertices[rface.vertices[2]].vec,
                             mdl->vertices[rface.vertices[1]].vec
                         );
-                        rface.normal = vec3_cross(term1, term2);
-                        vec3_unit_ip(&rface.normal); // normalize
+                        rface.normal = vec3_unit(vec3_cross(term1, term2));
                         mdl->faces[mdl->nfaces].normal = rface.normal;
+                        for (size_t k = 0; k < 3; k++) {
+                            vec3_add_ip(
+                                &mdl->vertices[rface.vertices[k]].normal,
+                                rface.normal
+                            );
+                        }
                     }
                     else { vec3_unit_ip(&mdl->faces[mdl->nfaces].normal); }
                     mdl->faces[mdl->nfaces].vertices[0] = rface.vertices[0];
@@ -435,11 +441,22 @@ model *parse_obj(const char *path) {
                             mdl->vertices[rface.vertices[3]].vec
                         );
                         // average both cross product normals
-                        rface.normal = vec3_add(
+                        rface.normal = vec3_unit(vec3_add(
                             normal, vec3_unit(vec3_cross(term1, term2))
-                        );
+                        ));
+                        for (size_t k = 2; k < 1; k++) {
+                            vec3_sub_ip( // remove old normal from overall
+                                &mdl->vertices[rface.vertices[k]].normal,
+                                normal
+                            );
+                            vec3_add_ip(
+                                &mdl->vertices[rface.vertices[k]].normal,
+                                rface.normal
+                            );
+                            if (k == 3) { k = -1; }
+                        }
                     }
-                    vec3_unit_ip(&rface.normal);
+                    else { vec3_unit_ip(&rface.normal); }
                     mdl->faces[mdl->nfaces - 1].centroid = rface.centroid;
                     mdl->faces[mdl->nfaces - 1].normal = rface.normal;
                     mdl->faces[mdl->nfaces].centroid = rface.centroid;
@@ -469,6 +486,12 @@ model *parse_obj(const char *path) {
                 }
                 n++;
             }
+        }
+    }
+    // normalize all vertex normals
+    for (size_t i = 0; i < mdl->nvertices; i++) {
+        if (!vec3_iszero(mdl->vertices[i].normal)) {
+            vec3_unit_ip(&mdl->vertices[i].normal);
         }
     }
     // FREE UP DATA AFTER PARSING

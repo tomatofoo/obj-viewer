@@ -104,7 +104,7 @@ context *create_context(
     ctx->rot = (vec3) {0, 0, 0};
     ctx->flength = w / 2;
     ctx->blinn = true;
-    ctx->quality = 2;
+    ctx->quality = 3;
     ctx->ambient = (vec3) {0, 0, 0};
     ctx->diffuse = (vec3) {1, 1, 1};
     ctx->specular = (vec3) {0, 0, 0};
@@ -305,6 +305,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         double u;
         double v;
         double w;
+        vec3 normals[3];
         vec3 normal = mdl->faces[i].normal;
         for (int y = ymin; y < ymax; y++) {
             zbufn = zbufy;
@@ -345,16 +346,22 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                             ctx->pos
                         );
                         if (ctx->quality > 2) {
+                            for (size_t j = 0; j < 3; j++) {
+                                if (mdl->faces[i].normals[j] == -1) {
+                                    normals[j] = mdl->vertices[
+                                        mdl->faces[i].vertices[j]
+                                    ].normal;
+                                }
+                                else {
+                                    normals[j] = mdl->normals[
+                                        mdl->faces[i].normals[j]
+                                    ];
+                                }
+                            }
                             normal = vec3_unit(vec3_add(vec3_add(
-                                vec3_mul(
-                                    mdl->normals[mdl->faces[i].normals[0]], u
-                                ),
-                                vec3_mul(
-                                    mdl->normals[mdl->faces[i].normals[1]], v
-                                )),
-                                vec3_mul(
-                                    mdl->normals[mdl->faces[i].normals[2]], w
-                                ))
+                                vec3_mul(normals[0], u),
+                                vec3_mul(normals[1], v)),
+                                vec3_mul(normals[2], w))
                             );
                         }
                         dot = vec3_dot(rel, normal);
