@@ -333,17 +333,29 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     // per-pixel lighting
                     if (ctx->quality > 1) {
                         rel = vec3_sub(vec3_add(vec3_add(
-                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[0]].vec, u),
-                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[1]].vec, v)),
-                            vec3_mul(mdl->vertices[mdl->faces[i].vertices[2]].vec, w)),
+                            vec3_mul(
+                                mdl->vertices[mdl->faces[i].vertices[0]].vec, u
+                            ),
+                            vec3_mul(
+                                mdl->vertices[mdl->faces[i].vertices[1]].vec, v
+                            )),
+                            vec3_mul(
+                                mdl->vertices[mdl->faces[i].vertices[2]].vec, w
+                            )),
                             ctx->pos
                         );
                         if (ctx->quality > 2) {
                             normal = vec3_unit(vec3_add(vec3_add(
-                                vec3_mul(mdl->normals[mdl->faces[i].normals[0]], u),
-                                vec3_mul(mdl->normals[mdl->faces[i].normals[1]], v)),
-                                vec3_mul(mdl->normals[mdl->faces[i].normals[2]], w)
-                            ));
+                                vec3_mul(
+                                    mdl->normals[mdl->faces[i].normals[0]], u
+                                ),
+                                vec3_mul(
+                                    mdl->normals[mdl->faces[i].normals[1]], v
+                                )),
+                                vec3_mul(
+                                    mdl->normals[mdl->faces[i].normals[2]], w
+                                ))
+                            );
                         }
                         dot = vec3_dot(rel, normal);
                         mult = calc_mult(
