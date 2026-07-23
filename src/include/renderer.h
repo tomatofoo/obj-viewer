@@ -7,6 +7,10 @@
 #include "utils.h"
 
 
+#define QUALITY_MIN 0
+#define QUALITY_MAX 3
+
+
 typedef struct vertex {
     vec3 vec; // for consistency
     vec3 normal; 

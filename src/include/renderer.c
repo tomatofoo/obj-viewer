@@ -106,9 +106,9 @@ context *create_context(
     ctx->blinn = true;
     ctx->quality = 3;
     ctx->ambient = (vec3) {0, 0, 0};
-    ctx->diffuse = (vec3) {1, 1, 1};
-    ctx->specular = (vec3) {0, 0, 0};
-    ctx->glossiness = 16;
+    ctx->diffuse = (vec3) {0.5, 0.5, 0.5};
+    ctx->specular = (vec3) {1, 1, 1};
+    ctx->glossiness = 128;
     ctx->brightness = -1;
     ctx->renderer = renderer;
     ctx->texture = SDL_CreateTexture(
@@ -331,54 +331,53 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     w *= invmag;
                     // not using continue because it will not do subtraction
                     z = u * points[0].z + v * points[1].z + w * points[2].z;
-                    // per-pixel lighting
-                    if (ctx->quality > 1) {
-                        rel = vec3_sub(vec3_add(vec3_add(
-                            vec3_mul(
-                                mdl->vertices[mdl->faces[i].vertices[0]].vec, u
-                            ),
-                            vec3_mul(
-                                mdl->vertices[mdl->faces[i].vertices[1]].vec, v
-                            )),
-                            vec3_mul(
-                                mdl->vertices[mdl->faces[i].vertices[2]].vec, w
-                            )),
-                            ctx->pos
-                        );
-                        if (ctx->quality > 2) {
-                            for (size_t j = 0; j < 3; j++) {
-                                if (mdl->faces[i].normals[j] == -1) {
-                                    normals[j] = mdl->vertices[
-                                        mdl->faces[i].vertices[j]
-                                    ].normal;
-                                }
-                                else {
-                                    normals[j] = mdl->normals[
-                                        mdl->faces[i].normals[j]
-                                    ];
-                                }
-                            }
-                            normal = vec3_unit(vec3_add(vec3_add(
-                                vec3_mul(normals[0], u),
-                                vec3_mul(normals[1], v)),
-                                vec3_mul(normals[2], w))
-                            );
-                        }
-                        dot = vec3_dot(rel, normal);
-                        mult = calc_mult(
-                            ctx->blinn,
-                            ctx->brightness,
-                            dot,
-                            &rel,
-                            &normal,
-                            &ctx->ambient,
-                            &ctx->diffuse,
-                            &ctx->specular,
-                            ctx->glossiness
-                        );
-                    }
                     if (z * ZBUF_RES < ctx->zbuf[zbufn]) {
                         ctx->zbuf[zbufn] = (uint32_t) (z * ZBUF_RES);
+                        // per-pixel lighting
+                        if (ctx->quality > 1) {
+                            rel = (vec3) {0, 0, 0};
+                            rel = vec3_mul(
+                                mdl->vertices[mdl->faces[i].vertices[0]].vec, u
+                            );
+                            vec3_add_ip(&rel, vec3_mul(
+                                mdl->vertices[mdl->faces[i].vertices[1]].vec, v
+                            ));
+                            vec3_add_ip(&rel, vec3_mul(
+                                mdl->vertices[mdl->faces[i].vertices[2]].vec, w
+                            ));
+                            vec3_sub_ip(&rel, ctx->pos);
+                            if (ctx->quality > 2) {
+                                for (size_t j = 0; j < 3; j++) {
+                                    if (mdl->faces[i].normals[j] == -1) {
+                                        normals[j] = mdl->vertices[
+                                            mdl->faces[i].vertices[j]
+                                        ].normal;
+                                    }
+                                    else {
+                                        normals[j] = mdl->normals[
+                                            mdl->faces[i].normals[j]
+                                        ];
+                                    }
+                                }
+                                normal = vec3_unit(vec3_add(vec3_add(
+                                    vec3_mul(normals[0], u),
+                                    vec3_mul(normals[1], v)),
+                                    vec3_mul(normals[2], w))
+                                );
+                            }
+                            dot = vec3_dot(rel, normal);
+                            mult = calc_mult(
+                                ctx->blinn,
+                                ctx->brightness,
+                                dot,
+                                &rel,
+                                &normal,
+                                &ctx->ambient,
+                                &ctx->diffuse,
+                                &ctx->specular,
+                                ctx->glossiness
+                            );
+                        }
                         pixels[pixelsn + 0] = SDL_min(mult.x * 255, 255);
                         pixels[pixelsn + 1] = SDL_min(mult.y * 255, 255);
                         pixels[pixelsn + 2] = SDL_min(mult.z * 255, 255);
