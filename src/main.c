@@ -40,7 +40,8 @@ static context *ctx = NULL;
 static TTF_Font *font;
 static Uint64 last; // for timer
 
-static uint8_t quality; // so it's persistent
+static double flength = WIDTH / 2;
+static uint8_t quality = 3; // so it's persistent
 
 static bool drop_file_failed; // separate because of threads
 
@@ -158,6 +159,9 @@ bool load_file(const char *path) {
         );
         return false;
     }
+
+    new->flength = flength;
+    new->quality = quality;
 
     if (ctx != NULL) { destroy_context(ctx); }
     ctx = new;
