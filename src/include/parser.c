@@ -368,7 +368,7 @@ model *parse_obj(const char *path) {
                         j++;
                     }
                     // ^ don't need to divide by j because normalizing anyway
-                    if (j == 0) { // calculate normal vector using cross product
+                    if (j < 3) { // calculate normal vector using cross product
                         vec3 term1 = vec3_sub(
                             mdl->vertices[rface.vertices[1]].vec,
                             mdl->vertices[rface.vertices[0]].vec
@@ -431,7 +431,7 @@ model *parse_obj(const char *path) {
                         );
                         j++;
                     }
-                    if (j == 0) {
+                    if (j < 3) {
                         vec3 term1 = vec3_sub(
                             mdl->vertices[rface.vertices[3]].vec,
                             mdl->vertices[rface.vertices[2]].vec
