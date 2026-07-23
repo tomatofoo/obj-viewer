@@ -105,7 +105,7 @@ context *create_context(
     ctx->flength = w / 2;
     ctx->blinn = true;
     ctx->quality = 3;
-    ctx->ambient = (vec3) {0, 0, 0};
+    ctx->ambient = (vec3) {0.1, 0.1, 0.1};
     ctx->diffuse = (vec3) {0.5, 0.5, 0.5};
     ctx->specular = (vec3) {1, 1, 1};
     ctx->glossiness = 128;
@@ -222,7 +222,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     int ymax;
     double dot;
     double invmag;
-    vec3 mult = {1, 1, 1};
+    vec3 mult = ctx->ambient;
     double z;
     point points[3];
     vec2 diff10;
@@ -335,7 +335,6 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                         ctx->zbuf[zbufn] = (uint32_t) (z * ZBUF_RES);
                         // per-pixel lighting
                         if (ctx->quality > 1) {
-                            rel = (vec3) {0, 0, 0};
                             rel = vec3_mul(
                                 mdl->vertices[mdl->faces[i].vertices[0]].vec, u
                             );

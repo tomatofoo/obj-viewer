@@ -224,10 +224,10 @@ model *parse_obj(const char *path) {
             }
         }
         if (elem == VERTEX && end) { // don't need to initialize item in array
-            mdl->vertices[mdl->nvertices].normal = (vec3) {0, 0, 0};
             if (n == 0) { mdl->vertices[mdl->nvertices].vec.x = value; }
             else if (n == 1) { mdl->vertices[mdl->nvertices].vec.y = value; }
             else if (n == 2) {
+                mdl->vertices[mdl->nvertices].normal = (vec3) {0, 0, 0};
                 mdl->vertices[mdl->nvertices].vec.z = value;
                 mdl->nvertices++;
                 if (mdl->nvertices >= mdl->cvertices) {
@@ -444,16 +444,17 @@ model *parse_obj(const char *path) {
                         rface.normal = vec3_unit(vec3_add(
                             normal, vec3_unit(vec3_cross(term1, term2))
                         ));
-                        for (size_t k = 2; k < 1; k++) {
+                        for (size_t k = 0; k < 3; k++) {
                             vec3_sub_ip( // remove old normal from overall
                                 &mdl->vertices[rface.vertices[k]].normal,
                                 normal
                             );
+                        }
+                        for (size_t k = 0; k < 4; k++) {
                             vec3_add_ip(
                                 &mdl->vertices[rface.vertices[k]].normal,
                                 rface.normal
                             );
-                            if (k == 3) { k = -1; }
                         }
                     }
                     else { vec3_unit_ip(&rface.normal); }
