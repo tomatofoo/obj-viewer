@@ -11,7 +11,7 @@ is still pretty shitty though.
 ## Features
 - Supports OBJ files with convex faces up to four vertices (most models)
 - Backface culling for performance
-- Flat shading using dot product lighting
+- Flat and smooth shading with Phong illumination 
 
 ## Building from Source
 To build this project from source, install `SDL3`, `SDL3_image`, and 
