@@ -460,6 +460,7 @@ char *dirname_malloc(const char *path) {
 }
 
 char *basename_1024(const char *path) {
+    static char buf[1024];
     return NULL;
 }
 

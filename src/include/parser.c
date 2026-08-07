@@ -380,6 +380,11 @@ model *parse_obj(const char *path) {
                         rface.normal = vec3_unit(vec3_cross(term1, term2));
                         mdl->faces[mdl->nfaces].normal = rface.normal;
                         for (size_t k = 0; k < 3; k++) {
+                            if (SDL_isnan(rface.normal.x)
+                                || SDL_isnan(rface.normal.y)
+                                || SDL_isnan(rface.normal.z)) {
+                                continue;
+                            } // i spent weeks debugging this
                             vec3_add_ip(
                                 &mdl->vertices[rface.vertices[k]].normal,
                                 rface.normal
@@ -451,6 +456,11 @@ model *parse_obj(const char *path) {
                             );
                         }
                         for (size_t k = 0; k < 4; k++) {
+                            if (SDL_isnan(rface.normal.x)
+                                || SDL_isnan(rface.normal.y)
+                                || SDL_isnan(rface.normal.z)) {
+                                continue;
+                            }
                             vec3_add_ip(
                                 &mdl->vertices[rface.vertices[k]].normal,
                                 rface.normal
