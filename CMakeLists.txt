@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 4.0)
 project(
     "OBJ Viewer"
     DESCRIPTION "OBJ Viewer"
-    VERSION 0.1.1
+    VERSION 0.2.0
     LANGUAGES C
 )
 
