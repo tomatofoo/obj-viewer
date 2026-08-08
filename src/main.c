@@ -51,7 +51,7 @@ static const SDL_DialogFileFilter filters_scrshot[] = {
     { "All images",  "png;jpg;jpeg;jpe" },
     { "All files",   "*" }
 };
-static SDL_Texture *textures[2];
+static SDL_Texture *textures[3];
 static SDL_FRect rects[2]; // for textures
 
 
@@ -135,6 +135,9 @@ void SDLCALL save_scrshot_thread(
 ) { SDL_RunOnMainThread(*save_scrshot, (void *) filelist, true); }
 
 bool load_file(const char *path) {
+    if (ctx != NULL) { destroy_context(ctx); }
+    ctx = NULL;
+
     context *new = create_context(path, renderer, WIDTH, HEIGHT);
     if (new == NULL) {
         SDL_SetError(
@@ -163,7 +166,6 @@ bool load_file(const char *path) {
     new->flength = flength;
     new->quality = quality;
 
-    if (ctx != NULL) { destroy_context(ctx); }
     ctx = new;
 
     return true;
@@ -228,11 +230,6 @@ error:
         SDL_GetError()
     );
     return;
-}
-
-bool drop_file_thread(SDL_Event *event) {
-    SDL_RunOnMainThread(*drop_file, (void *) event, true);
-    return !drop_file_failed;
 }
 
 // APP FUNCTIONS
@@ -335,6 +332,18 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         );
         return SDL_APP_FAILURE;
     }
+    if (!render_text(
+        "Error loading file; try a different one.",
+        textures + 2,
+        rects + 2
+    )) {
+        SDL_LogError(
+            SDL_LOG_CATEGORY_ERROR,
+            "Failed to render text: %s",
+            SDL_GetError()
+        );
+        return SDL_APP_FAILURE;
+    }
 
     last = SDL_GetPerformanceCounter();
 
@@ -349,7 +358,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
             return SDL_APP_SUCCESS;
             break;
         case SDL_EVENT_DROP_FILE:
-            if (!drop_file_thread(event)) { return SDL_APP_FAILURE; }
+            SDL_RunOnMainThread(*drop_file, (void *) event, true);
             break;
         case SDL_EVENT_KEY_DOWN:
             // If this fails it won't close app
@@ -395,7 +404,17 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         return SDL_APP_FAILURE;
     }
     if (ctx == NULL) {
-        if (!SDL_RenderTexture(renderer, textures[0], NULL, rects + 0)) {
+        if (drop_file_failed) {
+            if (!SDL_RenderTexture(renderer, textures[2], NULL, rects + 0)) {
+                SDL_LogError(
+                    SDL_LOG_CATEGORY_RENDER,
+                    "Failed to render texture: %s",
+                    SDL_GetError()
+                );
+                return SDL_APP_FAILURE;
+            }
+        }
+        else if (!SDL_RenderTexture(renderer, textures[0], NULL, rects + 0)) {
             SDL_LogError(
                 SDL_LOG_CATEGORY_RENDER,
                 "Failed to render texture: %s",
