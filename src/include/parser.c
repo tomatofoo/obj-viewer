@@ -301,13 +301,14 @@ model *parse_obj(const char *path) {
                 if (j == 0) {
                     d = d >= 0 ? d - 1 : mdl->nvertices + d;
                     if (d < 0 || d >= mdl->nvertices) {
-                        SDL_SetError("Invalid vertex index received, %d, %d", d < -1, d);
+                        SDL_SetError("Invalid vertex index received");
                         goto invalid;
                     }
                     rface.vertices[n] = d;
                 }
                 else if (j == 1) {
                     d = d >= 0 ? d - 1 : mdl->nuvs + d;
+                    // avoid negative and postive size_t comparison stuff
                     if (d < -1 || d >= (int32_t) mdl->nuvs) {
                         SDL_SetError("Invalid UV index received");
                         goto invalid;
