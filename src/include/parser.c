@@ -207,7 +207,7 @@ model *parse_obj(const char *path) {
             else {
                 if (dpower > -1) {
                     // This supports some pretty good precision
-                    if (decimal < (SDL_MAX_UINT64 - 10) / 10) {
+                    if (decimal < (SDL_MAX_UINT64 - 10) * 0.1) {
                         dpower++;
                         decimal = decimal * 10 + (data[i] - '0');
                     }
