@@ -117,6 +117,7 @@ const char *filename_ext(const char *filename);
 const char *filename_lext(const char *filename);
 char *dirname_2048(const char *path);
 char *basename_2048(const char *path);
+uint32_t fnv1a32(const char *key);
 
 #endif
 
