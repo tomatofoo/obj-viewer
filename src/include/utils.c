@@ -504,7 +504,7 @@ char *basename_2048(const char *path) {
 uint32_t fnv1a32(const char *key) {
     uint32_t hash = 0x811c9dc5;
     while (*key) {
-        hash = (hash ^ key) * 0x01000193
+        hash = (hash ^ *key) * 0x01000193;
         key++;
     }
     return hash;
