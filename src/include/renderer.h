@@ -27,9 +27,10 @@ typedef struct face {
 } face;
 
 typedef struct material {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    double glossiness;
     SDL_Surface *texture;
 } material;
 
