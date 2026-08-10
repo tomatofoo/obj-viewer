@@ -449,40 +449,61 @@ const char *filename_lext(const char *filename) {
     return lext;
 }
 
+char *dirname_1024(const char *path) {
+    static char buf[1024];
+    bool slash = true;
+    const char *p = path;
+    const char *end = path;
+    while (*p) {
 #ifdef SDL_PLATFORM_WIN32
-char *dirname_1024(const char *path) {
-    static char buf[1024];
-    return NULL;
-}
-
-char *dirname_malloc(const char *path) {
-    return NULL;
-}
-
-char *basename_1024(const char *path) {
-    static char buf[1024];
-    return NULL;
-}
-
-char *basename_malloc(const char *path) {
-    return NULL;
-}
-
+        if (*p == '\\') {
 #else
-char *dirname_1024(const char *path) {
-    static char buf[1024];
-    return NULL;
-}
-
-char *dirname_malloc(const char *path) {
-    return NULL;
+        if (*p == '/') {
+#endif
+            if (p[1]) { end = p; }
+            slash = false;
+        }
+        p++;
+    }
+    if (slash) {
+#ifdef SDL_PLATFORM_WIN32
+        buf[0] = '\\';
+#else
+        buf[0] = '/';
+#endif
+        buf[1] = '\0';
+        return buf;
+    }
+    if (end == path) {
+        buf[0] = '.';
+        buf[1] = '\0';
+        return buf;
+    }
+    // pointer subtraction is UB (SKULL EMOJI)
+    size_t i = 0;
+    while (path < end) {
+        buf[i] = *path;
+        i++;
+        path++;
+    }
+#ifdef SDL_PLATFORM_WIN32
+    if (buf[i - 1] == '\\') { i--; }
+#else
+    if (buf[i - 1] == '/') { i--; }
+#endif
+    buf[i] = '\0';
+    return buf;
 }
 
 char *basename_1024(const char *path) {
     static char buf[1024];
     const char *base = path;
     while (*path) {
+#ifdef SDL_PLATFORM_WIN32
+        if (*path == '\\' && path[1]) { base = path + 1; }
+#else
         if (*path == '/' && path[1]) { base = path + 1; }
+#endif
         path++;
     }
     // pointer subtraction is UB (SKULL EMOJI)
@@ -492,14 +513,13 @@ char *basename_1024(const char *path) {
         i++;
         base++;
     }
+#ifdef SDL_PLATFORM_WIN32
+    if (buf[i - 1] == '\\') { i--; }
+#else
     if (buf[i - 1] == '/') { i--; }
+#endif
     buf[i] = '\0';
     return buf;
-}
-
-char *basename_malloc(const char *path) {
     return NULL;
 }
-
-#endif
 
