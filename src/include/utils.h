@@ -2,6 +2,12 @@
 #define UTILS_H
 
 
+#ifdef SDL_PLATFORM_WIN32
+#define DIR_SEP '\\'
+#else
+#define DIR_SEP '/'
+#endif
+
 #define BLACK 0, 0, 0
 #define WHITE 255, 255, 255
 #define RED 255, 0, 0
@@ -109,6 +115,8 @@ double hypot(double x, double y);
 bool inrange(double x, double l, double h, bool incl, bool inch);
 const char *filename_ext(const char *filename);
 const char *filename_lext(const char *filename);
+char *dirname_2048(const char *path);
+char *basename_2048(const char *path);
 
 #endif
 

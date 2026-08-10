@@ -449,28 +449,18 @@ const char *filename_lext(const char *filename) {
     return lext;
 }
 
-char *dirname_1024(const char *path) {
-    static char buf[1024];
+char *dirname_2048(const char *path) {
+    static char buf[2048];
     bool slash = true;
     const char *p = path;
     const char *end = path;
     while (*p) {
-#ifdef SDL_PLATFORM_WIN32
-        if (*p == '\\') {
-#else
-        if (*p == '/') {
-#endif
-            if (p[1]) { end = p; }
-            slash = false;
-        }
+        if (*p == DIR_SEP) { if (p[1]) { end = p; } }
+        else { slash = false; }
         p++;
     }
     if (slash) {
-#ifdef SDL_PLATFORM_WIN32
-        buf[0] = '\\';
-#else
-        buf[0] = '/';
-#endif
+        buf[0] = DIR_SEP;
         buf[1] = '\0';
         return buf;
     }
@@ -486,24 +476,16 @@ char *dirname_1024(const char *path) {
         i++;
         path++;
     }
-#ifdef SDL_PLATFORM_WIN32
-    if (buf[i - 1] == '\\') { i--; }
-#else
-    if (buf[i - 1] == '/') { i--; }
-#endif
+    if (buf[i - 1] == DIR_SEP) { i--; }
     buf[i] = '\0';
     return buf;
 }
 
-char *basename_1024(const char *path) {
-    static char buf[1024];
+char *basename_2048(const char *path) {
+    static char buf[2048];
     const char *base = path;
     while (*path) {
-#ifdef SDL_PLATFORM_WIN32
-        if (*path == '\\' && path[1]) { base = path + 1; }
-#else
-        if (*path == '/' && path[1]) { base = path + 1; }
-#endif
+        if (*path == DIR_SEP && path[1]) { base = path + 1; }
         path++;
     }
     // pointer subtraction is UB (SKULL EMOJI)
@@ -513,11 +495,7 @@ char *basename_1024(const char *path) {
         i++;
         base++;
     }
-#ifdef SDL_PLATFORM_WIN32
-    if (buf[i - 1] == '\\') { i--; }
-#else
-    if (buf[i - 1] == '/') { i--; }
-#endif
+    if (buf[i - 1] == DIR_SEP) { i--; }
     buf[i] = '\0';
     return buf;
     return NULL;
