@@ -423,6 +423,7 @@ double vec3_angle_to(vec3 term1, vec3 term2) {
 
 
 table *create_table(size_t capacity) {
+    if (capacity == 0) { return NULL; }
     table *tb = SDL_malloc(sizeof(table));
     if (tb == NULL) {
         SDL_OutOfMemory();
