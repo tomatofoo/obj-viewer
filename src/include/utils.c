@@ -422,6 +422,30 @@ double vec3_angle_to(vec3 term1, vec3 term2) {
 }
 
 
+table *create_table(size_t capacity) {
+    table *tb = SDL_malloc(sizeof(table));
+    if (tb == NULL) {
+        SDL_OutOfMemory();
+        return NULL;
+    }
+    tb->entries = SDL_malloc(sizeof(entry) * capacity);
+    if (tb->entries == NULL) {
+        SDL_free(t);
+        SDL_OutOfMemory();
+        return NULL;
+    }
+    tb->nentries = 0;
+    tb->centries = capacity;
+    
+    return tb;
+}
+
+void destroy_table(table *tb) {
+    SDL_free(tb->entries);
+    SDL_free(tb);
+}
+
+
 double hypot(double x, double y) {
     return SDL_sqrt(x * x + y * y);
 }
