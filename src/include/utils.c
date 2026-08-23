@@ -428,7 +428,7 @@ table *create_table(size_t capacity) {
         SDL_OutOfMemory();
         return NULL;
     }
-    tb->entries = SDL_malloc(sizeof(entry) * capacity);
+    tb->entries = SDL_calloc(capacity, sizeof(entry));
     if (tb->entries == NULL) {
         SDL_free(t);
         SDL_OutOfMemory();
@@ -441,8 +441,65 @@ table *create_table(size_t capacity) {
 }
 
 void destroy_table(table *tb) {
+    for (size_t i = 0; i < tb->centries; i++) {
+        SDL_free(tb->entries[i].key); // can free NULL
+    }
     SDL_free(tb->entries);
     SDL_free(tb);
+}
+
+bool table_set(table *tb, const char *key, void *value) {
+    size_t i = fnv1a32(key) % tb->centries;
+    while (tb->entries[i].key != NULL) { i = (i + 1) % tb->centries; }
+    size_t len = SDL_strlen(key) + 1;
+    char *mkey = SDL_malloc(sizeof(car) * len);
+    if (mkey == NULL) { return false; }
+    SDL_strlcpy(mkey, key, len);
+    tb->entries[i].key = mkey;
+    tb->entries[i].value = value;
+    tb->nentries++;
+    if (tb->nentries >= tb->centries) {
+        tb->centries *= 2;
+        entry *entries = SDL_calloc(sizeof(entry) * tb->centries);
+        size_t j;
+        for (size_t i = 0; i < tb->centries; i++) {
+            if (tb->entries[i].key == NULL) { continue; }
+            j = fnv1a32(tb->entries[i].key) % tb->centries;
+            while (entries[j].key != NULL) { j = (j + 1) % tb->centries; }
+            entries[j].key = tb->entries[i].key;
+            entries[j].value = tb->entries[i].value;
+        }
+        tb->entries = entries;
+    }
+}
+
+void *table_get(table *tb, const char *key) {
+    if (key == NULL) { return NULL; }
+    size_t i = fnv1a32(key) % tb->centries;
+    for (size_t j = 0; tb->entries[i].key != NULL && j < tb->centries; j++) {
+        if (SDL_strcmp(tb->entries[i].key, key)) {
+            i = (i + 1) % tb->centries;
+        }
+        else { return tb->entries[i].value; }
+    }
+    return NULL;
+}
+
+void *table_pop(table *tb, const char *key) {
+    if (key == NULL) { return NULL; }
+    size_t i = fnv1a32(key) % tb->centries;
+    for (size_t j = 0; tb->entries[i].key != NULL && j < tb->centries; j++) {
+        if (SDL_strcmp(tb->entries[i].key, key)) {
+            i = (i + 1) % tb->centries;
+        }
+        else {
+            SDL_free(tb->entries[i].key);
+            tb->entries[i].key == NULL;
+            tb->nentries--;
+            return tb->entries[i].value;
+        }
+    }
+    return NULL;
 }
 
 
