@@ -478,19 +478,7 @@ bool table_set(table *tb, const char *key, void *value) {
     return true;
 }
 
-void *table_get(table *tb, const char *key) {
-    if (key == NULL) { return NULL; }
-    size_t i = fnv1a32(key) % tb->centries;
-    for (size_t j = 0; tb->entries[i].key != NULL && j < tb->centries; j++) {
-        if (SDL_strcmp(tb->entries[i].key, key)) {
-            i = (i + 1) % tb->centries;
-        }
-        else { return tb->entries[i].value; }
-    }
-    return NULL;
-}
-
-void *table_pop(table *tb, const char *key) {
+void *table__get(table *tb, const char *key, bool pop) {
     if (key == NULL) { return NULL; }
     size_t i = fnv1a32(key) % tb->centries;
     for (size_t j = 0; tb->entries[i].key != NULL && j < tb->centries; j++) {
@@ -498,14 +486,20 @@ void *table_pop(table *tb, const char *key) {
             i = (i + 1) % tb->centries;
         }
         else {
-            SDL_free(tb->entries[i].key);
-            tb->entries[i].key == NULL;
-            tb->nentries--;
+            if (pop) {
+                SDL_free(tb->entries[i].key);
+                tb->entries[i].key == NULL;
+                tb->nentries--;
+            }
             return tb->entries[i].value;
         }
     }
     return NULL;
 }
+
+void *table_get(table *tb, const char *key) { table__get(table, key, false); }
+
+void *table_pop(table *tb, const char *key) { table__get(table, key, true); }
 
 
 double hypot(double x, double y) {
