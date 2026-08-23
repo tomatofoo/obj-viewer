@@ -498,9 +498,9 @@ void *table__get(table *tb, const char *key, bool pop) {
     return NULL;
 }
 
-void *table_get(table *tb, const char *key) { table__get(table, key, false); }
+void *table_get(table *tb, const char *key) { table__get(tb, key, false); }
 
-void *table_pop(table *tb, const char *key) { table__get(table, key, true); }
+void *table_pop(table *tb, const char *key) { table__get(tb, key, true); }
 
 
 double hypot(double x, double y) {

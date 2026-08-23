@@ -16,6 +16,7 @@
 #define APPIDENTIFIER "com.tomatofu.obj-viewer"
 #define WIDTH 640
 #define HEIGHT 480
+#define SCALE 1
 #define FLAGS 0
 #define GAMESPEED 1 // game speed
 #define FONTSIZE 20
@@ -40,7 +41,7 @@ static context *ctx = NULL;
 static TTF_Font *font;
 static Uint64 last; // for timer
 
-static double flength = WIDTH / 2;
+static double flength = WIDTH / SCALE / 2;
 static uint8_t quality = 3; // so it's persistent
 
 static bool drop_file_failed; // separate because of threads
@@ -138,7 +139,9 @@ bool load_file(const char *path) {
     if (ctx != NULL) { destroy_context(ctx); }
     ctx = NULL;
 
-    context *new = create_context(path, renderer, WIDTH, HEIGHT);
+    context *new = create_context(
+        path, renderer, WIDTH / SCALE, HEIGHT / SCALE
+    );
     if (new == NULL) {
         SDL_SetError(
             "Failed to create context: %s",
