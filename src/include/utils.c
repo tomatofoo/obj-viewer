@@ -461,6 +461,10 @@ bool table_set(table *tb, const char *key, void *value) {
     if (tb->nentries >= tb->centries) {
         tb->centries *= 2;
         entry *entries = SDL_calloc(tb->centries, sizeof(entry));
+        if (entries == NULL) {
+            SDL_OutOfMemory();
+            return false;
+        }
         size_t j;
         for (size_t i = 0; i < tb->centries; i++) {
             if (tb->entries[i].key == NULL) { continue; }
