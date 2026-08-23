@@ -31,6 +31,18 @@ typedef struct vec3 {
     double z;
 } vec3;
 
+// based on https://benhoyt.com/writings/hash-table-in-c/
+typedef struct entry {
+    char *key;
+    void *value;
+} entry;
+
+typedef struct table {
+    entry *entries;
+    size_t nentries;
+    size_t centries;
+} table;
+
 
 bool vec2_iszero(vec2 vec);
 double vec2_mag(vec2 vec);
