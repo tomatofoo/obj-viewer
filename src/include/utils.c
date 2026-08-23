@@ -471,6 +471,7 @@ bool table_set(table *tb, const char *key, void *value) {
         }
         tb->entries = entries;
     }
+    return true;
 }
 
 void *table_get(table *tb, const char *key) {
