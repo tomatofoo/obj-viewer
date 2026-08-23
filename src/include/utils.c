@@ -430,7 +430,7 @@ table *create_table(size_t capacity) {
     }
     tb->entries = SDL_calloc(capacity, sizeof(entry));
     if (tb->entries == NULL) {
-        SDL_free(t);
+        SDL_free(tb);
         SDL_OutOfMemory();
         return NULL;
     }
@@ -452,7 +452,7 @@ bool table_set(table *tb, const char *key, void *value) {
     size_t i = fnv1a32(key) % tb->centries;
     while (tb->entries[i].key != NULL) { i = (i + 1) % tb->centries; }
     size_t len = SDL_strlen(key) + 1;
-    char *mkey = SDL_malloc(sizeof(car) * len);
+    char *mkey = SDL_malloc(sizeof(char) * len);
     if (mkey == NULL) { return false; }
     SDL_strlcpy(mkey, key, len);
     tb->entries[i].key = mkey;
@@ -460,7 +460,7 @@ bool table_set(table *tb, const char *key, void *value) {
     tb->nentries++;
     if (tb->nentries >= tb->centries) {
         tb->centries *= 2;
-        entry *entries = SDL_calloc(sizeof(entry) * tb->centries);
+        entry *entries = SDL_calloc(tb->centries, sizeof(entry));
         size_t j;
         for (size_t i = 0; i < tb->centries; i++) {
             if (tb->entries[i].key == NULL) { continue; }
