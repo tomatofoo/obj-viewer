@@ -1,4 +1,4 @@
-# obj-viewer
+#lessons in internet culture obj-viewer
 
 ![Stanford Dragon](/images/dragon.png)
 
@@ -52,6 +52,9 @@ Drag an OBJ file to the app window. The program will open the file.
 - Left: Look left
 - Right: Look right
 - Up: Look up
-- Down: Look down
+- Down: Look down 
+- T: Toggle texture support
+- [: Increase quality
+- ]: Increase quality
 - F2: Take a screenshot (supports PNG and JPEG, default PNG)
 
