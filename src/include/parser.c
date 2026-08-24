@@ -197,6 +197,7 @@ bool parse_mtl(const char *path, mtable *mt) {
         }
         if (!begin) { continue; } // will start parsing after beginning
         end = isempty(data[i + 1]) || cont; // check if is end
+
         if (elem == NEWMAT) {
         }
         // Floating-point Number Parsing
@@ -269,6 +270,10 @@ bool parse_mtl(const char *path, mtable *mt) {
     SDL_free(data);
 
     return true;
+
+invalid:
+    SDL_free(data);
+    return false;
 }
 
 model *parse_obj(const char *path) {
