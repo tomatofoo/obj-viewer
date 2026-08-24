@@ -31,7 +31,9 @@ typedef struct material {
     vec3 diffuse;
     vec3 specular;
     double glossiness;
-    SDL_Surface *texture;
+    SDL_Surface *atexture;
+    SDL_Surface *dtexture;
+    SDL_Surface *stexture;
 } material;
 
 typedef struct model {

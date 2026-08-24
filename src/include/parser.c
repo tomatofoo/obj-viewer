@@ -27,7 +27,6 @@ typedef enum etype { // Element Types for both OBj and MTL
     ATEX,
     DTEX,
     STEX,
-    HTEX,
 } etype;
 
 typedef struct uface { // unconverted face (could be quad)
