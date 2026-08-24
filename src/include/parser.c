@@ -148,6 +148,27 @@ bool parse_mtl(const char *path, mtable *mt) {
         SDL_SetError("Failed to load MTL file: %s", SDL_GetError());
         return false;
     }
+
+    // PER ELEMENT
+    etype elem = NONE;
+    bool cont = false; // continue (e.g. comment, group, etc.)
+    bool begin; // finished parsing element type; now will parse elem
+    size_t n = 0; // index for arrays (resets at start)
+    // PER ITEM AND MORE
+    bool start = true; // start of new item (inside element)
+    bool end; // if is last char of current item
+    bool neg; // if number value (see below) is negative
+    uint32_t whole; // whole part of value
+    uint64_t decimal; // decmial part of value (not power)
+    int32_t dpower = -1; // power for decimal numbers
+    bool eneg; // if epower is negative
+    int32_t epower = -1; // general power (for values with e in them)
+    double value; // a number value (factor, exponent, etc.)
+    size_t j; // index value
+
+    // FREE UP DATA AFTER PARSING
+    SDL_free(data);
+
     return true;
 }
 
