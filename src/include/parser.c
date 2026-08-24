@@ -165,6 +165,105 @@ bool parse_mtl(const char *path, mtable *mt) {
     int32_t epower = -1; // general power (for values with e in them)
     double value; // a number value (factor, exponent, etc.)
     size_t j; // index value
+    for (size_t i = 0; i < datasize; i++) {
+        if (isnewline(data[i])) {
+            cont = false;
+            begin = false; // waits until next whitespace to be true
+            n = 0;
+            elem = NONE;
+            start = true;
+            continue;
+        }
+        if (SDL_isspace(data[i]) || cont) {
+            start = true;
+            begin = true;
+            continue;
+        }
+        if (data[i] == '#') { // comment
+            cont = true;
+            continue;
+        }
+        if (elem == NONE) {
+            if (streq_space(data + i, "newmtl")) { elem = NEWMAT; } // TEMP
+            else if (streq_space(data + i, "Ka")) { elem = AMB; } // TEMP
+            else if (streq_space(data + i, "Kd")) { elem = DIFF; }
+            else if (streq_space(data + i, "Ks")) { elem = SPEC; }
+            else if (streq_space(data + i, "Ns")) { elem = GLOSS; }
+            else if (streq_space(data + i, "map_Ka")) { elem = ATEX; }
+            else if (streq_space(data + i, "map_Kd")) { elem = DTEX; }
+            else if (streq_space(data + i, "map_Ks")) { elem = STEX; }
+            else if (streq_space(data + i, "map_Ns")) { elem = GTEX; }
+            continue;
+        }
+        if (!begin) { continue; } // will start parsing after beginning
+        end = isempty(data[i + 1]) || cont; // check if is end
+        if (elem == NEWMAT) {
+        }
+        // Floating-point Number Parsing
+        else if (
+            elem == AMB || elem == DIFF || elem == SPEC || elem == GLOSS
+        ) {
+            if (start) {
+                neg = false;
+                whole = 0;
+                decimal = 0;
+                dpower = -1;
+                epower = -1;
+                value = 0.0;
+                start = false;
+                if (data[i] == '-') {
+                    neg = true;
+                    continue;
+                }
+            }
+            if (data[i] == '.') {
+                dpower = 0;
+                continue;
+            }
+            if (data[i] == 'e' || data[i] == 'E') {
+                eneg = false;
+                epower = 0;
+                continue;
+            }
+            if (!(SDL_isdigit(data[i]) || data[i] == '-')) {
+                SDL_SetError("Invalid digits received");
+                goto invalid;
+            }
+            if (epower > -1) {
+                if (data[i] == '-') {
+                    eneg = true;
+                    continue;
+                }
+                epower = epower * 10 + (data[i] - '0');
+            }
+            else {
+                if (dpower > -1) {
+                    // This supports some pretty good precision
+                    if (decimal < (SDL_MAX_UINT64 - 10) * 0.1) {
+                        dpower++;
+                        decimal = decimal * 10 + (data[i] - '0');
+                    }
+                }
+                else { whole = whole * 10 + (data[i] - '0'); }
+            }
+            if (end) {
+                value = whole + decimal / SDL_pow(10, dpower);
+                if (epower > -1) {
+                    if (eneg) { epower = -epower; }
+                    value *= SDL_pow(10, epower);
+                }
+                if (neg) { value = -value; }
+            }
+        }
+        if (elem == AMB && end) {
+        }
+        if (elem == DIFF && end) {
+        }
+        if (elem == SPEC && end) {
+        }
+        if (elem == GLOSS && end) {
+        }
+    }
 
     // FREE UP DATA AFTER PARSING
     SDL_free(data);
