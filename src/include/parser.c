@@ -11,6 +11,7 @@
 
 typedef enum etype { // Element Types
     NONE,
+    MATERIAL,
     VERTEX,
     NORMAL,
     UV,
