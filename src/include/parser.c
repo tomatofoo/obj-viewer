@@ -70,7 +70,6 @@ void destroy_mtable(mtable *mt) {
 bool mtable_set(mtable *mt, char *key, material mat) {
     size_t i = fnv1a32(key) % mt->centries;
     while (mt->entries[i].key != NULL) { i = (i + 1) % mt->centries; }
-    size_t len = SDL_strlen(key) + 1;
     mt->entries[i].key = key; // expecting to be provided malloced
     mt->entries[i].mat = mat;
     mt->nentries++;
@@ -89,6 +88,7 @@ bool mtable_set(mtable *mt, char *key, material mat) {
             entries[j].key = mt->entries[i].key;
             entries[j].mat = mt->entries[i].mat;
         }
+        SDL_free(mt->entries);
         mt->entries = entries;
     }
     return true;
@@ -125,7 +125,7 @@ bool streq_space(const char *str1, const char *str2) {
 }
 
 
-bool parse_mtl(const char *path, mtable mt) {
+bool parse_mtl(const char *path, mtable *mt) {
     const char *ext = filename_lext(path);
     if (!(SDL_strcmp(ext, "mtl") == 0 || SDL_strcmp(ext, "MTL") == 0)) {
         SDL_SetError("Filename extension is not mtl or MTL");
