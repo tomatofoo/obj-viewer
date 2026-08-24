@@ -5,13 +5,13 @@
 #include "utils.h"
 
 
-#define ARR_SIZE 8 // begninning array size for model
+#define ARR_SIZE 8 // begninning array size for model and mats
 #define ARR_FACTOR 2 // factor when resizing
 
 
 typedef enum etype { // Element Types
     NONE,
-    MATERIAL,
+    MAT,
     VERTEX,
     NORMAL,
     UV,
@@ -26,6 +26,99 @@ typedef struct uface { // unconverted face (could be quad)
     int32_t normals[4];
     vec3 normal; // average of all normals
 } uface;
+
+// based on https://benhoyt.com/writings/hash-table-in-c/
+typedef struct mentry {
+    char *key;
+    int32_t mat;
+} mentry;
+
+typedef struct mtable {
+    mentry *entries;
+    size_t nentries;
+    size_t centries;
+} mtable;
+
+
+mtable *create_mtable() {
+    mtable *mt = SDL_malloc(sizeof(mtable));
+    if (mt == NULL) {
+        SDL_OutOfMemory();
+        return NULL;
+    }
+    mt->entries = SDL_calloc(ARR_SIZE, sizeof(mentry));
+    if (mt->entries == NULL) {
+        SDL_free(mt);
+        SDL_OutOfMemory();
+        return NULL;
+    }
+    mt->nentries = 0;
+    mt->centries = ARR_SIZE;
+    
+    return mt;
+}
+
+void destroy_mtable(mtable *mt) {
+    for (size_t i = 0; i < mt->centries; i++) {
+        SDL_free(mt->entries[i].key); // can free NULL
+    }
+    SDL_free(mt->entries);
+    SDL_free(mt);
+}
+
+bool mtable_set(mtable *mt, char *key, int32_t mat) {
+    size_t i = fnv1a32(key) % mt->centries;
+    while (mt->entries[i].key != NULL) { i = (i + 1) % mt->centries; }
+    size_t len = SDL_strlen(key) + 1;
+    mt->entries[i].key = key; // expecting to be provided malloced
+    mt->entries[i].mat = mat;
+    mt->nentries++;
+    if (mt->nentries >= mt->centries) {
+        mt->centries *= ARR_FACTOR;
+        mentry *entries = SDL_calloc(mt->centries, sizeof(mentry));
+        if (entries == NULL) {
+            SDL_OutOfMemory();
+            return false;
+        }
+        size_t j;
+        for (size_t i = 0; i < mt->centries; i++) {
+            if (mt->entries[i].key == NULL) { continue; }
+            j = fnv1a32(mt->entries[i].key) % mt->centries;
+            while (entries[j].key != NULL) { j = (j + 1) % mt->centries; }
+            entries[j].key = mt->entries[i].key;
+            entries[j].mat = mt->entries[i].mat;
+        }
+        mt->entries = entries;
+    }
+    return true;
+}
+
+int32_t mtable__get(mtable *mt, char *key, bool pop) {
+    if (key == NULL) { return -1; }
+    size_t i = fnv1a32(key) % mt->centries;
+    for (size_t j = 0; mt->entries[i].key != NULL && j < mt->centries; j++) {
+        if (SDL_strcmp(mt->entries[i].key, key)) {
+            i = (i + 1) % mt->centries;
+        }
+        else {
+            if (pop) {
+                SDL_free(mt->entries[i].key);
+                mt->entries[i].key == NULL;
+                mt->nentries--;
+            }
+            return mt->entries[i].mat;
+        }
+    }
+    return -1;
+}
+
+int32_t mtable_get(mtable *mt, char *key) {
+    return mtable__get(mt, key, false);
+}
+
+int32_t mtable_pop(mtable *mt, char *key) {
+    return mtable__get(mt, key, true);
+}
 
 
 bool isnewline(const char c) {

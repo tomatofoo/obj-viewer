@@ -31,18 +31,6 @@ typedef struct vec3 {
     double z;
 } vec3;
 
-// based on https://benhoyt.com/writings/hash-table-in-c/
-typedef struct entry {
-    char *key;
-    void *value;
-} entry;
-
-typedef struct table {
-    entry *entries;
-    size_t nentries;
-    size_t centries;
-} table;
-
 
 bool vec2_iszero(vec2 vec);
 double vec2_mag(vec2 vec);
@@ -122,9 +110,6 @@ double vec3_dot(vec3 term1, vec3 term2);
 double vec3_dist(vec3 term1, vec3 term2);
 double vec3_dist_sq(vec3 term1, vec3 term2);
 double vec3_angle_to(vec3 term1, vec3 term2);
-
-table *create_table(size_t capacity);
-void destroy_table(table *tb);
 
 double hypot(double x, double y);
 bool inrange(double x, double l, double h, bool incl, bool inch);
