@@ -16,16 +16,6 @@ typedef struct vertex {
     vec3 normal; 
 } vertex;
 
-typedef struct face {
-    // all are indices
-    size_t vertices[3];
-    vec3 centroid;
-    int32_t uvs[3]; // int because need -1
-    int32_t normals[3];
-    vec3 normal; // average of all normals
-    int32_t mat; // -1 means none
-} face;
-
 typedef struct material {
     vec3 ambient;
     vec3 diffuse;
@@ -36,6 +26,16 @@ typedef struct material {
     SDL_Surface *stexture;
     SDL_Surface *gtexture;
 } material;
+
+typedef struct face {
+    // all are indices
+    size_t vertices[3];
+    vec3 centroid;
+    int32_t uvs[3]; // int because need -1
+    int32_t normals[3];
+    vec3 normal; // average of all normals
+    int32_t mat; // -1 means none
+} face;
 
 typedef struct model {
     size_t nvertices; // amount
@@ -69,10 +69,7 @@ typedef struct context {
     double flength; // focal length
     bool blinn; // if using blinn-phong
     uint8_t quality;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    double glossiness;
+    material mat; // default material
     double brightness;
     vec3 pos;
     vec3 rot; // rot around x, y, z axes respectively

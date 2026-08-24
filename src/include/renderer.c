@@ -108,10 +108,13 @@ context *create_context(
     ctx->flength = w / 2;
     ctx->blinn = true;
     ctx->quality = 3;
-    ctx->ambient = (vec3) {0.1, 0.1, 0.1};
-    ctx->diffuse = (vec3) {0.5, 0.5, 0.5};
-    ctx->specular = (vec3) {1, 1, 1};
-    ctx->glossiness = 128;
+    ctx->mat = (material) {
+        (vec3) {0.1, 0.1, 0.1},
+        (vec3) {0.5, 0.5, 0.5},
+        (vec3) {1, 1, 1},
+        128,
+        NULL, NULL, NULL, NULL
+    };
     ctx->brightness = -1;
     ctx->renderer = renderer;
     ctx->texture = SDL_CreateTexture(
@@ -223,15 +226,19 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     int xmax;
     int ymin;
     int ymax;
+    material *mat = &ctx->mat;
     double dot;
     double invmag;
-    vec3 mult = ctx->ambient;
+    vec3 mult = mat->ambient;
     double z;
     point points[3];
     vec2 diff10;
     vec2 diff20;
     double invdenom;
     for (size_t i = 0; i < mdl->nfaces; i++) {
+        // Load material
+        if (mdl->faces[i].mat == -1) { mat = &ctx->mat; }
+        else { mat = mdl->mats + mdl->faces[i].mat; }
         // Culling
         if (ctx->proj[mdl->faces[i].vertices[0]].z < 0) { continue; }
         if (ctx->proj[mdl->faces[i].vertices[1]].z < 0) { continue; }
@@ -248,10 +255,10 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 dot,
                 &rel,
                 &mdl->faces[i].normal,
-                &ctx->ambient,
-                &ctx->diffuse,
-                &ctx->specular,
-                ctx->glossiness
+                &mat->ambient,
+                &mat->diffuse,
+                &mat->specular,
+                mat->glossiness
             );
         }
 
@@ -374,10 +381,10 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                                 dot,
                                 &rel,
                                 &normal,
-                                &ctx->ambient,
-                                &ctx->diffuse,
-                                &ctx->specular,
-                                ctx->glossiness
+                                &mat->ambient,
+                                &mat->diffuse,
+                                &mat->specular,
+                                mat->glossiness
                             );
                         }
                         pixels[pixelsn + 0] = SDL_min(mult.x * 255, 255);
