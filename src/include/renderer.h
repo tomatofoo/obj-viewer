@@ -34,6 +34,7 @@ typedef struct material {
     SDL_Surface *atexture;
     SDL_Surface *dtexture;
     SDL_Surface *stexture;
+    SDL_Surface *gtexture;
 } material;
 
 typedef struct model {
