@@ -8,8 +8,12 @@ project in C, and I tried to make the code good. This includes error checking
 (SO MUCH ERROR CHECKING), thread safety, and decent memory management. The code
 is still pretty shitty though.
 
+## Support
+This viewer supports OBJ files with convex faces up to four vertices. In 
+addition, in files with textures, spaces in filenames are not supported.
+
 ## Features
-- Supports OBJ files with convex faces up to four vertices (most models)
+- Screenshots
 - Backface culling for performance
 - Flat and smooth shading with Phong illumination 
 
