@@ -436,9 +436,9 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                             );
                         }
                         color = read_pixel(mdl, i, mat->atexture, u, v, w);
-                        mult.x += color.x * ambient.x;
-                        mult.y += color.y * ambient.y;
-                        mult.z += color.z * ambient.z;
+                        mult.x = color.x * ambient.x;
+                        mult.y = color.y * ambient.y;
+                        mult.z = color.z * ambient.z;
                         color = read_pixel(mdl, i, mat->dtexture, u, v, w);
                         mult.x += color.x * diffuse.x;
                         mult.y += color.y * diffuse.y;
