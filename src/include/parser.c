@@ -31,7 +31,7 @@ typedef struct uface { // unconverted face (could be quad)
 // based on https://benhoyt.com/writings/hash-table-in-c/
 typedef struct mentry {
     char *key;
-    int32_t mat;
+    material mat;
 } mentry;
 
 typedef struct mtable {
@@ -67,7 +67,7 @@ void destroy_mtable(mtable *mt) {
     SDL_free(mt);
 }
 
-bool mtable_set(mtable *mt, char *key, int32_t mat) {
+bool mtable_set(mtable *mt, char *key, material mat) {
     size_t i = fnv1a32(key) % mt->centries;
     while (mt->entries[i].key != NULL) { i = (i + 1) % mt->centries; }
     size_t len = SDL_strlen(key) + 1;
@@ -94,31 +94,16 @@ bool mtable_set(mtable *mt, char *key, int32_t mat) {
     return true;
 }
 
-int32_t mtable__get(mtable *mt, char *key, bool pop) {
-    if (key == NULL) { return -1; }
+material *mtable_get(mtable *mt, char *key) {
+    if (key == NULL) { return NULL; }
     size_t i = fnv1a32(key) % mt->centries;
     for (size_t j = 0; mt->entries[i].key != NULL && j < mt->centries; j++) {
         if (SDL_strcmp(mt->entries[i].key, key)) {
             i = (i + 1) % mt->centries;
         }
-        else {
-            if (pop) {
-                SDL_free(mt->entries[i].key);
-                mt->entries[i].key == NULL;
-                mt->nentries--;
-            }
-            return mt->entries[i].mat;
-        }
+        else { return &mt->entries[i].mat; }
     }
-    return -1;
-}
-
-int32_t mtable_get(mtable *mt, char *key) {
-    return mtable__get(mt, key, false);
-}
-
-int32_t mtable_pop(mtable *mt, char *key) {
-    return mtable__get(mt, key, true);
+    return NULL;
 }
 
 
@@ -139,6 +124,10 @@ bool streq_space(const char *str1, const char *str2) {
     return false;
 }
 
+
+void parse_mtl(const char *path, mtable mt) {
+    return;
+}
 
 model *parse_obj(const char *path) {
     const char *ext = filename_lext(path);
@@ -256,8 +245,8 @@ model *parse_obj(const char *path) {
         if (elem == NONE) {
             if (streq_space(data + i, "g")) { cont = true; }
             else if (streq_space(data + i, "o")) { cont = true; }
-            else if (streq_space(data + i, "mtllib")) { elem = MATLIB; cont = true; }
-            else if (streq_space(data + i, "usemtl")) { elem = MAT; cont = true; }
+            else if (streq_space(data + i, "mtllib")) { elem = MATLIB; cont = true; } // TEMP
+            else if (streq_space(data + i, "usemtl")) { elem = MAT; cont = true; } // TEMP
             else if (streq_space(data + i, "v")) { elem = VERTEX; }
             else if (streq_space(data + i, "vn")) { elem = NORMAL; }
             else if (streq_space(data + i, "vt")) { elem = UV; }
