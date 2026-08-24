@@ -435,18 +435,20 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                                 &specular
                             );
                         }
-                        color = read_pixel(mdl, i, mat->atexture, u, v, w);
-                        mult.x = color.x * ambient.x;
-                        mult.y = color.y * ambient.y;
-                        mult.z = color.z * ambient.z;
-                        color = read_pixel(mdl, i, mat->dtexture, u, v, w);
-                        mult.x += color.x * diffuse.x;
-                        mult.y += color.y * diffuse.y;
-                        mult.z += color.z * diffuse.z;
-                        color = read_pixel(mdl, i, mat->stexture, u, v, w);
-                        mult.x += color.x * specular.x;
-                        mult.y += color.y * specular.y;
-                        mult.z += color.z * specular.z;
+                        if (ctx->quality > 0) {
+                            color = read_pixel(mdl, i, mat->atexture, u, v, w);
+                            mult.x = color.x * ambient.x;
+                            mult.y = color.y * ambient.y;
+                            mult.z = color.z * ambient.z;
+                            color = read_pixel(mdl, i, mat->dtexture, u, v, w);
+                            mult.x += color.x * diffuse.x;
+                            mult.y += color.y * diffuse.y;
+                            mult.z += color.z * diffuse.z;
+                            color = read_pixel(mdl, i, mat->stexture, u, v, w);
+                            mult.x += color.x * specular.x;
+                            mult.y += color.y * specular.y;
+                            mult.z += color.z * specular.z;
+                        }
                         pixels[pixelsn + 0] = SDL_min(mult.x * 255, 255);
                         pixels[pixelsn + 1] = SDL_min(mult.y * 255, 255);
                         pixels[pixelsn + 2] = SDL_min(mult.z * 255, 255);
