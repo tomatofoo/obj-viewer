@@ -125,8 +125,19 @@ bool streq_space(const char *str1, const char *str2) {
 }
 
 
-void parse_mtl(const char *path, mtable mt) {
-    return;
+bool parse_mtl(const char *path, mtable mt) {
+    const char *ext = filename_lext(path);
+    if (!(SDL_strcmp(ext, "mtl") == 0 || SDL_strcmp(ext, "MTL") == 0)) {
+        SDL_SetError("Filename extension is not mtl or MTL");
+        return false;
+    }
+    size_t datasize;
+    char *data = SDL_LoadFile(path, &datasize);
+    if (data == NULL) {
+        SDL_SetError("Failed to load MTL file: %s", SDL_GetError());
+        return false;
+    }
+    return true;
 }
 
 model *parse_obj(const char *path) {
