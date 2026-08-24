@@ -9,8 +9,14 @@ project in C, and I tried to make the code good. This includes error checking
 is still pretty shitty though.
 
 ## Support
-This viewer supports OBJ files with convex faces up to four vertices. In 
-addition, in files with textures, spaces in filenames are not supported.
+This viewer supports OBJ files with convex faces up to four vertices. Only 
+basic geometry is supported. Only the basic material properties are supported 
+(Ka, Kd, Ks, Ns, map_Ka, map_Kd, map_Ks, map_Ns) In addition, in files with 
+textures, spaces in filenames are not supported. Materials with spaces in their
+name will be equivalent to materials without spaces (e.g. a meterial called 
+"123" will be the same as the material called "1 23"). Despite all these 
+constraints, most OBJ files would be fully supported as these are advanced 
+features.
 
 ## Features
 - Screenshots
