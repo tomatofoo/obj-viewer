@@ -8,6 +8,13 @@
 #define ZBUF_RES 10000
 
 
+typedef struct lighting {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+} lighting;
+
+
 void destroy_model(model *mdl) {
     if (mdl == NULL) { return; }
     SDL_free(mdl->vertices);
