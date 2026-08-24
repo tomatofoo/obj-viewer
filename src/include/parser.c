@@ -9,14 +9,25 @@
 #define ARR_FACTOR 2 // factor when resizing
 
 
-typedef enum etype { // Element Types
+typedef enum etype { // Element Types for both OBj and MTL
     NONE,
+    // OBJ
     MATLIB,
     MAT,
     VERTEX,
     NORMAL,
     UV,
     FACE,
+    // MTL
+    NEWMAT,
+    AMB,
+    DIFF,
+    SPEC,
+    GLOSS,
+    ATEX,
+    DTEX,
+    STEX,
+    HTEX,
 } etype;
 
 typedef struct uface { // unconverted face (could be quad)
@@ -55,7 +66,7 @@ mtable *create_mtable() {
     }
     mt->nentries = 0;
     mt->centries = ARR_SIZE;
-    
+
     return mt;
 }
 
