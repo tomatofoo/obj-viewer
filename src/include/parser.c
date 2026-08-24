@@ -256,8 +256,8 @@ model *parse_obj(const char *path) {
         if (elem == NONE) {
             if (streq_space(data + i, "g")) { cont = true; }
             else if (streq_space(data + i, "o")) { cont = true; }
-            else if (streq_space(data + i, "mtllib")) { elem = MATLIB; }
-            else if (streq_space(data + i, "usemtl")) { elem = MAT; }
+            else if (streq_space(data + i, "mtllib")) { elem = MATLIB; cont = true; }
+            else if (streq_space(data + i, "usemtl")) { elem = MAT; cont = true; }
             else if (streq_space(data + i, "v")) { elem = VERTEX; }
             else if (streq_space(data + i, "vn")) { elem = NORMAL; }
             else if (streq_space(data + i, "vt")) { elem = UV; }
