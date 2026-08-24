@@ -1,4 +1,5 @@
 #include "SDL3/SDL.h"
+#include "SDL3_image/SDL_image.h"
 
 #include "parser.h"
 #include "renderer.h"
@@ -140,6 +141,10 @@ void destroy_context(context *ctx) {
     destroy_model(ctx->mdl);
     SDL_free(ctx->proj);
     SDL_free(ctx->zbuf);
+    SDL_DestroySurface(ctx->mat.atexture);
+    SDL_DestroySurface(ctx->mat.dtexture);
+    SDL_DestroySurface(ctx->mat.stexture);
+    SDL_DestroySurface(ctx->mat.gtexture);
     SDL_DestroyTexture(ctx->texture);
     SDL_free(ctx);
 }
@@ -214,7 +219,7 @@ vec3 read_pixel(
     }
     else { // expecting RGB24
         uint8_t *pixels = texture->pixels;
-        size_t pixelsn = x + y * texture->pitch;
+        size_t pixelsn = x * 3 + y * texture->pitch;
         r = pixels[pixelsn + 0];
         g = pixels[pixelsn + 1];
         b = pixels[pixelsn + 2];
@@ -276,9 +281,6 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     vec2 diff20;
     double invdenom;
     for (size_t i = 0; i < mdl->nfaces; i++) {
-        // Load material
-        if (mdl->faces[i].mat == -1) { mat = &ctx->mat; }
-        else { mat = mdl->mats + mdl->faces[i].mat; }
         // Culling
         if (ctx->proj[mdl->faces[i].vertices[0]].z < 0) { continue; }
         if (ctx->proj[mdl->faces[i].vertices[1]].z < 0) { continue; }
@@ -286,7 +288,11 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         rel = vec3_sub(mdl->faces[i].centroid, ctx->pos);
         dot = vec3_dot(rel, mdl->faces[i].normal);
         if (dot > 0) { continue; } // Backface culling
-        
+       
+        // Load material
+        if (mdl->faces[i].mat == -1) { mat = &ctx->mat; }
+        else { mat = mdl->mats + mdl->faces[i].mat; }
+
         if (ctx->quality == 1) {
             // Lighting (Phong lighting)
             calc_mult(
@@ -448,6 +454,9 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                             mult.x += color.x * specular.x;
                             mult.y += color.y * specular.y;
                             mult.z += color.z * specular.z;
+                            mult.x = SDL_max(mult.x, 0);
+                            mult.y = SDL_max(mult.y, 0);
+                            mult.z = SDL_max(mult.z, 0);
                         }
                         pixels[pixelsn + 0] = SDL_min(mult.x * 255, 255);
                         pixels[pixelsn + 1] = SDL_min(mult.y * 255, 255);
