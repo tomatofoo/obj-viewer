@@ -8,13 +8,6 @@
 #define ZBUF_RES 10000
 
 
-typedef struct lighting {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-} lighting;
-
-
 void destroy_model(model *mdl) {
     if (mdl == NULL) { return; }
     SDL_free(mdl->vertices);
@@ -151,7 +144,7 @@ void destroy_context(context *ctx) {
     SDL_free(ctx);
 }
 
-vec3 calc_mult(
+void calc_mult(
     bool blinn,
     double brightness,
     double dot,
@@ -160,7 +153,10 @@ vec3 calc_mult(
     vec3 *ambi_color,
     vec3 *diff_color,
     vec3 *spec_color,
-    double glossiness
+    double glossiness,
+    vec3 *ambi_ptr, // pointers to return values
+    vec3 *diff_ptr,
+    vec3 *spec_ptr,
 ) {
     double invmag = 1.0 / vec3_mag(*rel);
     double specular_mult;
@@ -184,13 +180,45 @@ vec3 calc_mult(
         }
         specular = vec3_mul(*spec_color, specular_mult);
     }
-    vec3 mult = vec3_add(vec3_add(*ambi_color, diffuse), specular);
-    if (brightness != -1) { vec3_mul_ip(&mult, invmag * brightness); }
-    mult.x = SDL_max(mult.x, 0);
-    mult.y = SDL_max(mult.y, 0);
-    mult.z = SDL_max(mult.z, 0);
+    vec3 ambient = *ambi_color;
+    if (brightness != -1) {
+        invmag *= brightness;
+        vec3_mul_ip(&ambient, invmag);
+        vec3_mul_ip(&diffuse, invmag);
+        vec3_mul_ip(&specular, invmag);
+    }
+    *ambi_ptr = ambient;
+    *diff_ptr = diffuse;
+    *spec_ptr = specular;
+}
 
-    return mult;
+vec3 read_pixel(
+    model *mdl, size_t i, SDL_Surface *texture, double u, double v, double w
+) {
+    if (texture == NULL) { return (vec3) {1, 1, 1}; }
+    int x = SDL_clamp((
+        u * mdl->uvs[mdl->faces[i].uvs[0]].x
+        + v * mdl->uvs[mdl->faces[i].uvs[1]].x
+        + w * mdl->uvs[mdl->faces[i].uvs[2]].x
+    ) * texture->w, 0, texture->w - 1);
+    int y = SDL_clamp((
+        u * mdl->uvs[mdl->faces[i].uvs[0]].y
+        + v * mdl->uvs[mdl->faces[i].uvs[1]].y
+        + w * mdl->uvs[mdl->faces[i].uvs[2]].y
+    ) * texture->h, 0, texture->h - 1);
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    if (texture->pixels == NULL) {
+        SDL_ReadSurfacePixel(texture, x, y, &r, &g, &b, NULL);
+    }
+    else { // expecting RGB24
+        size_t pixelsn = x + y * pitch;
+        r = texture->pixels[pixelsn + 0];
+        g = texture->pixels[pixelsn + 1];
+        b = texture->pixels[pixelsn + 2];
+    }
+    return (vec3) {r / 255.0, g / 255.0, b / 255.0};
 }
 
 bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
@@ -236,6 +264,10 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     material *mat = &ctx->mat;
     double dot;
     double invmag;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    vec3 color; // buffer value
     vec3 mult = mat->ambient;
     double z;
     point points[3];
@@ -256,7 +288,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         
         if (ctx->quality == 1) {
             // Lighting (Phong lighting)
-            mult = calc_mult(
+            calc_mult(
                 ctx->blinn,
                 ctx->brightness,
                 dot,
@@ -266,6 +298,9 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 &mat->diffuse,
                 &mat->specular,
                 mat->glossiness
+                &ambient,
+                &diffuse,
+                &specular,
             );
         }
 
@@ -382,18 +417,35 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                                 );
                             }
                             dot = vec3_dot(rel, normal);
-                            mult = calc_mult(
+                            color = read_pixel(mdl, i, mdl->gtexture, u, v, w);
+                            calc_mult(
                                 ctx->blinn,
                                 ctx->brightness,
                                 dot,
                                 &rel,
                                 &normal,
-                                &mat->ambient,
+                                &mat->ambient, 
                                 &mat->diffuse,
                                 &mat->specular,
                                 mat->glossiness
+                                * (color.x + color. y + color.z) / 3
+                                &ambient,
+                                &diffuse,
+                                &specular,
                             );
                         }
+                        color = read_pixel(mdl, i, mdl->atexture, u, v, w);
+                        mult.x += color.x * ambient.x;
+                        mult.y += color.y * ambient.y;
+                        mult.z += color.z * ambient.z;
+                        color = read_pixel(mdl, i, mdl->dtexture, u, v, w);
+                        mult.x += color.x * diffuse.x;
+                        mult.y += color.y * diffuse.y;
+                        mult.z += color.z * diffuse.z;
+                        color = read_pixel(mdl, i, mdl->stexture, u, v, w);
+                        mult.x += color.x * specular.x;
+                        mult.y += color.y * specular.y;
+                        mult.z += color.z * specular.z;
                         pixels[pixelsn + 0] = SDL_min(mult.x * 255, 255);
                         pixels[pixelsn + 1] = SDL_min(mult.y * 255, 255);
                         pixels[pixelsn + 2] = SDL_min(mult.z * 255, 255);
