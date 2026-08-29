@@ -2,11 +2,11 @@
 
 ![Stanford Dragon](/images/dragon.png)
 
-An OBJ file viewer that uses software rasterization. Texture support is 
-planned, but not yet implemented. This was my first time making an actual 
-project in C, and I tried to make the code good. This includes error checking 
-(SO MUCH ERROR CHECKING), thread safety, and decent memory management. The code
-is still pretty shitty though.
+An OBJ file viewer that uses software rasterization. Texture and material 
+support is planned, but not yet fully implemented. This was my first time 
+making an actual project in C, and I tried to make the code good. This includes
+error checking (SO MUCH ERROR CHECKING), thread safety, and decent memory 
+management. The code is still pretty shitty though.
 
 ## Support
 This viewer supports OBJ files with convex faces up to four vertices. Only 
