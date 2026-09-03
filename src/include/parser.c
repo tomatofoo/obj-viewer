@@ -148,7 +148,9 @@ bool parse_mtl(const char *path, mtable *mt) {
         SDL_SetError("Failed to load MTL file: %s", SDL_GetError());
         return false;
     }
-
+    
+    // PER MATERIAL
+    material mat;
     // PER ELEMENT
     etype elem = NONE;
     bool cont = false; // continue (e.g. comment, group, etc.)
