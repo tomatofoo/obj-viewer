@@ -150,7 +150,9 @@ bool parse_mtl(const char *path, mtable *mt) {
     }
     
     // PER MATERIAL
-    material mat;
+    char *key = SDL_malloc(sizeof(char) * ARR_SIZE);
+    size_t nchars = 0;
+    size_t cchars = ARR_SIZE;
     // PER ELEMENT
     etype elem = NONE;
     bool cont = false; // continue (e.g. comment, group, etc.)
@@ -198,9 +200,12 @@ bool parse_mtl(const char *path, mtable *mt) {
             continue;
         }
         if (!begin) { continue; } // will start parsing after beginning
-        end = isempty(data[i + 1]) || cont; // check if is end
+        end = isempty(data[i + 1]) || cont; // check if is end (won't overflow)
 
         if (elem == NEWMAT) {
+            if (end) {
+            }
+            data[i];
         }
         // Floating-point Number Parsing
         else if (
@@ -259,12 +264,16 @@ bool parse_mtl(const char *path, mtable *mt) {
             }
         }
         if (elem == AMB && end) {
+            n++;
         }
         if (elem == DIFF && end) {
+            n++;
         }
         if (elem == SPEC && end) {
+            n++;
         }
         if (elem == GLOSS && end) {
+            n++;
         }
     }
 
@@ -403,7 +412,7 @@ model *parse_obj(const char *path) {
             continue;
         }
         if (!begin) { continue; } // will start parsing after beginning
-        end = isempty(data[i + 1]) || cont; // check if is end
+        end = isempty(data[i + 1]) || cont; // check if is end (won't overflow)
         // Floating-point Number Parsing
         if (elem == VERTEX || elem == NORMAL || elem == UV) {
             if (start) {
