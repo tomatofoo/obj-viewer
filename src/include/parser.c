@@ -43,6 +43,7 @@ typedef struct uface { // unconverted face (could be quad)
 typedef struct mentry {
     char *key;
     material mat;
+    int32_t dex; // to be set by the obj parser
 } mentry;
 
 typedef struct mtable {
@@ -114,6 +115,18 @@ material *mtable_get(mtable *mt, char *key) {
             i = (i + 1) % mt->centries;
         }
         else { return &mt->entries[i].mat; }
+    }
+    return NULL;
+}
+
+int32_t *mtable_dex(mtable *mt, char *key) { // get pointer dex component
+    if (key == NULL) { return NULL; }
+    size_t i = fnv1a32(key) % mt->centries;
+    for (size_t j = 0; mt->entries[i].key != NULL && j < mt->centries; j++) {
+        if (SDL_strcmp(mt->entries[i].key, key)) {
+            i = (i + 1) % mt->centries;
+        }
+        else { return &mt->entries[i].dex; }
     }
     return NULL;
 }
