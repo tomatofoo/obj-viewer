@@ -137,6 +137,8 @@ bool streq_space(const char *str1, const char *str2) {
 
 
 bool parse_mtl(const char *path, mtable *mt) {
+    if (path == NULL) { return false; }
+    if (mt == NULL) { return false; }
     const char *ext = filename_lext(path);
     if (!(SDL_strcmp(ext, "mtl") == 0 || SDL_strcmp(ext, "MTL") == 0)) {
         SDL_SetError("Filename extension is not mtl or MTL");
@@ -151,8 +153,10 @@ bool parse_mtl(const char *path, mtable *mt) {
     
     // PER MATERIAL
     char *key = SDL_malloc(sizeof(char) * ARR_SIZE);
+    if (key == NULL) { goto oom; }
     size_t nchars = 0;
     size_t cchars = ARR_SIZE;
+    material *mat = NULL;
     // PER ELEMENT
     etype elem = NONE;
     bool cont = false; // continue (e.g. comment, group, etc.)
@@ -203,9 +207,26 @@ bool parse_mtl(const char *path, mtable *mt) {
         end = isempty(data[i + 1]) || cont; // check if is end (won't overflow)
 
         if (elem == NEWMAT) {
-            if (end) {
+            key[nchars] = data[i];
+            nchars++;
+            if (nchars >= cchars) {
+                cchars *= ARR_FACTOR;
+                key = SDL_realloc(key, sizeof(char) * cchars);
+                if (key == NULL) { goto oom; }
             }
-            data[i];
+            if (end) { // no capacity check because it is last one
+                key[nchars + 1] = '\0';
+                nchars++;
+                mtable_set(
+                    mt,
+                    key,
+                    (material) {
+                        ZEROVEC3, ZEROVEC3, ZEROVEC3,
+                        0,
+                        NULL, NULL, NULL, NULL,
+                    }
+                );
+            }
         }
         // Floating-point Number Parsing
         else if (
@@ -266,13 +287,13 @@ bool parse_mtl(const char *path, mtable *mt) {
         if (elem == AMB && end) {
             n++;
         }
-        if (elem == DIFF && end) {
+        else if (elem == DIFF && end) {
             n++;
         }
-        if (elem == SPEC && end) {
+        else if (elem == SPEC && end) {
             n++;
         }
-        if (elem == GLOSS && end) {
+        else if (elem == GLOSS && end) {
             n++;
         }
     }
@@ -284,10 +305,17 @@ bool parse_mtl(const char *path, mtable *mt) {
 
 invalid:
     SDL_free(data);
+    SDL_SetError("Invalid MTL data: %s", SDL_GetError());
+    return false;
+
+oom:
+    SDL_free(data);
+    SDL_OutOfMemory();
     return false;
 }
 
 model *parse_obj(const char *path) {
+    if (path == NULL) { return NULL; }
     const char *ext = filename_lext(path);
     if (!(SDL_strcmp(ext, "obj") == 0 || SDL_strcmp(ext, "OBJ") == 0)) {
         SDL_SetError("Filename extension is not obj or OBJ");
@@ -471,7 +499,7 @@ model *parse_obj(const char *path) {
             if (n == 0) { mdl->vertices[mdl->nvertices].vec.x = value; }
             else if (n == 1) { mdl->vertices[mdl->nvertices].vec.y = value; }
             else if (n == 2) {
-                mdl->vertices[mdl->nvertices].normal = (vec3) {0, 0, 0};
+                mdl->vertices[mdl->nvertices].normal = ZEROVEC3;
                 mdl->vertices[mdl->nvertices].vec.z = value;
                 mdl->nvertices++;
                 if (mdl->nvertices >= mdl->cvertices) {
@@ -479,10 +507,7 @@ model *parse_obj(const char *path) {
                         mdl->vertices,
                         sizeof(vertex) * mdl->cvertices * ARR_FACTOR
                     );
-                    if (mdl->vertices == NULL) {
-                        SDL_OutOfMemory();
-                        return NULL;
-                    }
+                    if (mdl->vertices == NULL) { goto oom; }
                     mdl->cvertices *= ARR_FACTOR;
                 }
             }
@@ -504,10 +529,7 @@ model *parse_obj(const char *path) {
                     mdl->normals = SDL_realloc(
                         mdl->normals, sizeof(vec3) * mdl->cnormals * ARR_FACTOR
                     );
-                    if (mdl->normals == NULL) {
-                        SDL_OutOfMemory();
-                        return NULL;
-                    }
+                    if (mdl->normals == NULL) { goto oom; }
                     mdl->cnormals *= ARR_FACTOR;
                 }
             }
@@ -522,10 +544,7 @@ model *parse_obj(const char *path) {
                     mdl->uvs = SDL_realloc(
                         mdl->uvs, sizeof(vec2) * mdl->cuvs * ARR_FACTOR
                     );
-                    if (mdl->uvs == NULL) {
-                        SDL_OutOfMemory();
-                        return NULL;
-                    }
+                    if (mdl->uvs == NULL) { goto oom; }
                     mdl->cuvs *= ARR_FACTOR;
                 }
             }
@@ -602,7 +621,7 @@ model *parse_obj(const char *path) {
                     );
                     vec3_div_ip(&mdl->faces[mdl->nfaces].centroid, 3);
                     // repurposing j
-                    mdl->faces[mdl->nfaces].normal = (vec3) {0, 0, 0};
+                    mdl->faces[mdl->nfaces].normal = ZEROVEC3;
                     j = 0;
                     for (size_t k = 0; k < 3; k++) {
                         if (rface.normals[k] == -1) { continue; }
@@ -653,10 +672,7 @@ model *parse_obj(const char *path) {
                             mdl->faces,
                             sizeof(face) * mdl->cfaces * ARR_FACTOR
                         );
-                        if (mdl->faces == NULL) {
-                            SDL_OutOfMemory();
-                            return NULL;
-                        }
+                        if (mdl->faces == NULL) { goto oom; }
                         mdl->cfaces *= ARR_FACTOR;
                     }
                 }
@@ -672,7 +688,7 @@ model *parse_obj(const char *path) {
                     vec3_div_ip(&rface.centroid, 4);
                     // copy the normal in case j is 0
                     vec3 normal = rface.normal;
-                    rface.normal = (vec3) {0, 0, 0};
+                    rface.normal = ZEROVEC3;
                     j = 0;
                     for (size_t k = 0; k < 4; k++) {
                         if (rface.normals[k] == -1) { continue; }
@@ -733,10 +749,7 @@ model *parse_obj(const char *path) {
                             mdl->faces,
                             sizeof(face) * mdl->cfaces * ARR_FACTOR
                         );
-                        if (mdl->faces == NULL) {
-                            SDL_OutOfMemory();
-                            return NULL;
-                        }
+                        if (mdl->faces == NULL) { goto oom; }
                         mdl->cfaces *= ARR_FACTOR;
                     }
                 }
@@ -757,13 +770,24 @@ model *parse_obj(const char *path) {
 
 invalid: // invalid data
     SDL_free(data);
-    SDL_free(mdl);
     SDL_free(mdl->vertices);
     SDL_free(mdl->normals);
     SDL_free(mdl->uvs);
     SDL_free(mdl->faces);
     SDL_free(mdl->mats);
+    SDL_free(mdl);
     SDL_SetError("Invalid OBJ data: %s", SDL_GetError());
+    return NULL;
+
+oom:
+    SDL_free(data);
+    SDL_free(mdl->vertices);
+    SDL_free(mdl->normals);
+    SDL_free(mdl->uvs);
+    SDL_free(mdl->faces);
+    SDL_free(mdl->mats);
+    SDL_free(mdl);
+    SDL_OutOfMemory();
     return NULL;
 }
 

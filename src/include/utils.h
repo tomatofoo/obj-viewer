@@ -17,6 +17,9 @@
 #define MAGENTA 255, 0, 255
 #define YELLOW 255, 255, 0
 
+#define ZEROVEC2 (vec2) {0, 0}
+#define ZEROVEC3 (vec3) {0, 0, 0}
+
 #define arr_sizeof(arr) sizeof(arr) / sizeof(arr[0])
 
 

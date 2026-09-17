@@ -13,8 +13,8 @@ This viewer supports OBJ files with convex faces up to four vertices. Only
 basic geometry is supported. Only the basic material properties are supported 
 (Ka, Kd, Ks, Ns, map_Ka, map_Kd, map_Ks, map_Ns) In addition, in files with 
 textures, spaces in filenames are not supported. Materials with spaces in their
-name will be equivalent to materials without spaces (e.g. a meterial called 
-"123" will be the same as the material called "1 23"). Despite all these 
+name will be equivalent to the string up until the first space (e.g. a meterial
+called "12 3" will be the same as the material called "12"). Despite all these 
 constraints, most OBJ files would be fully supported as these are advanced 
 features.
 

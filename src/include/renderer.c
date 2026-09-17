@@ -103,8 +103,8 @@ context *create_context(
         );
         return NULL;
     }
-    ctx->pos = (vec3) {0, 0, 0};
-    ctx->rot = (vec3) {0, 0, 0};
+    ctx->pos = ZEROVEC3;
+    ctx->rot = ZEROVEC3;
     ctx->flength = w / 2;
     ctx->blinn = true;
     ctx->quality = 3;

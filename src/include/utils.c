@@ -432,6 +432,7 @@ bool inrange(double x, double l, double h, bool incl, bool inch) {
 }
 
 const char *filename_ext(const char *filename) {
+    if (filename == NULL) { return NULL; }
     while (*filename) {
         if (*filename == '.' && filename[1] != '\0') { return filename + 1; }
         filename++;
@@ -441,6 +442,7 @@ const char *filename_ext(const char *filename) {
 
 // last extension (e.g. .obj.zip will be .zip)
 const char *filename_lext(const char *filename) {
+    if (filename == NULL) { return NULL; }
     const char *lext = NULL;
     while (*filename) {
         if (*filename == '.' && filename[1] != '\0') { lext = filename + 1; }
@@ -450,6 +452,7 @@ const char *filename_lext(const char *filename) {
 }
 
 char *dirname_2048(const char *path) {
+    if (path == NULL) { return NULL; }
     static char buf[2048];
     bool slash = true;
     const char *p = path;
@@ -482,6 +485,7 @@ char *dirname_2048(const char *path) {
 }
 
 char *basename_2048(const char *path) {
+    if (path == NULL) { return NULL; }
     static char buf[2048];
     const char *base = path;
     while (*path) {
@@ -502,6 +506,7 @@ char *basename_2048(const char *path) {
 }
 
 uint32_t fnv1a32(const char *key) {
+    if (key == NULL) { return 0; }
     uint32_t hash = 0x811c9dc5;
     while (*key) {
         hash = (hash ^ *key) * 0x01000193;
