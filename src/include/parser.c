@@ -290,6 +290,11 @@ bool parse_mtl(const char *path, mtable *mt) {
                 if (neg) { value = -value; }
             }
         }
+        else if (
+            elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX
+        ) {
+            // ADD SOMETHING HERE
+        }
         if (elem == AMB && end) {
             if (n == 0) { mat->ambient.x = value; }
             else if (n == 1) { mat->ambient.y = value; }
