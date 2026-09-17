@@ -71,6 +71,7 @@ mtable *create_mtable() {
 }
 
 void destroy_mtable(mtable *mt) {
+    if (mt == NULL) { return; }
     for (size_t i = 0; i < mt->centries; i++) {
         SDL_free(mt->entries[i].key); // can free NULL
     }
@@ -226,12 +227,17 @@ bool parse_mtl(const char *path, mtable *mt) {
                         NULL, NULL, NULL, NULL,
                     }
                 );
+                mat = mtable_get(mt, key);
             }
         }
         // Floating-point Number Parsing
         else if (
             elem == AMB || elem == DIFF || elem == SPEC || elem == GLOSS
         ) {
+            if (mat == NULL) {
+                SDL_SetError("Invalid material");
+                goto invalid;
+            }
             if (start) {
                 neg = false;
                 whole = 0;
@@ -285,17 +291,24 @@ bool parse_mtl(const char *path, mtable *mt) {
             }
         }
         if (elem == AMB && end) {
+            if (n == 0) { mat->ambient.x = value; }
+            else if (n == 1) { mat->ambient.y = value; }
+            else if (n == 2) { mat->ambient.z = value; }
             n++;
         }
         else if (elem == DIFF && end) {
+            if (n == 0) { mat->diffuse.x = value; }
+            else if (n == 1) { mat->diffuse.y = value; }
+            else if (n == 2) { mat->diffuse.z = value; }
             n++;
         }
         else if (elem == SPEC && end) {
+            if (n == 0) { mat->specular.x = value; }
+            else if (n == 1) { mat->specular.y = value; }
+            else if (n == 2) { mat->specular.z = value; }
             n++;
         }
-        else if (elem == GLOSS && end) {
-            n++;
-        }
+        else if (elem == GLOSS && end) { mat->glossiness = value; }
     }
 
     // FREE UP DATA AFTER PARSING
@@ -390,6 +403,9 @@ model *parse_obj(const char *path) {
         return NULL;
     }
     mdl->cmats = ARR_SIZE;
+
+    mtable *mt = create_mtable();
+    if (mt == NULL) { goto oom; }
 
     // PER ELEMENT
     etype elem = NONE;
@@ -776,6 +792,7 @@ invalid: // invalid data
     SDL_free(mdl->faces);
     SDL_free(mdl->mats);
     SDL_free(mdl);
+    destroy_mtable(mt);
     SDL_SetError("Invalid OBJ data: %s", SDL_GetError());
     return NULL;
 
@@ -787,6 +804,7 @@ oom:
     SDL_free(mdl->faces);
     SDL_free(mdl->mats);
     SDL_free(mdl);
+    destroy_mtable(mt);
     SDL_OutOfMemory();
     return NULL;
 }
