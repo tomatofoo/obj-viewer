@@ -786,6 +786,7 @@ model *parse_obj(const char *path) {
     }
     // FREE UP DATA AFTER PARSING
     SDL_free(data);
+    destroy_mtable(mt);
 
     return mdl;
 
