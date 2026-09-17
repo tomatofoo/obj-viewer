@@ -419,6 +419,10 @@ model *parse_obj(const char *path) {
     bool begin; // finished parsing element type; now will parse elem
     size_t n = 0; // index for arrays (resets at start)
     int32_t mat = -1; // material index for faces
+    char *key = SDL_malloc(sizeof(char) * ARR_SIZE); // for materials
+    if (key == NULL) { goto oom; }
+    size_t nchars = 0;
+    size_t cchars = ARR_SIZE;
     // PER ITEM AND MORE
     bool start = true; // start of new item (inside element)
     bool end; // if is last char of current item
