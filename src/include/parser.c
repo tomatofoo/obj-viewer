@@ -166,8 +166,7 @@ bool parse_mtl(const char *path, mtable *mt) {
     }
     
     // PER MATERIAL
-    char *key = SDL_malloc(sizeof(char) * ARR_SIZE);
-    if (key == NULL) { goto oom; }
+    char *key = NULL;
     size_t nchars = 0;
     size_t cchars = ARR_SIZE;
     material *mat = NULL;
@@ -189,6 +188,10 @@ bool parse_mtl(const char *path, mtable *mt) {
     size_t j; // index value
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
+            key = SDL_malloc(sizeof(char) * ARR_SIZE);
+            if (key == NULL) { goto oom; }
+            nchars = 0;
+            cchars = ARR_SIZE;
             cont = false;
             begin = false; // waits until next whitespace to be true
             n = 0;
@@ -241,6 +244,7 @@ bool parse_mtl(const char *path, mtable *mt) {
                     }
                 );
                 mat = mtable_get(mt, key);
+
             }
         }
         // Floating-point Number Parsing
@@ -470,7 +474,7 @@ model *parse_obj(const char *path) {
             if (streq_space(data + i, "g")) { cont = true; }
             else if (streq_space(data + i, "o")) { cont = true; }
             else if (streq_space(data + i, "mtllib")) { elem = MATLIB; cont = true; } // TEMP
-            else if (streq_space(data + i, "usemtl")) { elem = MAT; cont = true; } // TEMP
+            else if (streq_space(data + i, "usemtl")) { elem = MAT; }
             else if (streq_space(data + i, "v")) { elem = VERTEX; }
             else if (streq_space(data + i, "vn")) { elem = NORMAL; }
             else if (streq_space(data + i, "vt")) { elem = UV; }
@@ -531,6 +535,15 @@ model *parse_obj(const char *path) {
                     value *= SDL_pow(10, epower);
                 }
                 if (neg) { value = -value; }
+            }
+        }
+        else if (elem == MAT) {
+            key[nchars] = data[i];
+            nchars++;
+            if (nchars >= cchars) {
+                cchars *= ARR_FACTOR;
+                key = SDL_realloc(key, sizeof(char) * cchars);
+                if (key == NULL) { goto oom; }
             }
         }
         if (elem == VERTEX && end) { // don't need to initialize item in array
