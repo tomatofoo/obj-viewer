@@ -67,6 +67,7 @@ mtable *create_mtable() {
     }
     mt->nentries = 0;
     mt->centries = ARR_SIZE;
+    for (size_t i = 0; i < mt->centries; i++) { mt->entries[i].dex = -1; }
 
     return mt;
 }
@@ -166,7 +167,8 @@ bool parse_mtl(const char *path, mtable *mt) {
     }
     
     // PER MATERIAL
-    char *key = NULL;
+    char *key = SDL_malloc(sizeof(char) * ARR_SIZE);
+    if (key == NULL) { goto oom; }
     size_t nchars = 0;
     size_t cchars = ARR_SIZE;
     material *mat = NULL;
@@ -188,10 +190,27 @@ bool parse_mtl(const char *path, mtable *mt) {
     size_t j; // index value
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
-            key = SDL_malloc(sizeof(char) * ARR_SIZE);
-            if (key == NULL) { goto oom; }
-            nchars = 0;
-            cchars = ARR_SIZE;
+            if (elem == NEWMAT) {
+                if (nchars) { // no capacity check because it is at end
+                    key[nchars] = '\0';
+                    nchars++;
+                    mtable_set(
+                        mt,
+                        key,
+                        (material) {
+                            ZEROVEC3, ZEROVEC3, ZEROVEC3,
+                            0,
+                            NULL, NULL, NULL, NULL,
+                        }
+                    );
+                    mat = mtable_get(mt, key);
+                }
+                SDL_free(key);
+                key = SDL_malloc(sizeof(char) * ARR_SIZE);
+                if (key == NULL) { goto oom; }
+                nchars = 0;
+                cchars = ARR_SIZE;
+            }
             cont = false;
             begin = false; // waits until next whitespace to be true
             n = 0;
@@ -231,20 +250,7 @@ bool parse_mtl(const char *path, mtable *mt) {
                 key = SDL_realloc(key, sizeof(char) * cchars);
                 if (key == NULL) { goto oom; }
             }
-            if (end) { // no capacity check because it is last one
-                key[nchars + 1] = '\0';
-                nchars++;
-                mtable_set(
-                    mt,
-                    key,
-                    (material) {
-                        ZEROVEC3, ZEROVEC3, ZEROVEC3,
-                        0,
-                        NULL, NULL, NULL, NULL,
-                    }
-                );
-                mat = mtable_get(mt, key);
-
+            if (end) { 
             }
         }
         // Floating-point Number Parsing
@@ -340,11 +346,13 @@ bool parse_mtl(const char *path, mtable *mt) {
 
 invalid:
     SDL_free(data);
+    SDL_free(key);
     SDL_SetError("Invalid MTL data: %s", SDL_GetError());
     return false;
 
 oom:
     SDL_free(data);
+    SDL_free(key);
     SDL_OutOfMemory();
     return false;
 }
@@ -435,8 +443,9 @@ model *parse_obj(const char *path) {
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begin; // finished parsing element type; now will parse elem
     size_t n = 0; // index for arrays (resets at start)
-    int32_t mat = -1; // material index for faces
-    char *key = SDL_malloc(sizeof(char) * ARR_SIZE); // for materials
+    material *mat;
+    int32_t *dex = NULL; // material index for faces
+    char *key = SDL_malloc(sizeof(char) * ARR_SIZE);
     if (key == NULL) { goto oom; }
     size_t nchars = 0;
     size_t cchars = ARR_SIZE;
@@ -454,6 +463,37 @@ model *parse_obj(const char *path) {
     int32_t d; // an element inDex value (faces) (int because need -1)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
+            // TODO: ADD NEWMTL PARSING
+            if (elem == MAT) {
+                if (nchars) { // no capacity check because it is at end
+                    key[nchars] = '\0';
+                    nchars++;
+                    dex = mtable_dex(mt, key);
+                    if (dex == NULL) {
+                        SDL_SetError("Invalid material received");
+                        goto invalid;
+                    }
+                    if (*dex == -1) {
+                        *dex = mdl->nmats;
+                        // won't equal NULL since we have the dex check
+                        mdl->mats[mdl->nmats] = *mtable_get(mt, key);
+                        mdl->nmats++;
+                        if (mdl->nmats >= mdl->cmats) {
+                            mdl->mats = SDL_realloc(
+                                mdl->mats,
+                                sizeof(material) * mdl->cmats * ARR_FACTOR
+                            );
+                            if (mdl->mats == NULL) { goto oom; }
+                            mdl->cmats *= ARR_FACTOR;
+                        }
+                    }
+                }
+                SDL_free(key);
+                key = SDL_malloc(sizeof(char) * ARR_SIZE);
+                if (key == NULL) { goto oom; }
+                nchars = 0;
+                cchars = ARR_SIZE;
+            }
             cont = false;
             begin = false; // waits until next whitespace to be true
             n = 0;
@@ -716,7 +756,7 @@ model *parse_obj(const char *path) {
                     mdl->faces[mdl->nfaces].normals[0] = rface.normals[0];
                     mdl->faces[mdl->nfaces].normals[1] = rface.normals[1];
                     mdl->faces[mdl->nfaces].normals[2] = rface.normals[2];
-                    mdl->faces[mdl->nfaces].mat = mat;
+                    mdl->faces[mdl->nfaces].mat = dex == NULL ? -1 : *dex;
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
                         mdl->faces = SDL_realloc(
@@ -793,7 +833,7 @@ model *parse_obj(const char *path) {
                     mdl->faces[mdl->nfaces].normals[0] = rface.normals[2];
                     mdl->faces[mdl->nfaces].normals[1] = rface.normals[3];
                     mdl->faces[mdl->nfaces].normals[2] = rface.normals[0];
-                    mdl->faces[mdl->nfaces].mat = mat;
+                    mdl->faces[mdl->nfaces].mat = dex == NULL ? -1 : *dex;
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
                         mdl->faces = SDL_realloc(
@@ -829,6 +869,7 @@ invalid: // invalid data
     SDL_free(mdl->mats);
     SDL_free(mdl);
     destroy_mtable(mt);
+    SDL_free(key);
     SDL_SetError("Invalid OBJ data: %s", SDL_GetError());
     return NULL;
 
@@ -841,6 +882,7 @@ oom:
     SDL_free(mdl->mats);
     SDL_free(mdl);
     destroy_mtable(mt);
+    SDL_free(key);
     SDL_OutOfMemory();
     return NULL;
 }
