@@ -94,12 +94,14 @@ bool mtable_set(mtable *mt, char *key, material mat) {
             SDL_OutOfMemory();
             return false;
         }
+        for (size_t i = 0; i < mt->centries; i++) { mt->entries[i].dex = -1; }
         size_t j;
         for (size_t i = 0; i < mt->centries; i++) {
             if (mt->entries[i].key == NULL) { continue; }
             j = fnv1a32(mt->entries[i].key) % mt->centries;
             while (entries[j].key != NULL) { j = (j + 1) % mt->centries; }
             entries[j].key = mt->entries[i].key;
+            entries[j].dex = mt->entries[i].dex;
             entries[j].mat = mt->entries[i].mat;
         }
         SDL_free(mt->entries);
