@@ -453,7 +453,8 @@ const char *filename_lext(const char *filename) {
 
 char *dirname_2048(const char *path) {
     if (path == NULL) { return NULL; }
-    static char buf[2048];
+    if (SDL_strlen(path) >= 2048) { return NULL; }
+    static char buf[2048]; // overwritten after every call (not thread safe)
     bool slash = true;
     const char *p = path;
     const char *end = path;
@@ -486,7 +487,8 @@ char *dirname_2048(const char *path) {
 
 char *basename_2048(const char *path) {
     if (path == NULL) { return NULL; }
-    static char buf[2048];
+    if (SDL_strlen(path) >= 2048) { return NULL; }
+    static char buf[2048]; // overwritten after every call (not thread safe)
     const char *base = path;
     while (*path) {
         if (*path == DIR_SEP && path[1]) { base = path + 1; }

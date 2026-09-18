@@ -366,6 +366,9 @@ model *parse_obj(const char *path) {
         SDL_SetError("Filename extension is not obj or OBJ");
         return NULL;
     }
+    char *dirname = dirname_2048(path); // used for relative files
+    size_t dirlen = SDL_strlen(dirname);
+    char mtlpath[2048]; // buffer for mtl paths
     size_t datasize;
     char *data = SDL_LoadFile(path, &datasize);
     if (data == NULL) {
@@ -469,7 +472,11 @@ model *parse_obj(const char *path) {
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
                     nchars++;
-                    if (!parse_mtl(key, mt)) {
+                    SDL_strlcpy(mtlpath, dirname, sizeof(mtlpath));
+                    mtlpath[dirlen] = DIR_SEP;
+                    mtlpath[dirlen + 1] = '\0';
+                    SDL_strlcat(mtlpath, key, sizeof(mtlpath));
+                    if (!parse_mtl(mtlpath, mt)) {
                         SDL_SetError(
                             "Failed to load MTL file: %s", SDL_GetError()
                         );
