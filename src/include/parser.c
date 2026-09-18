@@ -1,4 +1,5 @@
 #include "SDL3/SDL.h"
+#include "SDL3_image/SDL_image.h"
 
 #include "parser.h"
 #include "renderer.h"
@@ -153,7 +154,7 @@ bool streq_space(const char *str1, const char *str2) {
 }
 
 
-bool parse_mtl(const char *path, mtable *mt) {
+bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     if (path == NULL) { return false; }
     if (mt == NULL) { return false; }
     const char *ext = filename_lext(path);
@@ -161,6 +162,7 @@ bool parse_mtl(const char *path, mtable *mt) {
         SDL_SetError("Filename extension is not mtl or MTL");
         return false;
     }
+    char imgpath[2048]; // buffer for img paths
     size_t datasize;
     char *data = SDL_LoadFile(path, &datasize);
     if (data == NULL) {
@@ -214,6 +216,34 @@ bool parse_mtl(const char *path, mtable *mt) {
                 nchars = 0;
                 cchars = ARR_SIZE;
             }
+            if (elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX) {
+                if (nchars) { // no capacity check because it is at end
+                    key[nchars] = '\0';
+                    nchars++;
+                    SDL_strlcpy(imgpath, dirname, sizeof(imgpath));
+                    imgpath[dirlen] = DIR_SEP;
+                    imgpath[dirlen + 1] = '\0';
+                    SDL_strlcat(imgpath, key, sizeof(imgpath));
+                    if (elem == ATEX) {
+                        // if null it doesn't matter
+                        mat->atexture = IMG_Load(imgpath);
+                    }
+                    else if (elem == DTEX) {
+                        mat->dtexture = IMG_Load(imgpath);
+                    }
+                    else if (elem == STEX) {
+                        mat->stexture = IMG_Load(imgpath);
+                    }
+                    else if (elem == GTEX) {
+                        mat->gtexture = IMG_Load(imgpath);
+                    }
+                }
+                SDL_free(key);
+                key = SDL_malloc(sizeof(char) * ARR_SIZE);
+                if (key == NULL) { goto oom; }
+                nchars = 0;
+                cchars = ARR_SIZE;
+            }
             cont = false;
             begin = false; // waits until next whitespace to be true
             n = 0;
@@ -245,7 +275,8 @@ bool parse_mtl(const char *path, mtable *mt) {
         if (!begin) { continue; } // will start parsing after beginning
         end = isempty(data[i + 1]) || cont; // check if is end (won't overflow)
 
-        if (elem == NEWMAT) {
+        if (elem == NEWMAT
+            || elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX) {
             key[nchars] = data[i];
             nchars++;
             if (nchars >= cchars) {
@@ -313,11 +344,6 @@ bool parse_mtl(const char *path, mtable *mt) {
                 }
                 if (neg) { value = -value; }
             }
-        }
-        else if (
-            elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX
-        ) {
-            // ADD SOMETHING HERE
         }
         if (elem == AMB && end) {
             if (n == 0) { mat->ambient.x = value; }
@@ -476,7 +502,7 @@ model *parse_obj(const char *path) {
                     mtlpath[dirlen] = DIR_SEP;
                     mtlpath[dirlen + 1] = '\0';
                     SDL_strlcat(mtlpath, key, sizeof(mtlpath));
-                    if (!parse_mtl(mtlpath, mt)) {
+                    if (!parse_mtl(mtlpath, mt, dirname, dirlen)) {
                         SDL_SetError(
                             "Failed to load MTL file: %s", SDL_GetError()
                         );
