@@ -12,10 +12,10 @@ management. The code is still pretty shitty though.
 This viewer supports OBJ files with convex faces up to four vertices. Only 
 basic geometry is supported. Only the basic material properties are supported 
 (Ka, Kd, Ks, Ns, map_Ka, map_Kd, map_Ks, map_Ns) In addition, in files with 
-textures, spaces in filenames are not supported. Materials with spaces in their
-name will be equivalent to materials without them (e.g. "1 2 3" == "123"). 
-Despite all these constraints, most OBJ files would be fully supported as these
-are advanced features.
+textures, spaces in filenames are not supported. Materials and textures with 
+spaces in their name will be equivalent to materials without them 
+(e.g. "1 2 3" == "123"). Despite all these constraints, most OBJ files would be
+fully supported as these are advanced features.
 
 ## Features
 - Screenshots
