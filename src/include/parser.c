@@ -84,7 +84,7 @@ void destroy_mtable(mtable *mt) {
 bool mtable_set(mtable *mt, char *key, material mat) {
     size_t i = fnv1a32(key) % mt->centries;
     while (mt->entries[i].key != NULL) { i = (i + 1) % mt->centries; }
-    mt->entries[i].key = key; // expecting to be provided malloced
+    mt->entries[i].key = key; // TODO: STRING COPYING
     mt->entries[i].mat = mat;
     mt->nentries++;
     if (mt->nentries >= mt->centries) {
@@ -207,7 +207,8 @@ bool parse_mtl(const char *path, mtable *mt) {
                     );
                     mat = mtable_get(mt, key);
                 }
-                SDL_free(key);
+                // SDL_free(key);
+                // will be freed by the destroy_mtable
                 key = SDL_malloc(sizeof(char) * ARR_SIZE);
                 if (key == NULL) { goto oom; }
                 nchars = 0;
@@ -230,8 +231,8 @@ bool parse_mtl(const char *path, mtable *mt) {
             continue;
         }
         if (elem == NONE) {
-            if (streq_space(data + i, "newmtl")) { elem = NEWMAT; } // TEMP
-            else if (streq_space(data + i, "Ka")) { elem = AMB; } // TEMP
+            if (streq_space(data + i, "newmtl")) { elem = NEWMAT; }
+            else if (streq_space(data + i, "Ka")) { elem = AMB; }
             else if (streq_space(data + i, "Kd")) { elem = DIFF; }
             else if (streq_space(data + i, "Ks")) { elem = SPEC; }
             else if (streq_space(data + i, "Ns")) { elem = GLOSS; }
@@ -251,8 +252,6 @@ bool parse_mtl(const char *path, mtable *mt) {
                 cchars *= ARR_FACTOR;
                 key = SDL_realloc(key, sizeof(char) * cchars);
                 if (key == NULL) { goto oom; }
-            }
-            if (end) { 
             }
         }
         // Floating-point Number Parsing
@@ -343,6 +342,7 @@ bool parse_mtl(const char *path, mtable *mt) {
 
     // FREE UP DATA AFTER PARSING
     SDL_free(data);
+    SDL_free(key);
 
     return true;
 
@@ -465,8 +465,24 @@ model *parse_obj(const char *path) {
     int32_t d; // an element inDex value (faces) (int because need -1)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
-            // TODO: ADD NEWMTL PARSING
-            if (elem == MAT) {
+            if (elem == MATLIB) {
+                if (nchars) { // no capacity check because it is at end
+                    key[nchars] = '\0';
+                    nchars++;
+                    if (!parse_mtl(key, mt)) {
+                        SDL_SetError(
+                            "Failed to load MTL file: %s", SDL_GetError()
+                        );
+                        goto invalid;
+                    }
+                }
+                SDL_free(key);
+                key = SDL_malloc(sizeof(char) * ARR_SIZE);
+                if (key == NULL) { goto oom; }
+                nchars = 0;
+                cchars = ARR_SIZE;
+            }
+            else if (elem == MAT) {
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
                     nchars++;
@@ -515,7 +531,7 @@ model *parse_obj(const char *path) {
         if (elem == NONE) {
             if (streq_space(data + i, "g")) { cont = true; }
             else if (streq_space(data + i, "o")) { cont = true; }
-            else if (streq_space(data + i, "mtllib")) { elem = MATLIB; cont = true; } // TEMP
+            else if (streq_space(data + i, "mtllib")) { elem = MATLIB; } // TEMP
             else if (streq_space(data + i, "usemtl")) { elem = MAT; }
             else if (streq_space(data + i, "v")) { elem = VERTEX; }
             else if (streq_space(data + i, "vn")) { elem = NORMAL; }
@@ -579,7 +595,7 @@ model *parse_obj(const char *path) {
                 if (neg) { value = -value; }
             }
         }
-        else if (elem == MAT) {
+        else if (elem == MATLIB || elem == MAT) {
             key[nchars] = data[i];
             nchars++;
             if (nchars >= cchars) {
@@ -858,6 +874,7 @@ model *parse_obj(const char *path) {
     }
     // FREE UP DATA AFTER PARSING
     SDL_free(data);
+    SDL_free(key);
     destroy_mtable(mt);
 
     return mdl;
@@ -870,8 +887,8 @@ invalid: // invalid data
     SDL_free(mdl->faces);
     SDL_free(mdl->mats);
     SDL_free(mdl);
-    destroy_mtable(mt);
     SDL_free(key);
+    destroy_mtable(mt);
     SDL_SetError("Invalid OBJ data: %s", SDL_GetError());
     return NULL;
 
@@ -883,8 +900,8 @@ oom:
     SDL_free(mdl->faces);
     SDL_free(mdl->mats);
     SDL_free(mdl);
-    destroy_mtable(mt);
     SDL_free(key);
+    destroy_mtable(mt);
     SDL_OutOfMemory();
     return NULL;
 }

@@ -89,7 +89,8 @@ context *create_context(
         destroy_model(ctx->mdl);
         SDL_free(ctx);
         SDL_SetError(
-            "Failed allocate memory for projected points: %s", SDL_GetError()
+            "Failed to allocate memory for projected points: %s",
+            SDL_GetError()
         );
         return NULL;
     }
@@ -99,7 +100,7 @@ context *create_context(
         SDL_free(ctx->proj);
         SDL_free(ctx);
         SDL_SetError(
-            "Failed allocate memory for z-buffer: %s", SDL_GetError()
+            "Failed to allocate memory for z-buffer: %s", SDL_GetError()
         );
         return NULL;
     }
