@@ -163,7 +163,6 @@ bool parse_mtl(const char *path, mtable *mt) {
     }
     size_t datasize;
     char *data = SDL_LoadFile(path, &datasize);
-    SDL_Log(path);
     if (data == NULL) {
         SDL_SetError("Failed to load MTL file: %s", SDL_GetError());
         return false;
