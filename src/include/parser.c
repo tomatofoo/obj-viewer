@@ -472,7 +472,17 @@ model *parse_obj(const char *path) {
     mdl->cmats = ARR_SIZE;
 
     mtable *mt = create_mtable();
-    if (mt == NULL) { goto oom; }
+    if (mt == NULL) {
+        SDL_free(data);
+        SDL_free(mdl->vertices);
+        SDL_free(mdl->normals);
+        SDL_free(mdl->uvs);
+        SDL_free(mdl->faces);
+        SDL_free(mdl->mats);
+        SDL_free(mdl);
+        SDL_OutOfMemory();
+        return NULL;
+    }
 
     // PER ELEMENT
     etype elem = NONE;
