@@ -85,12 +85,13 @@ void destroy_mtable(mtable *mt) {
 bool mtable_set(mtable *mt, char *key, material mat) {
     size_t i = fnv1a32(key) % mt->centries;
     while (mt->entries[i].key != NULL) { i = (i + 1) % mt->centries; }
-    mt->entries[i].key = key; // TODO: STRING COPYING
+    mt->entries[i].key = key;
     mt->entries[i].mat = mat;
     mt->nentries++;
-    if (mt->nentries >= mt->centries) {
-        mt->centries *= ARR_FACTOR;
-        mentry *entries = SDL_calloc(mt->centries, sizeof(mentry));
+    if (mt->nentries >= mt->centries) { // TODO: FIX SEGFAULT HERE
+        mentry *entries = SDL_calloc(
+            mt->centries * ARR_FACTOR, sizeof(mentry)
+        );
         if (entries == NULL) {
             SDL_OutOfMemory();
             return false;
@@ -107,6 +108,7 @@ bool mtable_set(mtable *mt, char *key, material mat) {
         }
         SDL_free(mt->entries);
         mt->entries = entries;
+        mt->centries *= ARR_FACTOR;
     }
     return true;
 }
@@ -497,7 +499,7 @@ model *parse_obj(const char *path) {
     int32_t d; // an element inDex value (faces) (int because need -1)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
-            if (elem == MATLIB && dirlen < sizeof(imgpath) - 2) {
+            if (elem == MATLIB && dirlen < sizeof(mtlpath) - 2) {
                 // dirlen check because of lines 506-507
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
@@ -519,7 +521,7 @@ model *parse_obj(const char *path) {
                 nchars = 0;
                 cchars = ARR_SIZE;
             }
-            else if (elem == MAT) {
+            if (elem == MAT) {
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
                     nchars++;
