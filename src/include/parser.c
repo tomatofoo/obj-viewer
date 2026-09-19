@@ -232,7 +232,9 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                     SDL_strlcat(imgpath, key, sizeof(imgpath));
                     surf = IMG_Load(imgpath);
                     if (surf == NULL) {
-                        SDL_SetError("Invalid texture path received");
+                        SDL_SetError(
+                            "Failed to load image: %s", SDL_GetError()
+                        );
                         goto invalid;
                     }
                     // doesn't really matter if null so don't error check
