@@ -408,7 +408,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     }
     if (ctx == NULL) {
         if (drop_file_failed) {
-            if (!SDL_RenderTexture(renderer, textures[2], NULL, rects + 0)) {
+            if (!SDL_RenderTexture(renderer, textures[2], NULL, rects + 2)) {
                 SDL_LogError(
                     SDL_LOG_CATEGORY_RENDER,
                     "Failed to render texture: %s",
