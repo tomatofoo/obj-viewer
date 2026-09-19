@@ -591,7 +591,7 @@ model *parse_obj(const char *path) {
             else if (streq_space(data + i, "vn")) { elem = NORMAL; }
             else if (streq_space(data + i, "vt")) { elem = UV; }
             else if (streq_space(data + i, "f")) { elem = FACE; }
-            start = false;
+            start = false; // fixes leading spaces
             begin = false;
             continue;
         }
