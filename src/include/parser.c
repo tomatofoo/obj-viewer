@@ -276,6 +276,8 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             else if (streq_space(data + i, "map_Kd")) { elem = DTEX; }
             else if (streq_space(data + i, "map_Ks")) { elem = STEX; }
             else if (streq_space(data + i, "map_Ns")) { elem = GTEX; }
+            start = false;
+            begin = false;
             continue;
         }
         if (!begin) { continue; } // will start parsing after beginning
@@ -589,6 +591,8 @@ model *parse_obj(const char *path) {
             else if (streq_space(data + i, "vn")) { elem = NORMAL; }
             else if (streq_space(data + i, "vt")) { elem = UV; }
             else if (streq_space(data + i, "f")) { elem = FACE; }
+            start = false;
+            begin = false;
             continue;
         }
         if (!begin) { continue; } // will start parsing after beginning
