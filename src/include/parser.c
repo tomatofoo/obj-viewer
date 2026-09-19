@@ -210,15 +210,17 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                         }
                     );
                     mat = mtable_get(mt, key);
-                }
-                // SDL_free(key);
-                // will be freed by the destroy_mtable
+                } // key will be freed by the destroy_mtable
+                else { SDL_free(key); }
                 key = SDL_malloc(sizeof(char) * ARR_SIZE);
                 if (key == NULL) { goto oom; }
                 nchars = 0;
                 cchars = ARR_SIZE;
             }
-            if (elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX) {
+            else if (
+                (elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX)
+                && dirlen < sizeof(imgpath) - 2 // because of lines 228-9
+            ) {
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
                     nchars++;
@@ -495,7 +497,8 @@ model *parse_obj(const char *path) {
     int32_t d; // an element inDex value (faces) (int because need -1)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
-            if (elem == MATLIB) {
+            if (elem == MATLIB && dirlen < sizeof(imgpath) - 2) {
+                // dirlen check because of lines 506-507
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
                     nchars++;
