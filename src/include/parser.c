@@ -284,6 +284,9 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
         if (elem == NEWMAT
             || elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX) {
             key[nchars] = data[i];
+            if (elem != NEWMAT && SDL_strchr(DIR_SEPS, data[i]) != NULL) {
+                key[nchars] = DIR_SEP;
+            }
             nchars++;
             if (nchars >= cchars) {
                 cchars *= ARR_FACTOR;
@@ -646,6 +649,9 @@ model *parse_obj(const char *path) {
         }
         else if (elem == MATLIB || elem == MAT) {
             key[nchars] = data[i];
+            if (elem == MATLIB && SDL_strchr(DIR_SEPS, data[i]) != NULL) {
+                key[nchars] = DIR_SEP;
+            }
             nchars++;
             if (nchars >= cchars) {
                 cchars *= ARR_FACTOR;

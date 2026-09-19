@@ -2,6 +2,7 @@
 #define UTILS_H
 
 
+#define DIR_SEPS "\\/"
 #ifdef SDL_PLATFORM_WIN32
 #define DIR_SEP '\\'
 #else
