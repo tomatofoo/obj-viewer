@@ -51,7 +51,7 @@ bool scale_model(model *mdl, double scale) {
         return false;
     }
     
-    for (size_t i; i < mdl->nvertices; i++) {
+    for (size_t i = 0; i < mdl->nvertices; i++) {
         vec3_mul_ip(&mdl->vertices[i].vec, scale);
     }
     for (size_t i = 0; i < mdl->nfaces; i++) {

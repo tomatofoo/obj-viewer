@@ -195,7 +195,6 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     bool eneg; // if epower is negative
     int32_t epower = -1; // general power (for values with e in them)
     double value; // a number value (factor, exponent, etc.)
-    size_t j; // index value
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
             if (elem == NEWMAT) {
@@ -481,7 +480,6 @@ model *parse_obj(const char *path) {
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begin; // finished parsing element type; now will parse elem
     size_t n = 0; // index for arrays (resets at start)
-    material *mat;
     int32_t *dex = NULL; // material index for faces
     char *key = SDL_malloc(sizeof(char) * ARR_SIZE);
     if (key == NULL) { goto oom; }
@@ -712,15 +710,15 @@ model *parse_obj(const char *path) {
             }
             if (data[i] == '/') {
                 if (j == 0) {
-                    d = d >= 0 ? d - 1 : mdl->nvertices + d;
-                    if (d < 0 || d >= mdl->nvertices) {
+                    d = d >= 0 ? d - 1 : (int32_t) mdl->nvertices + d;
+                    if (d < 0 || d >= (int32_t) mdl->nvertices) {
                         SDL_SetError("Invalid vertex index received");
                         goto invalid;
                     }
                     rface.vertices[n] = d;
                 }
                 else if (j == 1) {
-                    d = d >= 0 ? d - 1 : mdl->nuvs + d;
+                    d = d >= 0 ? d - 1 : (int32_t) mdl->nuvs + d;
                     // avoid negative and postive size_t comparison stuff
                     if (d < -1 || d >= (int32_t) mdl->nuvs) {
                         SDL_SetError("Invalid UV index received");
@@ -740,15 +738,15 @@ model *parse_obj(const char *path) {
             if (end) {
                 // repeated; not sure if there is better way
                 if (j == 0) {
-                    d = d >= 0 ? d - 1 : mdl->nvertices + d;
-                    if (d < 0 || d >= mdl->nvertices) {
+                    d = d >= 0 ? d - 1 : (int32_t) mdl->nvertices + d;
+                    if (d < 0 || d >= (int32_t) mdl->nvertices) {
                         SDL_SetError("Invalid vertex index received");
                         goto invalid;
                     }
                     rface.vertices[n] = d;
                 }
                 else if (j == 1) {
-                    d = d >= 0 ? d - 1 : mdl->nuvs + d;
+                    d = d >= 0 ? d - 1 : (int32_t) mdl->nuvs + d;
                     if (d < -1 || d >= (int32_t) mdl->nuvs) {
                         SDL_SetError("Invalid UV index received");
                         goto invalid;
@@ -756,7 +754,7 @@ model *parse_obj(const char *path) {
                     rface.uvs[n] = d;
                 }
                 else if (j == 2) {
-                    d = d >= 0 ? d - 1 : mdl->nnormals + d;
+                    d = d >= 0 ? d - 1 : (int32_t) mdl->nnormals + d;
                     if (d < -1 || d >= (int32_t) mdl->nnormals) {
                         SDL_SetError("Invalid normal index received");
                         goto invalid;

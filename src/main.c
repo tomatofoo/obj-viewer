@@ -53,7 +53,7 @@ static const SDL_DialogFileFilter filters_scrshot[] = {
     { "All files",   "*" }
 };
 static SDL_Texture *textures[3];
-static SDL_FRect rects[2]; // for textures
+static SDL_FRect rects[3]; // for textures
 
 
 void SDLCALL quality_down(void *userdata) {
@@ -176,7 +176,7 @@ bool load_file(const char *path) {
 
 bool render_text(const char *text, SDL_Texture **texture, SDL_FRect *rect) {
     SDL_Surface *surf = TTF_RenderText_Shaded(
-        font, text, 0, (SDL_Color) {WHITE}, (SDL_Color) {BLACK}
+        font, text, 0, (SDL_Color) {AWHITE}, (SDL_Color) {ABLACK}
     );
     if (surf == NULL) {
         SDL_SetError("Failed to render text: %s", SDL_GetError());

@@ -17,6 +17,15 @@
 #define MAGENTA 255, 0, 255
 #define YELLOW 255, 255, 0
 
+#define ABLACK 0, 0, 0, 255
+#define AWHITE 0, 0, 0, 255
+#define ARED 0, 0, 0, 255
+#define AGREEN 0, 0, 0, 255
+#define ABLUE 0, 0, 0, 255
+#define ACYAN 0, 0, 0, 255
+#define AMAGENTA 0, 0, 0, 255
+#define AYELLOW 0, 0, 0, 255
+
 #define ZEROVEC2 (vec2) {0, 0}
 #define ZEROVEC3 (vec3) {0, 0, 0}
 
