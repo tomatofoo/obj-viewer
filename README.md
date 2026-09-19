@@ -2,8 +2,7 @@
 
 ![Stanford Dragon](/images/dragon.png)
 
-An OBJ file viewer that uses software rasterization. Texture and material 
-support is planned, but not yet fully implemented. This was my first time 
+An OBJ file viewer that uses software rasterization. This was my first time 
 making an actual project in C, and I tried to make the code good. This includes
 error checking (SO MUCH ERROR CHECKING), thread safety, and decent memory 
 management. The code is still pretty shitty though.
@@ -20,7 +19,8 @@ fully supported as these are advanced features.
 ## Features
 - Screenshots
 - Backface culling for performance
-- Flat and smooth shading with Phong illumination 
+- Flat and smooth shading with Phong illumination
+- Texture mapping and material support
 
 ## Building from Source
 To build this project from source, install `SDL3`, `SDL3_image`, and 
