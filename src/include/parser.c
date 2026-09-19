@@ -176,6 +176,8 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     size_t nchars = 0;
     size_t cchars = ARR_SIZE;
     material *mat = NULL;
+    SDL_Surface *surf = NULL; // original
+    SDL_Surface *texture = NULL; // converted
     // PER ELEMENT
     etype elem = NONE;
     bool cont = false; // continue (e.g. comment, group, etc.)
@@ -224,19 +226,18 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                     imgpath[dirlen] = DIR_SEP;
                     imgpath[dirlen + 1] = '\0';
                     SDL_strlcat(imgpath, key, sizeof(imgpath));
-                    if (elem == ATEX) {
-                        // if null it doesn't matter
-                        mat->atexture = IMG_Load(imgpath);
+                    surf = IMG_Load(imgpath);
+                    if (surf == NULL) {
+                        SDL_SetError("Invalid texture path received");
+                        goto invalid;
                     }
-                    else if (elem == DTEX) {
-                        mat->dtexture = IMG_Load(imgpath);
-                    }
-                    else if (elem == STEX) {
-                        mat->stexture = IMG_Load(imgpath);
-                    }
-                    else if (elem == GTEX) {
-                        mat->gtexture = IMG_Load(imgpath);
-                    }
+                    // doesn't really matter if null so don't error check
+                    texture = SDL_ConvertSurface(surf, SDL_PIXELFORMAT_RGB24);
+                    SDL_DestroySurface(surf);
+                    if (elem == ATEX) { mat->atexture = texture; }
+                    else if (elem == DTEX) { mat->dtexture = texture; }
+                    else if (elem == STEX) { mat->stexture = texture; }
+                    else if (elem == GTEX) { mat->gtexture = texture; }
                 }
                 SDL_free(key);
                 key = SDL_malloc(sizeof(char) * ARR_SIZE);
