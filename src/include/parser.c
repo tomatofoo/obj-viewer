@@ -206,7 +206,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                         key,
                         (material) {
                             ZEROVEC3, ZEROVEC3, ZEROVEC3,
-                            0,
+                            1,
                             NULL, NULL, NULL, NULL,
                         }
                     );
