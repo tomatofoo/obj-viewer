@@ -713,7 +713,8 @@ model *parse_obj(const char *path) {
                 }
             }
             // -1 because nuvs was incremented
-            else if (n == 1) { mdl->uvs[mdl->nuvs - 1].y = value; }
+            // in uv system bottom is 1 on y-axis
+            else if (n == 1) { mdl->uvs[mdl->nuvs - 1].y = 1 - value; }
             n++;
         }
         else if (elem == FACE) {
