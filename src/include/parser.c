@@ -89,26 +89,25 @@ bool mtable_set(mtable *mt, char *key, material mat) {
     mt->entries[i].mat = mat;
     mt->nentries++;
     if (mt->nentries >= mt->centries) { // TODO: FIX SEGFAULT HERE
-        mentry *entries = SDL_calloc(
-            mt->centries * ARR_FACTOR, sizeof(mentry)
-        );
+        size_t centries = mt->centries * ARR_FACTOR;
+        mentry *entries = SDL_calloc(centries, sizeof(mentry));
         if (entries == NULL) {
             SDL_OutOfMemory();
             return false;
         }
-        for (size_t i = 0; i < mt->centries; i++) { mt->entries[i].dex = -1; }
+        for (size_t i = 0; i < centries; i++) { entries[i].dex = -1; }
         size_t j;
         for (size_t i = 0; i < mt->centries; i++) {
             if (mt->entries[i].key == NULL) { continue; }
-            j = fnv1a32(mt->entries[i].key) % mt->centries;
-            while (entries[j].key != NULL) { j = (j + 1) % mt->centries; }
+            j = fnv1a32(mt->entries[i].key) % centries;
+            while (entries[j].key != NULL) { j = (j + 1) % centries; }
             entries[j].key = mt->entries[i].key;
             entries[j].dex = mt->entries[i].dex;
             entries[j].mat = mt->entries[i].mat;
         }
         SDL_free(mt->entries);
         mt->entries = entries;
-        mt->centries *= ARR_FACTOR;
+        mt->centries = centries;
     }
     return true;
 }
