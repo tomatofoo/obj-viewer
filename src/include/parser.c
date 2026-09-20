@@ -667,7 +667,7 @@ model *parse_obj(const char *path) {
             else if (n == 1) { mdl->vertices[mdl->nvertices].vec.y = value; }
             else if (n == 2) {
                 mdl->vertices[mdl->nvertices].normal = ZEROVEC3;
-                mdl->vertices[mdl->nvertices].vec.z = value;
+                mdl->vertices[mdl->nvertices].vec.z = -value; // right-handed
                 mdl->nvertices++;
                 if (mdl->nvertices >= mdl->cvertices) {
                     mdl->vertices = SDL_realloc(
