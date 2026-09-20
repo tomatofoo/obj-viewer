@@ -29,6 +29,8 @@ typedef enum etype { // Element Types for both OBj and MTL
     DTEX,
     STEX,
     GTEX,
+    DISS, // dissolve
+    TRAN, // transparency (1 - dissolve)
 } etype;
 
 typedef struct uface { // unconverted face (could be quad)
@@ -275,6 +277,8 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             else if (streq_space(data + i, "map_Kd")) { elem = DTEX; }
             else if (streq_space(data + i, "map_Ks")) { elem = STEX; }
             else if (streq_space(data + i, "map_Ns")) { elem = GTEX; }
+            else if (streq_space(data + i, "d")) { elem = DISS; }
+            else if (streq_space(data + i, "Tr")) { elem = TRAN; }
             start = false;
             begin = false;
             continue;
@@ -298,6 +302,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
         // Floating-point Number Parsing
         else if (
             elem == AMB || elem == DIFF || elem == SPEC || elem == GLOSS
+            || elem == DISS || elem == TRAN
         ) {
             if (mat == NULL) {
                 SDL_SetError("Invalid material");
@@ -374,6 +379,8 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             n++;
         }
         else if (elem == GLOSS && end) { mat->glossiness = value; }
+        else if (elem == DISS && end) { mat->transparency = 1 - value; }
+        else if (elem == TRAN && end) { mat->transparency = value; }
     }
 
     // FREE UP DATA AFTER PARSING
