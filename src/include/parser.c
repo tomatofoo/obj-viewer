@@ -206,9 +206,15 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                         mt,
                         key,
                         (material) {
-                            ZEROVEC3, ZEROVEC3, ZEROVEC3,
-                            1,
-                            NULL, NULL, NULL, NULL,
+                            .ambient = ZEROVEC3,
+                            .diffuse = ZEROVEC3,
+                            .specular = ZEROVEC3,
+                            .glossiness = 1,
+                            .transparency = 0,
+                            .atexture = NULL,
+                            .dtexture = NULL,
+                            .stexture = NULL,
+                            .gtexture = NULL,
                         }
                     );
                     mat = mtable_get(mt, key);

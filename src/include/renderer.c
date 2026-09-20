@@ -110,11 +110,15 @@ context *create_context(
     ctx->blinn = true;
     ctx->quality = 3;
     ctx->mat = (material) {
-        (vec3) {0.1, 0.1, 0.1},
-        (vec3) {0.5, 0.5, 0.5},
-        (vec3) {1, 1, 1},
-        128,
-        NULL, NULL, NULL, NULL
+        .ambient = (vec3) {0.1, 0.1, 0.1},
+        .diffuse = (vec3) {0.5, 0.5, 0.5},
+        .specular = (vec3) {1, 1, 1},
+        .glossiness = 128,
+        .transparency = 0,
+        .atexture = NULL,
+        .dtexture = NULL,
+        .stexture = NULL,
+        .gtexture = NULL,
     };
     ctx->brightness = -1;
     ctx->renderer = renderer;
