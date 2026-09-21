@@ -68,8 +68,9 @@ typedef struct context {
     uint32_t *zbuf; // depth buffer
     model *mdl;
     double flength; // focal length
+    double near; // near clipping length
+    bool cull;
     bool blinn; // if using blinn-phong
-    bool textured; // support textures
     uint8_t quality;
     material mat; // default material
     double brightness;

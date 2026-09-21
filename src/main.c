@@ -33,6 +33,7 @@
 #define SCANCODE_LOOK_DOWN SDL_SCANCODE_DOWN
 #define SCANCODE_QUALITY_DOWN SDL_SCANCODE_LEFTBRACKET
 #define SCANCODE_QUALITY_UP SDL_SCANCODE_RIGHTBRACKET
+#define SCANCODE_TOGGLE_CULL SDL_SCANCODE_C
 #define SCANCODE_SCREENSHOT SDL_SCANCODE_F2
 
 static SDL_Window *window;
@@ -65,6 +66,8 @@ void SDLCALL quality_up(void *userdata) {
     quality = SDL_min(quality + 1, QUALITY_MAX);
     ctx->quality = quality;
 }
+
+void SDLCALL toggle_cull(void *userdata) { ctx->cull = !ctx->cull; }
 
 void SDLCALL save_scrshot(void *userdata) {
     const char * const *filelist = userdata;
@@ -370,6 +373,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
             }
             else if (event->key.scancode == SCANCODE_QUALITY_UP) {
                 SDL_RunOnMainThread(*quality_up, NULL, true);
+            }
+            else if (event->key.scancode == SCANCODE_TOGGLE_CULL) {
+                SDL_RunOnMainThread(*toggle_cull, NULL, true);
             }
             else if (event->key.scancode == SCANCODE_SCREENSHOT) {
                 SDL_ShowSaveFileDialog(

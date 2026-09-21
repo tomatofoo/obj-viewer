@@ -115,6 +115,8 @@ context *create_context(
     ctx->pos = ZEROVEC3;
     ctx->rot = ZEROVEC3;
     ctx->flength = w / 2;
+    ctx->near = 0.00001;
+    ctx->cull = true;
     ctx->blinn = true;
     ctx->quality = 3;
     ctx->mat = (material) {
@@ -294,11 +296,12 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     double invdenom;
     // for clipping
     vec3 normals[3];
-    rface faces[2];
-    size_t nfaces;
+    rface faces[2]; // clipping faces
+    size_t nfaces; // number of faces (1 or 2) to render
     size_t behind; // amount of vertices behind nearclip
     for (size_t i = 0; i < mdl->nfaces; i++) {
         // Clipping
+        behind = 0;
         for (size_t j = 0; j < 3; j++) {
             if (ctx->proj[mdl->faces[i].vertices[j]].z < 0) { behind++; }
         }
@@ -323,7 +326,6 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     normals[j] = mdl->normals[mdl->faces[i].normals[j]];
                 }
             }
-            
             faces[0] = (rface) {
                 .vertices = {
                     mdl->vertices[mdl->faces[i].vertices[0]].vec,
@@ -343,10 +345,11 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 .normals = {normals[0], normals[1], normals[2]},
             };
         }
+        // Actual rendering
         for (size_t j = 0; j < nfaces; j++) {
             rel = vec3_sub(mdl->faces[i].centroid, ctx->pos);
             dot = vec3_dot(rel, mdl->faces[i].normal);
-            if (dot > 0) { continue; } // Backface culling
+            if (ctx->cull && dot > 0) { continue; } // Backface culling
            
             // Load material
             if (mdl->faces[i].mat == -1) { mat = &ctx->mat; }
