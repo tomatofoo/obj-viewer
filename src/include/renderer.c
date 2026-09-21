@@ -290,11 +290,13 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     vec3 color; // buffer value
     vec3 mult = mat->ambient;
     double z;
-    point points[3];
+    point points[3]; // reused flow clipping as well
     vec2 diff10;
     vec2 diff20;
     double invdenom;
     // for clipping
+    vec3 vertices[3];
+    vec2 uvs[3];
     vec3 normals[3];
     rface faces[2]; // clipping faces
     size_t nfaces; // number of faces (1 or 2) to render
