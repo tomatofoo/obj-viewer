@@ -633,7 +633,8 @@ model *parse_obj(const char *path) {
                 epower = 0;
                 continue;
             }
-            if (!(SDL_isdigit(data[i]) || data[i] == '-')) {
+            if ((data[i] == '-' && end)
+                || !(SDL_isdigit(data[i]) || data[i] == '-')) {
                 SDL_SetError("Invalid digits received");
                 goto invalid;
             }
