@@ -1,6 +1,6 @@
 # obj-viewer
 
-![Stanford Dragon](/images/dragon.png)
+![Avocado](/images/avocado.png)
 
 An OBJ file viewer that uses software rasterization. This was my first time 
 making an actual project in C, and I tried to make the code good. This includes

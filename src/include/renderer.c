@@ -322,9 +322,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                         mdl->vertices[mdl->faces[i].vertices[j]].normal
                     );
                 }
-                else {
-                    normals[j] = mdl->normals[mdl->faces[i].normals[j]];
-                }
+                else { normals[j] = mdl->normals[mdl->faces[i].normals[j]]; }
             }
             faces[0] = (rface) {
                 .vertices = {
