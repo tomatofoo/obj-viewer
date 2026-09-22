@@ -298,6 +298,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     double invdenom;
     // for clipping
     size_t ks[2]; // k-values used for clipping
+    vec2 uvs[3];
     vec3 normals[3];
     rface faces[2]; // clipping faces
     double t; // lerp value for clipping
@@ -316,6 +317,10 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 normals[j] = mdl->vertices[mdl->faces[i].vertices[j]].normal;
             }
             else { normals[j] = mdl->normals[mdl->faces[i].normals[j]]; }
+        }
+        for (size_t j = 0; j < 3; j++) {
+            if (mdl->faces[i].uvs[j] == -1) { uvs[j] = ZEROVEC2; }
+            else { uvs[j] = mdl->uvs[mdl->faces[i].uvs[j]]; }
         }
         if (behind == 2) { // TODO: FIX UV LERPING
             nfaces = 1;
@@ -354,11 +359,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                         &rel, ctx->proj[mdl->faces[i].vertices[j]].rel, t
                     );
                     faces[0].points[ks[k]] = project(ctx, rel);
-                    faces[0].uvs[ks[k]] = vec2_lerp(
-                        mdl->uvs[mdl->faces[i].uvs[ks[k]]],
-                        mdl->uvs[mdl->faces[i].uvs[j]],
-                        t
-                    );
+                    faces[0].uvs[ks[k]] = vec2_lerp(uvs[ks[k]], uvs[j], t);
                     // not normalized until the end
                     faces[0].normals[ks[k]] = vec3_lerp(
                         normals[ks[k]], normals[j], t
@@ -405,11 +406,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     &rel, ctx->proj[mdl->faces[i].vertices[j]].rel, t
                 );
                 faces[0].points[j] = project(ctx, rel);
-                faces[0].uvs[j] = vec2_lerp(
-                    mdl->uvs[mdl->faces[i].uvs[ks[1]]],
-                    mdl->uvs[mdl->faces[i].uvs[j]],
-                    t
-                );
+                faces[0].uvs[j] = vec2_lerp(uvs[ks[1]], uvs[j], t);
                 faces[0].normals[j] = vec3_lerp(normals[ks[1]], normals[j], t);
                 // face[1]
                 faces[1].vertices[ks[0]] = faces[0].vertices[j];
@@ -427,11 +424,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     &rel, ctx->proj[mdl->faces[i].vertices[j]].rel, t
                 );
                 faces[1].points[ks[1]] = project(ctx, rel);
-                faces[1].uvs[ks[1]] = vec2_lerp(
-                    mdl->uvs[mdl->faces[i].uvs[ks[0]]],
-                    mdl->uvs[mdl->faces[i].uvs[j]],
-                    t
-                );
+                faces[1].uvs[ks[1]] = vec2_lerp(uvs[ks[0]], uvs[j], t);
                 faces[1].normals[ks[1]] = vec3_lerp(normals[ks[0]], normals[j], t);
                 faces[1].vertices[j] = (
                     mdl->vertices[mdl->faces[i].vertices[ks[0]]].vec
@@ -454,11 +447,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     ctx->proj[mdl->faces[i].vertices[1]],
                     ctx->proj[mdl->faces[i].vertices[2]]
                 },
-                .uvs = {
-                    mdl->uvs[mdl->faces[i].uvs[0]],
-                    mdl->uvs[mdl->faces[i].uvs[1]],
-                    mdl->uvs[mdl->faces[i].uvs[2]]
-                },
+                .uvs = {uvs[0], uvs[1], uvs[2]},
                 .normals = {normals[0], normals[1], normals[2]},
             };
         }
