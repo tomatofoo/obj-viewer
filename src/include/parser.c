@@ -367,19 +367,19 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             }
         }
         if (elem == AMB && end) {
-            if (n == 0) { mat->ambient.x = value; }
+            if (n == 0) { mat->ambient = (vec3) {value, value, value}; }
             else if (n == 1) { mat->ambient.y = value; }
             else if (n == 2) { mat->ambient.z = value; }
             n++;
         }
         else if (elem == DIFF && end) {
-            if (n == 0) { mat->diffuse.x = value; }
+            if (n == 0) { mat->diffuse = (vec3) {value, value, value}; }
             else if (n == 1) { mat->diffuse.y = value; }
             else if (n == 2) { mat->diffuse.z = value; }
             n++;
         }
         else if (elem == SPEC && end) {
-            if (n == 0) { mat->specular.x = value; }
+            if (n == 0) { mat->specular = (vec3) {value, value, value}; }
             else if (n == 1) { mat->specular.y = value; }
             else if (n == 2) { mat->specular.z = value; }
             n++;
