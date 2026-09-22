@@ -16,25 +16,6 @@ typedef struct rface { // render face
 } rface;
 
 
-point point_lerp(point term1, point term2, double t) {
-    double z = term1.z + (term2.z - term1.z) * t;
-    return (point) {
-        term1.x + (term2.x - term1.x) * t,
-        term1.y + (term2.y - term1.y) * t,
-        z,
-        1.0 / z,
-    };
-}
-
-void point_lerp_ip(point *term1, point term2, double t) {
-    double z = term1->z + (term2.z - term1->z) * t;
-    term1->x += (term2.x - term1->x) * t;
-    term1->y += (term2.y - term1->y) * t;
-    term1->z = z;
-    term1->invz = 1.0 / z;
-}
-
-
 void destroy_model(model *mdl) {
     if (mdl == NULL) { return; }
     SDL_free(mdl->vertices);
@@ -134,7 +115,7 @@ context *create_context(
     ctx->pos = ZEROVEC3;
     ctx->rot = ZEROVEC3;
     ctx->flength = w / 2;
-    ctx->near = 0.01;
+    ctx->near = 0.1;
     ctx->cull = true;
     ctx->blinn = true;
     ctx->quality = 3;
@@ -180,6 +161,17 @@ void destroy_context(context *ctx) {
     SDL_DestroySurface(ctx->mat.gtexture);
     SDL_DestroyTexture(ctx->texture);
     SDL_free(ctx);
+}
+
+point project(context *ctx, vec3 rel) {
+    double invz;
+    invz = 1.0 / rel.z;
+    return (point) {
+        rel.x * invz * ctx->flength + ctx->texture->w / 2,
+        -rel.y * invz * ctx->flength + ctx->texture->h / 2,
+        rel,
+        invz,
+    };
 }
 
 void calc_mult(
@@ -284,12 +276,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
         vec3_rot_y_ip(&rel, -ctx->rot.y);
         vec3_rot_x_ip(&rel, -ctx->rot.x);
         vec3_rot_z_ip(&rel, -ctx->rot.z);
-        ctx->proj[i] = (point) {
-            rel.x / rel.z * ctx->flength + ctx->texture->w / 2,
-            -rel.y / rel.z * ctx->flength + ctx->texture->h / 2,
-            rel.z,
-            1.0 / rel.z,
-        };
+        ctx->proj[i] = project(ctx, rel);
     }
 
     int xmin;
@@ -314,15 +301,14 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     vec3 normals[3];
     rface faces[2]; // clipping faces
     double t; // lerp value for clipping
-    double other; // other z value used for clipping
     size_t nfaces; // number of faces (1 or 2) to render
     size_t behind; // amount of vertices behind nearclip
     for (size_t i = 0; i < mdl->nfaces; i++) {
         // Clipping
         behind = 0;
         for (size_t j = 0; j < 3; j++) {
-            z = ctx->proj[mdl->faces[i].vertices[j]].z;
-            if (z < ctx->near) { behind++; }
+            z = ctx->proj[mdl->faces[i].vertices[j]].rel.z;
+            if (z <= ctx->near) { behind++; }
         }
         if (behind == 3) { continue; }
         for (size_t j = 0; j < 3; j++) {
@@ -332,19 +318,17 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             else { normals[j] = mdl->normals[mdl->faces[i].normals[j]]; }
         }
         if (behind == 2) {
-            // TODO: FIX THIS
-            continue;
             nfaces = 1;
             for (size_t j = 0; j < 3; j++) {
-                z = ctx->proj[mdl->faces[i].vertices[j]].z;
-                if (z < ctx->near) { continue; }
+                z = ctx->proj[mdl->faces[i].vertices[j]].rel.z;
+                if (z <= ctx->near) { continue; }
                 if (j == 0) {
                     ks[0] = 1;
                     ks[1] = 2;
                 }
                 else if (j == 1) {
-                    ks[0] = 0;
-                    ks[1] = 2;
+                    ks[0] = 2;
+                    ks[1] = 0;
                 }
                 else {
                     ks[0] = 0;
@@ -359,18 +343,17 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 faces[0].normals[j] = normals[j];
                 // lerp
                 for (size_t k = 0; k < 2; k++) {
-                    other = ctx->proj[mdl->faces[i].vertices[ks[k]]].z;
-                    t = (ctx->near - other) / (z - other);
+                    rel = ctx->proj[mdl->faces[i].vertices[ks[k]]].rel;
+                    t = (ctx->near - rel.z) / (z - rel.z);
                     faces[0].vertices[ks[k]] = vec3_lerp(
                         mdl->vertices[mdl->faces[i].vertices[ks[k]]].vec,
                         mdl->vertices[mdl->faces[i].vertices[j]].vec,
                         t
                     );
-                    faces[0].points[ks[k]] = point_lerp(
-                        ctx->proj[mdl->faces[i].vertices[ks[k]]],
-                        ctx->proj[mdl->faces[i].vertices[j]],
-                        t
+                    vec3_lerp_ip(
+                        &rel, ctx->proj[mdl->faces[i].vertices[j]].rel, t
                     );
+                    faces[0].points[ks[k]] = project(ctx, rel);
                     faces[0].uvs[ks[k]] = vec2_lerp(
                         mdl->uvs[mdl->faces[i].uvs[ks[k]]],
                         mdl->uvs[mdl->faces[i].uvs[j]],
@@ -382,11 +365,81 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     );
                 }
             }
-            continue;
         }
         else if (behind == 1) {
             nfaces = 2;
-            continue;
+            for (size_t j = 0; j < 3; j++) {
+                z = ctx->proj[mdl->faces[i].vertices[j]].rel.z;
+                if (z > ctx->near) { continue; }
+                if (j == 0) {
+                    ks[0] = 1;
+                    ks[1] = 2;
+                }
+                else if (j == 1) {
+                    ks[0] = 2;
+                    ks[1] = 0;
+                }
+                else {
+                    ks[0] = 0;
+                    ks[1] = 1;
+                }
+                // face[0]
+                for (size_t k = 0; k < 2; k++) {
+                    faces[0].vertices[ks[k]] = (
+                        mdl->vertices[mdl->faces[i].vertices[ks[k]]].vec
+                    );
+                    faces[0].points[ks[k]] = (
+                        ctx->proj[mdl->faces[i].vertices[ks[k]]]
+                    );
+                    faces[0].uvs[ks[k]] = mdl->uvs[mdl->faces[i].uvs[ks[k]]];
+                    faces[0].normals[ks[k]] = normals[ks[k]];
+                }
+                rel = ctx->proj[mdl->faces[i].vertices[ks[1]]].rel;
+                t = (rel.z - ctx->near) / (rel.z - z);
+                faces[0].vertices[j] = vec3_lerp(
+                    mdl->vertices[mdl->faces[i].vertices[ks[1]]].vec,
+                    mdl->vertices[mdl->faces[i].vertices[j]].vec,
+                    t
+                );
+                vec3_lerp_ip(
+                    &rel, ctx->proj[mdl->faces[i].vertices[j]].rel, t
+                );
+                faces[0].points[j] = project(ctx, rel);
+                faces[0].uvs[j] = vec2_lerp(
+                    mdl->uvs[mdl->faces[i].uvs[ks[1]]],
+                    mdl->uvs[mdl->faces[i].uvs[j]],
+                    t
+                );
+                faces[0].normals[j] = vec3_lerp(normals[ks[1]], normals[j], t);
+                // face[1]
+                faces[1].vertices[ks[0]] = faces[0].vertices[j];
+                faces[1].points[ks[0]] = faces[0].points[j];
+                faces[1].uvs[ks[0]] = faces[0].uvs[j];
+                faces[1].normals[ks[0]] = faces[0].normals[j];
+                rel = ctx->proj[mdl->faces[i].vertices[ks[0]]].rel;
+                t = (rel.z - ctx->near) / (rel.z - z);
+                faces[1].vertices[ks[1]] = vec3_lerp(
+                    mdl->vertices[mdl->faces[i].vertices[ks[0]]].vec,
+                    mdl->vertices[mdl->faces[i].vertices[j]].vec,
+                    t
+                );
+                vec3_lerp_ip(
+                    &rel, ctx->proj[mdl->faces[i].vertices[j]].rel, t
+                );
+                faces[1].points[ks[1]] = project(ctx, rel);
+                faces[1].uvs[ks[1]] = vec2_lerp(
+                    mdl->uvs[mdl->faces[i].uvs[ks[0]]],
+                    mdl->uvs[mdl->faces[i].uvs[j]],
+                    t
+                );
+                faces[1].normals[ks[1]] = vec3_lerp(normals[ks[0]], normals[j], t);
+                faces[1].vertices[j] = (
+                    mdl->vertices[mdl->faces[i].vertices[ks[0]]].vec
+                );
+                faces[1].points[j] = ctx->proj[mdl->faces[i].vertices[ks[0]]];
+                faces[1].uvs[j] = mdl->uvs[mdl->faces[i].uvs[ks[0]]];
+                faces[1].normals[j] = normals[ks[0]];
+            }
         }
         else {
             nfaces = 1;
@@ -519,9 +572,9 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                         w *= invmag;
                         // not using continue because it will not do subtract
                         z = (
-                            u * points[0].z
-                            + v * points[1].z
-                            + w * points[2].z
+                            u * points[0].rel.z
+                            + v * points[1].rel.z
+                            + w * points[2].rel.z
                         );
                         if (z * ZBUF_RES < ctx->zbuf[zbufn]) {
                             ctx->zbuf[zbufn] = (uint32_t) (z * ZBUF_RES);

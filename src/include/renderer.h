@@ -59,7 +59,7 @@ typedef struct model {
 typedef struct point {
     int x;
     int y;
-    double z;
+    vec3 rel;
     double invz;
 } point;
 
