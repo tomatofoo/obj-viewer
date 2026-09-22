@@ -33,7 +33,8 @@
 #define SCANCODE_LOOK_DOWN SDL_SCANCODE_DOWN
 #define SCANCODE_QUALITY_DOWN SDL_SCANCODE_LEFTBRACKET
 #define SCANCODE_QUALITY_UP SDL_SCANCODE_RIGHTBRACKET
-#define SCANCODE_TOGGLE_CULL SDL_SCANCODE_C
+#define SCANCODE_TOGGLE_CULL SDL_SCANCODE_B
+#define SCANCODE_TOGGLE_CLIP SDL_SCANCODE_C
 #define SCANCODE_SCREENSHOT SDL_SCANCODE_F2
 
 static SDL_Window *window;
@@ -43,6 +44,7 @@ static TTF_Font *font;
 static Uint64 last; // for timer
 
 static double flength = WIDTH / SCALE / 2;
+static double clip = 0.01;
 static uint8_t quality = 3; // so it's persistent
 
 static bool drop_file_failed; // separate because of threads
@@ -68,6 +70,11 @@ void SDLCALL quality_up(void *userdata) {
 }
 
 void SDLCALL toggle_cull(void *userdata) { ctx->cull = !ctx->cull; }
+
+void SDLCALL toggle_clip(void *userdata) {
+    if (ctx->near == 0) { ctx->near = clip; }
+    else { ctx->near = 0; }
+}
 
 void SDLCALL save_scrshot(void *userdata) {
     const char * const *filelist = userdata;
@@ -376,6 +383,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
             }
             else if (event->key.scancode == SCANCODE_TOGGLE_CULL) {
                 SDL_RunOnMainThread(*toggle_cull, NULL, true);
+            }
+            else if (event->key.scancode == SCANCODE_TOGGLE_CLIP) {
+                SDL_RunOnMainThread(*toggle_clip, NULL, true);
             }
             else if (event->key.scancode == SCANCODE_SCREENSHOT) {
                 SDL_ShowSaveFileDialog(

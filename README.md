@@ -19,6 +19,7 @@ fully supported as these are advanced features.
 ## Features
 - Screenshots
 - Backface culling for performance
+- Near clipping
 - Flat and smooth shading with Phong illumination
 - Texture mapping and material support
 
@@ -54,6 +55,7 @@ Drag an OBJ file to the app window. The program will open the file.
 - Down: Look down 
 - [: Increase quality
 - ]: Increase quality
-- C: Toggle backface culling
+- B: Toggle backface culling
+- C: Toggle near clipping
 - F2: Take a screenshot (supports PNG and JPEG, default PNG)
 

@@ -115,7 +115,7 @@ context *create_context(
     ctx->pos = ZEROVEC3;
     ctx->rot = ZEROVEC3;
     ctx->flength = w / 2;
-    ctx->near = 0.1;
+    ctx->near = 0.01;
     ctx->cull = true;
     ctx->blinn = true;
     ctx->quality = 3;
@@ -310,7 +310,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             z = ctx->proj[mdl->faces[i].vertices[j]].rel.z;
             if (z <= ctx->near) { behind++; }
         }
-        if (behind == 3) { continue; }
+        if (behind == 3 || (behind != 0 && ctx->near == 0)) { continue; }
         for (size_t j = 0; j < 3; j++) {
             if (mdl->faces[i].normals[j] == -1) {
                 normals[j] = mdl->vertices[mdl->faces[i].vertices[j]].normal;
