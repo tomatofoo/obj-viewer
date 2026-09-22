@@ -317,7 +317,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             }
             else { normals[j] = mdl->normals[mdl->faces[i].normals[j]]; }
         }
-        if (behind == 2) {
+        if (behind == 2) { // TODO: FIX UV LERPING
             nfaces = 1;
             for (size_t j = 0; j < 3; j++) {
                 z = ctx->proj[mdl->faces[i].vertices[j]].rel.z;
