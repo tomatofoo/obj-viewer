@@ -945,6 +945,22 @@ model *parse_obj(const char *path) {
             vec3_unit_ip(&mdl->vertices[i].normal);
         }
     }
+
+    // Reverse z-direction because of .OBJ coordinate system
+    /*
+    for (size_t i = 0; i < mdl->nvertices; i++) {
+        mdl->vertices[i].vec.z = -mdl->vertices[i].vec.z;
+        mdl->vertices[i].normal.z = -mdl->vertices[i].normal.z;
+    }
+    for (size_t i = 0; i < mdl->nnormals; i++) {
+        mdl->normals[i].z = -mdl->normals[i].z;
+    }
+    for (size_t i = 0; i < mdl->nfaces; i++) {
+        mdl->faces[i].centroid.z = -mdl->faces[i].centroid.z;
+        mdl->faces[i].normal.z = -mdl->faces[i].normal.z;
+    }
+    */
+
     // FREE UP DATA AFTER PARSING
     SDL_free(data);
     SDL_free(key);
