@@ -344,7 +344,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     mdl->vertices[mdl->faces[i].vertices[j]].vec
                 );
                 faces[0].points[j] = ctx->proj[mdl->faces[i].vertices[j]];
-                faces[0].uvs[j] = mdl->uvs[mdl->faces[i].uvs[j]];
+                faces[0].uvs[j] = uvs[j];
                 faces[0].normals[j] = normals[j];
                 // lerp
                 for (size_t k = 0; k < 2; k++) {
@@ -392,7 +392,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     faces[0].points[ks[k]] = (
                         ctx->proj[mdl->faces[i].vertices[ks[k]]]
                     );
-                    faces[0].uvs[ks[k]] = mdl->uvs[mdl->faces[i].uvs[ks[k]]];
+                    faces[0].uvs[ks[k]] = uvs[ks[k]];
                     faces[0].normals[ks[k]] = normals[ks[k]];
                 }
                 rel = ctx->proj[mdl->faces[i].vertices[ks[1]]].rel;
@@ -430,7 +430,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     mdl->vertices[mdl->faces[i].vertices[ks[0]]].vec
                 );
                 faces[1].points[j] = ctx->proj[mdl->faces[i].vertices[ks[0]]];
-                faces[1].uvs[j] = mdl->uvs[mdl->faces[i].uvs[ks[0]]];
+                faces[1].uvs[j] = uvs[ks[0]];
                 faces[1].normals[j] = normals[ks[0]];
             }
         }
