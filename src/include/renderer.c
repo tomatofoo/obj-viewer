@@ -297,7 +297,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     vec2 diff20;
     double invdenom;
     // for clipping
-    size_t ks[2]; // k-values used for clipping
+    size_t ks[2]; // dex-values used for clipping
     vec2 uvs[3];
     vec3 normals[3];
     rface faces[2]; // clipping faces
