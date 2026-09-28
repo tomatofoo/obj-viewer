@@ -18,7 +18,7 @@ fully supported as these are advanced features.
 
 ## Features
 - Screenshots
-- Backface culling for performance
+- Backface culling
 - Near clipping
 - Flat and smooth shading with Phong illumination
 - Texture mapping and material support
