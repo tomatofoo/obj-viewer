@@ -52,9 +52,11 @@ else()
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
-
-    if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-      include(plat/darwin/CMakeLists.txt)
+    
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        include(plat/linux/CMakeLists.txt)
+    elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        include(plat/darwin/CMakeLists.txt)
     endif ()
 
     target_include_directories(main PUBLIC src/include)
