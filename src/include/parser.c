@@ -959,6 +959,9 @@ model *parse_obj(const char *path) {
     int32_t uv;
     int32_t normal;
     for (size_t i = 0; i < mdl->nfaces; i++) {
+        mdl->faces[i].centroid.z = -mdl->faces[i].centroid.z;
+        mdl->faces[i].normal.z = -mdl->faces[i].normal.z;
+        // reverse order because renderer expects specific order
         vertex = mdl->faces[i].vertices[0];
         uv = mdl->faces[i].uvs[0];
         normal = mdl->faces[i].normals[0];
@@ -968,8 +971,6 @@ model *parse_obj(const char *path) {
         mdl->faces[i].uvs[2] = uv;
         mdl->faces[i].normals[0] = mdl->faces[i].normals[2];
         mdl->faces[i].normals[2] = normal;
-        mdl->faces[i].centroid.z = -mdl->faces[i].centroid.z;
-        mdl->faces[i].normal.z = -mdl->faces[i].normal.z;
     }
 
     // FREE UP DATA AFTER PARSING
