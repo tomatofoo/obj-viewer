@@ -287,7 +287,6 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     vec3 color; // buffer value
     vec3 mult = mat->ambient;
     double z; // reused in clipping
-    point points[3]; // kinda shorthand thing
     vec2 diff10;
     vec2 diff20;
     double invdenom;
@@ -480,18 +479,17 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             ymin = ctx->texture->h;
             ymax = 0;
             for (size_t k = 0; k < 3; k++) {
-                points[k] = faces[j].points[k];
-                xmin = SDL_min(SDL_max(points[k].x, 0), xmin);
-                xmax = SDL_max(SDL_min(points[k].x, ctx->texture->w), xmax);
-                ymin = SDL_min(SDL_max(points[k].y, 0), ymin);
-                ymax = SDL_max(SDL_min(points[k].y, ctx->texture->h), ymax);
+                xmin = SDL_clamp(faces[j].points[k].x, 0, xmin);
+                xmax = SDL_clamp(faces[j].points[k].x, xmax, ctx->texture->w);
+                ymin = SDL_clamp(faces[j].points[k].y, 0, ymin);
+                ymax = SDL_clamp(faces[j].points[k].y, ymax, ctx->texture->h);
             }
 
             // Caching some stuff for barycentric calculations
-            diff10.x = points[1].x - points[0].x;
-            diff10.y = points[1].y - points[0].y;
-            diff20.x = points[2].x - points[0].x;
-            diff20.y = points[2].y - points[0].y;
+            diff10.x = faces[j].points[1].x - faces[j].points[0].x;
+            diff10.y = faces[j].points[1].y - faces[j].points[0].y;
+            diff20.x = faces[j].points[2].x - faces[j].points[0].x;
+            diff20.y = faces[j].points[2].y - faces[j].points[0].y;
             invdenom = 1.0 / (diff10.x * diff20.y - diff20.x * diff10.y);
 
             // Half-space triangle checking
@@ -499,22 +497,22 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             // ^ use Wayback Machine
             // assumes counter-clockwise vertex order
             int xdiff[] = {
-                points[1].x - points[0].x,
-                points[2].x - points[1].x,
-                points[0].x - points[2].x
+                faces[j].points[1].x - faces[j].points[0].x,
+                faces[j].points[2].x - faces[j].points[1].x,
+                faces[j].points[0].x - faces[j].points[2].x
             };
             int ydiff[] = {
-                points[1].y - points[0].y,
-                points[2].y - points[1].y,
-                points[0].y - points[2].y
+                faces[j].points[1].y - faces[j].points[0].y,
+                faces[j].points[2].y - faces[j].points[1].y,
+                faces[j].points[0].y - faces[j].points[2].y
             };
             // Expressions that get added to/subtracted from
             int xexp[3];
             int yexp[3];
             for (size_t k = 0; k < 3; k++) {
                 yexp[k] = (
-                    xdiff[k] * (ymin - points[k].y)
-                    - ydiff[k] * (xmin - points[k].x)
+                    xdiff[k] * (ymin - faces[j].points[k].y)
+                    - ydiff[k] * (xmin - faces[j].points[k].x)
                     + (ydiff[k] < 0 || (ydiff[k] == 0 && xdiff[k] > 0))
                 );
             }
@@ -538,7 +536,10 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                     // half-space check
                     if (xexp[0] > 0 && xexp[1] > 0 && xexp[2] > 0) {
                         // Compute barycentric coordinates in screen space
-                        diffx0 = (vec2) {x - points[0].x, y - points[0].y};
+                        diffx0 = (vec2) {
+                            x - faces[j].points[0].x,
+                            y - faces[j].points[0].y,
+                        };
                         v = (
                             diffx0.x * diff20.y - diff20.x * diffx0.y
                         ) * invdenom;
@@ -547,18 +548,18 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                         ) * invdenom;
                         u = 1.0 - v - w;
                         // Correct perspective
-                        u *= points[0].invz;
-                        v *= points[1].invz;
-                        w *= points[2].invz;
+                        u *= faces[j].points[0].invz;
+                        v *= faces[j].points[1].invz;
+                        w *= faces[j].points[2].invz;
                         invmag = 1.0 / (u + v + w);
                         u *= invmag;
                         v *= invmag;
                         w *= invmag;
                         // not using continue because it will not do subtract
                         z = (
-                            u * points[0].rel.z
-                            + v * points[1].rel.z
-                            + w * points[2].rel.z
+                            u * faces[j].points[0].rel.z
+                            + v * faces[j].points[1].rel.z
+                            + w * faces[j].points[2].rel.z
                         );
                         if (z * ZBUF_RES < ctx->zbuf[zbufn]) {
                             ctx->zbuf[zbufn] = (uint32_t) (z * ZBUF_RES);
