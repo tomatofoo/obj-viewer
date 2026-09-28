@@ -485,6 +485,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 ymax = SDL_clamp(faces[j].points[k].y, ymax, ctx->texture->h);
             }
 
+            // https://gamedev.stackexchange.com/a/63203
             // Caching some stuff for barycentric calculations
             diff10.x = faces[j].points[1].x - faces[j].points[0].x;
             diff10.y = faces[j].points[1].y - faces[j].points[0].y;
