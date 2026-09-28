@@ -164,8 +164,7 @@ void destroy_context(context *ctx) {
 }
 
 point project(context *ctx, vec3 rel) {
-    double invz;
-    invz = 1.0 / rel.z;
+    double invz = 1.0 / rel.z;
     return (point) {
         rel.x * invz * ctx->flength + ctx->texture->w / 2,
         -rel.y * invz * ctx->flength + ctx->texture->h / 2,
@@ -223,18 +222,14 @@ void calc_mult(
 }
 
 vec3 read_pixel(
-    model *mdl, size_t i, SDL_Surface *texture, double u, double v, double w
+    rface face, SDL_Surface *texture, double u, double v, double w
 ) {
     if (texture == NULL) { return (vec3) {1, 1, 1}; }
     int x = SDL_clamp((
-        u * mdl->uvs[mdl->faces[i].uvs[0]].x
-        + v * mdl->uvs[mdl->faces[i].uvs[1]].x
-        + w * mdl->uvs[mdl->faces[i].uvs[2]].x
+        u * face.uvs[0].x + v * face.uvs[1].x + w * face.uvs[2].x
     ) * texture->w, 0, texture->w - 1);
     int y = SDL_clamp((
-        u * mdl->uvs[mdl->faces[i].uvs[0]].y
-        + v * mdl->uvs[mdl->faces[i].uvs[1]].y
-        + w * mdl->uvs[mdl->faces[i].uvs[2]].y
+        u * face.uvs[0].y + v * face.uvs[1].y + w * face.uvs[2].y
     ) * texture->h, 0, texture->h - 1);
     uint8_t r;
     uint8_t g;
@@ -355,7 +350,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                         mdl->vertices[mdl->faces[i].vertices[j]].vec,
                         t
                     );
-                    vec3_lerp_ip(
+                    vec3_lerp_ip( // won't affect actual rel
                         &rel, ctx->proj[mdl->faces[i].vertices[j]].rel, t
                     );
                     faces[0].points[ks[k]] = project(ctx, rel);
@@ -586,7 +581,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                                 }
                                 dot = vec3_dot(rel, normal);
                                 color = read_pixel(
-                                    mdl, i, mat->gtexture, u, v, w
+                                    faces[j], mat->gtexture, u, v, w
                                 );
                                 calc_mult(
                                     ctx->blinn,
@@ -606,19 +601,19 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                             }
                             if (ctx->quality > 0) {
                                 color = read_pixel(
-                                    mdl, i, mat->atexture, u, v, w
+                                    faces[j], mat->atexture, u, v, w
                                 );
                                 mult.x = color.x * ambient.x;
                                 mult.y = color.y * ambient.y;
                                 mult.z = color.z * ambient.z;
                                 color = read_pixel(
-                                    mdl, i, mat->dtexture, u, v, w
+                                    faces[j], mat->dtexture, u, v, w
                                 );
                                 mult.x += color.x * diffuse.x;
                                 mult.y += color.y * diffuse.y;
                                 mult.z += color.z * diffuse.z;
                                 color = read_pixel(
-                                    mdl, i, mat->stexture, u, v, w
+                                    faces[j], mat->stexture, u, v, w
                                 );
                                 mult.x += color.x * specular.x;
                                 mult.y += color.y * specular.y;
