@@ -12,7 +12,7 @@
 
 // APP VARIABLES
 #define APPNAME "OBJ Viewer"
-#define APPVERSION "0.2.0"
+#define APPVERSION "1.0.0"
 #define APPIDENTIFIER "com.tomatofu.obj-viewer"
 #define WIDTH 640
 #define HEIGHT 480
