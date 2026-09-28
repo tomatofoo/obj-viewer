@@ -90,7 +90,7 @@ bool mtable_set(mtable *mt, char *key, material mat) {
     mt->entries[i].key = key;
     mt->entries[i].mat = mat;
     mt->nentries++;
-    if (mt->nentries >= mt->centries) { // TODO: FIX SEGFAULT HERE
+    if (mt->nentries >= mt->centries) {
         size_t centries = mt->centries * ARR_FACTOR;
         mentry *entries = SDL_calloc(centries, sizeof(mentry));
         if (entries == NULL) {

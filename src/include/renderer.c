@@ -316,7 +316,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             if (mdl->faces[i].uvs[j] == -1) { uvs[j] = ZEROVEC2; }
             else { uvs[j] = mdl->uvs[mdl->faces[i].uvs[j]]; }
         }
-        if (behind == 2) { // TODO: FIX UV LERPING
+        if (behind == 2) {
             nfaces = 1;
             for (size_t j = 0; j < 3; j++) {
                 z = ctx->proj[mdl->faces[i].vertices[j]].rel.z;
