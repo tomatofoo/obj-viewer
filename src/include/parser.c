@@ -283,8 +283,11 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             else if (streq_space(data + i, "map_Kd")) { elem = DTEX; }
             else if (streq_space(data + i, "map_Ks")) { elem = STEX; }
             else if (streq_space(data + i, "map_Ns")) { elem = GTEX; }
+            // maybe implement later
             else if (streq_space(data + i, "d")) { elem = DISS; }
             else if (streq_space(data + i, "Tr")) { elem = TRAN; }
+            else if (streq_space(data + i, "map_d")) { cont = true; }
+            else if (streq_space(data + i, "map_Tr")) { cont = true; }
             start = false;
             begin = false;
             continue;
