@@ -69,7 +69,8 @@ else()
     set_target_properties(
         main PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_NAME}_${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR}
-        BUILD_RPATH_USE_ORIGIN TRUE
+        BUILD_RPATH_USE_ORIGIN TRUE # just in case
+        BUILD_WITH_INSTALL_RPATH TRUE
     )
 
     target_include_directories(main PUBLIC src/include)
