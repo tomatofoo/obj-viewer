@@ -43,11 +43,12 @@ bool normalize_model(model *mdl) {
         largest = SDL_max(vec3_mag(mdl->vertices[i].vec), largest);
     }
     if (largest == 0) { return true; }
+    double invlargest = 1.0 / largest;
     for (size_t i = 0; i < mdl->nvertices; i++) {
-        vec3_div_ip(&mdl->vertices[i].vec, largest);
+        vec3_mul_ip(&mdl->vertices[i].vec, invlargest);
     }
     for (size_t i = 0; i < mdl->nfaces; i++) {
-        vec3_div_ip(&mdl->faces[i].centroid, largest);
+        vec3_mul_ip(&mdl->faces[i].centroid, invlargest);
     }
 
     return true;
