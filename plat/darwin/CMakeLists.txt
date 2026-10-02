@@ -25,6 +25,7 @@ if (NOT "${CMAKE_GENERATOR}" STREQUAL "Xcode")
     )
 endif()
 # NOTE: IF THE LC_LOAD_DYLIB HAS AN ABSOLUTE PATH
+# check with otool -l main while inside the main.app/Contents/MacOS
 # USE install_name_tool -change /usr/local/opt/... @rpath/....dylib main
 # while inside the main.app/Contents/MacOS
 set_target_properties(
