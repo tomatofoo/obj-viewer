@@ -6,6 +6,7 @@ project(
     LANGUAGES C
 )
 
+include(FetchContent)
 include(GNUInstallDirs)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -16,19 +17,21 @@ set(CMAKE_C_FLAGS "")
 set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
-option(VENDORED "Use vendored libraries" OFF)
-if(VENDORED)
-    add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
-    add_subdirectory(vendored/SDL_image EXCLUDE_FROM_ALL)
-    add_subdirectory(vendored/SDL_ttf EXCLUDE_FROM_ALL)
-else()
-    find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
-    find_package(SDL3_image REQUIRED CONFIG REQUIRED COMPONENTS)
-    find_package(SDL3_ttf REQUIRED CONFIG REQUIRED COMPONENTS)
-endif()
+function(vendored name url tag)
+    FetchContent_Declare(
+        ${name}
+        GIT_REPOSITORY ${url}
+        GIT_TAG ${tag}
+    )
+    FetchContent_MakeAvailable(${name})
+endfunction()
 
 option(DEV "Create a development executable" ON)
 if(DEV)
+    find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
+    find_package(SDL3_image REQUIRED CONFIG REQUIRED COMPONENTS)
+    find_package(SDL3_ttf REQUIRED CONFIG REQUIRED COMPONENTS)
+
     add_executable(main.out src/main.c)
     add_subdirectory(src/include)
     target_include_directories(main.out PRIVATE src/include)
@@ -40,6 +43,10 @@ if(DEV)
     )
 else()
     # https://martin-fieber.de/blog/cmake-cpack-cross-platform-distributables
+    vendored(SDL3 https://github.com/libsdl-org/SDL.git release-3.4.16)
+    vendored(SDL3_image https://github.com/libsdl-org/SDL_image.git release-3.4.6)
+    vendored(SDL3_ttf https://github.com/libsdl-org/SDL_ttf.git release-3.2.2)
+
     add_executable(main WIN32 MACOSX_BUNDLE src/main.c)
     add_subdirectory(src/include)
 
@@ -57,7 +64,12 @@ else()
         include(plat/linux/CMakeLists.txt)
     elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         include(plat/darwin/CMakeLists.txt)
-    endif ()
+    endif()
+
+    set_target_properties(
+        main PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_NAME}_${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR}
+    )
 
     target_include_directories(main PUBLIC src/include)
     target_link_libraries(
