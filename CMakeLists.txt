@@ -59,7 +59,7 @@ else()
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
-    
+
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         include(plat/linux/CMakeLists.txt)
     elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -69,6 +69,7 @@ else()
     set_target_properties(
         main PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_NAME}_${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR}
+        BUILD_RPATH_USE_ORIGIN TRUE
     )
 
     target_include_directories(main PUBLIC src/include)
