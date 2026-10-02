@@ -27,8 +27,8 @@ install(
 )
 set_target_properties(
     main PROPERTIES
-    BUILD_RPATH "@executable_path"
-    INSTALL_RPATH "@executable_path"
+    BUILD_RPATH "$ORIGIN"
+    INSTALL_RPATH "$ORIGIN"
     RESOURCE "${SHARED_STATIC_ASSETS}"
 )
 
