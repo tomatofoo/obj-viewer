@@ -114,6 +114,7 @@ context *create_context(
     ctx->rot = ZEROVEC3;
     ctx->flength = w / 2;
     ctx->near = 0.01;
+    ctx->far = 100;
     ctx->cull = true;
     ctx->blinn = true;
     ctx->quality = 3;
@@ -256,7 +257,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     // Clear Texture and z-buffer
     SDL_memset(pixels, 0, ctx->texture->h * pitch);
     for (size_t i = 0; i < ctx->texture->w * ctx->texture->h; i++) {
-        ctx->zbuf[i] = 0;
+        ctx->zbuf[i] = ctx->far;
     }
     
     // Actual Rendering
@@ -553,12 +554,12 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                         v *= invmag;
                         w *= invmag;
                         // not using continue because it will not do subtract
-                        z = 1.0 / ( // inverse of actual z value
+                        z = (
                             u * faces[j].points[0].rel.z
                             + v * faces[j].points[1].rel.z
                             + w * faces[j].points[2].rel.z
                         );
-                        if (z > ctx->zbuf[zbufn]) {
+                        if (z < ctx->zbuf[zbufn]) {
                             ctx->zbuf[zbufn] = z;
                             // per-pixel lighting
                             if (ctx->quality > 1) {

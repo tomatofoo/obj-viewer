@@ -69,6 +69,7 @@ typedef struct context {
     model *mdl;
     double flength; // focal length
     double near; // near clipping length
+    double far; // far clipping length
     bool cull;
     bool blinn; // if using blinn-phong
     uint8_t quality;
