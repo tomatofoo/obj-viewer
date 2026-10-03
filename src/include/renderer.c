@@ -255,11 +255,9 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
 
     // Clear Texture and z-buffer
     SDL_memset(pixels, 0, ctx->texture->h * pitch);
-    SDL_memset(
-        ctx->zbuf,
-        0,
-        sizeof(double) * ctx->texture->w * ctx->texture->h
-    );
+    for (size_t i = 0; i < ctx->texture->w * ctx->texture->h; i++) {
+        ctx->zbuf[i] = 0;
+    }
     
     // Actual Rendering
     model *mdl = ctx->mdl;
