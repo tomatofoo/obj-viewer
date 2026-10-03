@@ -278,7 +278,6 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     int ymax;
     material *mat = &ctx->mat;
     double dot;
-    double invmag;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -524,6 +523,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
             double u;
             double v;
             double w;
+            double invmag;
             vec3 normal = mdl->faces[i].normal;
             for (int y = ymin; y < ymax; y++) {
                 zbufn = zbufy;
@@ -555,7 +555,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                         v *= invmag;
                         w *= invmag;
                         // not using continue because it will not do subtract
-                        z = 1.0 / (
+                        z = 1.0 / ( // inverse of actual z value
                             u * faces[j].points[0].rel.z
                             + v * faces[j].points[1].rel.z
                             + w * faces[j].points[2].rel.z
