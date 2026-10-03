@@ -5,9 +5,6 @@
 #include "utils.h"
 
 
-#define ZBUF_RES 10000
-
-
 typedef struct rface { // render face
     vec3 vertices[3];
     point points[3];
@@ -103,7 +100,7 @@ context *create_context(
         );
         return NULL;
     }
-    ctx->zbuf = SDL_malloc(sizeof(uint32_t) * w * h);
+    ctx->zbuf = SDL_malloc(sizeof(double) * w * h);
     if (ctx->zbuf == NULL) {
         destroy_model(ctx->mdl);
         SDL_free(ctx->proj);
@@ -260,8 +257,8 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     SDL_memset(pixels, 0, ctx->texture->h * pitch);
     SDL_memset(
         ctx->zbuf,
-        SDL_MAX_UINT32,
-        sizeof(uint32_t) * ctx->texture->w * ctx->texture->h
+        0,
+        sizeof(double) * ctx->texture->w * ctx->texture->h
     );
     
     // Actual Rendering
@@ -558,13 +555,13 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                         v *= invmag;
                         w *= invmag;
                         // not using continue because it will not do subtract
-                        z = (
+                        z = 1.0 / (
                             u * faces[j].points[0].rel.z
                             + v * faces[j].points[1].rel.z
                             + w * faces[j].points[2].rel.z
                         );
-                        if (z * ZBUF_RES < ctx->zbuf[zbufn]) {
-                            ctx->zbuf[zbufn] = (uint32_t) (z * ZBUF_RES);
+                        if (z > ctx->zbuf[zbufn]) {
+                            ctx->zbuf[zbufn] = z;
                             // per-pixel lighting
                             if (ctx->quality > 1) {
                                 rel = vec3_mul(faces[j].vertices[0], u);

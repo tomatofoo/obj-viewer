@@ -65,7 +65,7 @@ typedef struct point {
 
 typedef struct context {
     point *proj; // projected vertices in last frame (also includes depth as z)
-    uint32_t *zbuf; // depth buffer
+    double *zbuf; // depth buffer; inverse z
     model *mdl;
     double flength; // focal length
     double near; // near clipping length
