@@ -606,6 +606,8 @@ model *parse_obj(const char *path) {
             else if (streq_space(data + i, "vn")) { elem = NORMAL; }
             else if (streq_space(data + i, "vt")) { elem = UV; }
             else if (streq_space(data + i, "f")) { elem = FACE; }
+            // maybe implement later
+            else if (streq_space(data + i, "s")) { cont = true; }
             start = false; // fixes leading spaces
             begin = false;
             continue;
