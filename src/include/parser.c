@@ -292,7 +292,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             begin = false;
             continue;
         }
-        if (!begin) { continue; } // will start parsing after beginning
+        if (!begin) { continue; } // has parsed elem, but char isn't space yet
         end = isempty(data[i + 1]) || cont; // check if is end (won't overflow)
 
         if (elem == NEWMAT
@@ -612,7 +612,7 @@ model *parse_obj(const char *path) {
             begin = false;
             continue;
         }
-        if (!begin) { continue; } // will start parsing after beginning
+        if (!begin) { continue; } // has parsed elem, but char isn't space yet
         end = isempty(data[i + 1]) || cont; // check if is end (won't overflow)
         // Floating-point Number Parsing
         if (elem == VERTEX || elem == NORMAL || elem == UV) {
