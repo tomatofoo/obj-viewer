@@ -229,8 +229,8 @@ vec3 read_pixel(
         vec2_mul(face.uvs[1], v)),
         vec2_mul(face.uvs[2], w)
     );
-    uv.x = pfmod(uv.x); // mod because of tiling uv's
-    uv.y = 1.0 - pfmod(uv.y); // y is swapped
+    uv.x = pfmod(uv.x, 1.0); // mod because of tiling uv's
+    uv.y = 1.0 - pfmod(uv.y, 1.0); // y is swapped
     int x = SDL_clamp(uv.x * texture->w, 0, texture->w - 1);
     int y = SDL_clamp(uv.y * texture->h, 0, texture->h - 1);
     uint8_t r;
