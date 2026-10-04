@@ -124,6 +124,10 @@ double vec3_dist(vec3 term1, vec3 term2);
 double vec3_dist_sq(vec3 term1, vec3 term2);
 double vec3_angle_to(vec3 term1, vec3 term2);
 
+double pfmod(double x, double y);
+double nfmod(double x, double y);
+float pfmodf(float x, float y);
+float nfmodf(float x, float y);
 double hypot(double x, double y);
 bool inrange(double x, double l, double h, bool incl, bool inch);
 const char *filename_ext(const char *filename);

@@ -422,6 +422,26 @@ double vec3_angle_to(vec3 term1, vec3 term2) {
 }
 
 
+double pfmod(double x, double y) {
+    double mod = SDL_fmod(x, y);
+    return mod < 0 ? mod + y : mod;
+}
+
+double nfmod(double x, double y) {
+    double mod = SDL_fmod(x, y);
+    return mod > 0 ? mod - y : mod;
+}
+
+float pfmodf(float x, float y) {
+    float mod = SDL_fmodf(x, y);
+    return mod < 0 ? mod + y : mod;
+}
+
+float nfmodf(float x, float y) {
+    float mod = SDL_fmodf(x, y);
+    return mod > 0 ? mod - y : mod;
+}
+
 double hypot(double x, double y) {
     return SDL_sqrt(x * x + y * y);
 }

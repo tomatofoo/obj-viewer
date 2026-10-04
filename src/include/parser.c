@@ -724,8 +724,7 @@ model *parse_obj(const char *path) {
         else if (elem == UV && end) {
             if (n == 0) {
                 mdl->uvs[mdl->nuvs].x = value;
-                mdl->uvs[mdl->nuvs].y = 1.0; // y is optional (default 0)
-                // default 0 but y is flipped so here i set 1.0
+                mdl->uvs[mdl->nuvs].y = 0.0; // y is optional (default 0)
                 mdl->nuvs++; // y is optional, so incrementing here
                 if (mdl->nuvs >= mdl->cuvs) {
                     mdl->uvs = SDL_realloc(
@@ -736,8 +735,7 @@ model *parse_obj(const char *path) {
                 }
             }
             // -1 because nuvs was incremented
-            // in uv system bottom is 1 on y-axis
-            else if (n == 1) { mdl->uvs[mdl->nuvs - 1].y = 1.0 - value; }
+            else if (n == 1) { mdl->uvs[mdl->nuvs - 1].y = value; }
             n++;
         }
         else if (elem == FACE) {

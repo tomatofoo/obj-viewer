@@ -224,12 +224,15 @@ vec3 read_pixel(
     rface face, SDL_Surface *texture, double u, double v, double w
 ) {
     if (texture == NULL) { return (vec3) {1, 1, 1}; }
-    int x = SDL_clamp((
-        u * face.uvs[0].x + v * face.uvs[1].x + w * face.uvs[2].x
-    ) * texture->w, 0, texture->w - 1);
-    int y = SDL_clamp((
-        u * face.uvs[0].y + v * face.uvs[1].y + w * face.uvs[2].y
-    ) * texture->h, 0, texture->h - 1);
+    vec2 uv = vec2_add(vec2_add(
+        vec2_mul(face.uvs[0], u),
+        vec2_mul(face.uvs[1], v)),
+        vec2_mul(face.uvs[2], w)
+    );
+    uv.x = pfmod(uv.x); // mod because of tiling uv's
+    uv.y = 1.0 - pfmod(uv.y); // y is swapped
+    int x = SDL_clamp(uv.x * texture->w, 0, texture->w - 1);
+    int y = SDL_clamp(uv.y * texture->h, 0, texture->h - 1);
     uint8_t r;
     uint8_t g;
     uint8_t b;
