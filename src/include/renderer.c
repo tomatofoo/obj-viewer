@@ -260,7 +260,7 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
 
     // Clear Texture and z-buffer
     SDL_memset(pixels, 0, ctx->texture->h * pitch);
-    for (size_t i = 0; i < ctx->texture->w * ctx->texture->h; i++) {
+    for (size_t i = 0; i < (size_t) (ctx->texture->w * ctx->texture->h); i++) {
         ctx->zbuf[i] = ctx->far;
     }
     

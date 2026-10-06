@@ -195,7 +195,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     int32_t dpower = -1; // power for decimal numbers
     bool eneg; // if epower is negative
     int32_t epower = -1; // general power (for values with e in them)
-    double value; // a number value (factor, exponent, etc.)
+    double value = 0; // a number value (factor, exponent, etc.)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
             if (elem == NEWMAT) {
@@ -323,7 +323,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                 decimal = 0;
                 dpower = -1;
                 epower = -1;
-                value = 0.0;
+                value = 0;
                 start = false;
                 if (data[i] == '-') {
                     neg = true;
@@ -524,7 +524,7 @@ model *parse_obj(const char *path) {
     int32_t dpower = -1; // power for decimal numbers
     bool eneg; // if epower is negative
     int32_t epower = -1; // general power (for vertices with e in them)
-    double value; // a number value (vertices, normals, etc.)
+    double value = 0; // a number value (vertices, normals, etc.)
     size_t j; // index value
     int32_t d; // an element inDex value (faces) (int because need -1)
     for (size_t i = 0; i < datasize; i++) {
@@ -622,7 +622,7 @@ model *parse_obj(const char *path) {
                 decimal = 0;
                 dpower = -1;
                 epower = -1;
-                value = 0.0;
+                value = 0;
                 start = false;
                 if (data[i] == '-') {
                     neg = true;
@@ -724,7 +724,7 @@ model *parse_obj(const char *path) {
         else if (elem == UV && end) {
             if (n == 0) {
                 mdl->uvs[mdl->nuvs].x = value;
-                mdl->uvs[mdl->nuvs].y = 0.0; // y is optional (default 0)
+                mdl->uvs[mdl->nuvs].y = 0; // y is optional (default 0)
                 mdl->nuvs++; // y is optional, so incrementing here
                 if (mdl->nuvs >= mdl->cuvs) {
                     mdl->uvs = SDL_realloc(
