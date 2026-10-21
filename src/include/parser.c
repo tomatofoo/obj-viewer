@@ -353,7 +353,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             else {
                 if (dpower > -1) {
                     // This supports some pretty good precision
-                    if (decimal < (SDL_MAX_UINT64 - 10) * 0.1) {
+                    if (decimal < (SDL_MAX_UINT64 - 10) / 10) {
                         dpower++;
                         decimal = decimal * 10 + (data[i] - '0');
                     }
@@ -653,7 +653,7 @@ model *parse_obj(const char *path) {
             else {
                 if (dpower > -1) {
                     // This supports some pretty good precision
-                    if (decimal < (SDL_MAX_UINT64 - 10) * 0.1) {
+                    if (decimal < (SDL_MAX_UINT64 - 10) / 10) {
                         dpower++;
                         decimal = decimal * 10 + (data[i] - '0');
                     }

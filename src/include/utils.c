@@ -489,11 +489,12 @@ char *dirname_2048(const char *path) {
         return buf;
     }
     if (end == path) {
-        buf[0] = '.';
+        buf[0] = *path == DIR_SEP ? DIR_SEP : '.'; // might begin with slash
         buf[1] = '\0';
         return buf;
     }
     // pointer subtraction is UB (SKULL EMOJI)
+    // so, we increment two pointers (can't use end - path)
     size_t i = 0;
     while (path < end) {
         buf[i] = *path;
@@ -514,12 +515,11 @@ char *basename_2048(const char *path) {
         if (*path == DIR_SEP && path[1]) { base = path + 1; }
         path++;
     }
-    // pointer subtraction is UB (SKULL EMOJI)
+    // don't need to increment two pointers this time
     size_t i = 0;
-    while (*base) {
-        buf[i] = *base;
+    while (base[i]) {
+        buf[i] = base[i];
         i++;
-        base++;
     }
     if (buf[i - 1] == DIR_SEP) { i--; }
     buf[i] = '\0';
