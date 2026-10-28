@@ -35,7 +35,10 @@ cmake --build build
 ```
 
 The output file is `build/main.out`. Move this to the root directory of the 
-repository for it to run properly.
+repository for it to run properly:
+```bash
+mv build/main.out .
+```
 
 ## Usage
 Drag an OBJ file to the app window. The program will open the file.
