@@ -30,13 +30,11 @@ To build this project from source, install `SDL3`, `SDL3_image`, and
 ```bash
 git clone https://github.com/tomatofoo/obj-viewer
 cd obj-viewer
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DDEV=ON
+cmake --build build
 ```
 
-The output file is `main.out`. Move this to the root directory of the 
+The output file is `build/main.out`. Move this to the root directory of the 
 repository for it to run properly.
 
 ## Usage
