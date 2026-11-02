@@ -446,8 +446,8 @@ model *parse_obj(const char *path) {
     mdl->normals = SDL_malloc(sizeof(vec3) * ARR_SIZE);
     if (mdl->normals == NULL) {
         SDL_free(data);
-        SDL_free(mdl);
         SDL_free(mdl->vertices);
+        SDL_free(mdl);
         SDL_OutOfMemory();
         return NULL;
     }
@@ -456,9 +456,9 @@ model *parse_obj(const char *path) {
     mdl->uvs = SDL_malloc(sizeof(vec2) * ARR_SIZE);
     if (mdl->uvs == NULL) {
         SDL_free(data);
-        SDL_free(mdl);
         SDL_free(mdl->vertices);
         SDL_free(mdl->normals);
+        SDL_free(mdl);
         SDL_OutOfMemory();
         return NULL;
     }
@@ -467,10 +467,10 @@ model *parse_obj(const char *path) {
     mdl->faces = SDL_malloc(sizeof(face) * ARR_SIZE);
     if (mdl->faces == NULL) {
         SDL_free(data);
-        SDL_free(mdl);
         SDL_free(mdl->vertices);
         SDL_free(mdl->normals);
         SDL_free(mdl->uvs);
+        SDL_free(mdl);
         SDL_OutOfMemory();
         return NULL;
     }
@@ -479,11 +479,11 @@ model *parse_obj(const char *path) {
     mdl->mats = SDL_malloc(sizeof(material) * ARR_SIZE);
     if (mdl->mats == NULL) {
         SDL_free(data);
-        SDL_free(mdl);
         SDL_free(mdl->vertices);
         SDL_free(mdl->normals);
         SDL_free(mdl->uvs);
         SDL_free(mdl->faces);
+        SDL_free(mdl);
         SDL_OutOfMemory();
         return NULL;
     }
@@ -710,7 +710,9 @@ model *parse_obj(const char *path) {
             else if (n == 2) {
                 mdl->normals[mdl->nnormals].z = value;
                 // .obj doesn't guarantee normalized
-                vec3_unit_ip(mdl->normals + mdl->nnormals);
+                if (!vec3_iszero(mdl->normals[mdl->nnormals])) {
+                    vec3_unit_ip(mdl->normals + mdl->nnormals);
+                }
                 mdl->nnormals++;
                 if (mdl->nnormals >= mdl->cnormals) {
                     mdl->normals = SDL_realloc(
@@ -828,21 +830,21 @@ model *parse_obj(const char *path) {
                             mdl->vertices[rface.vertices[2]].vec,
                             mdl->vertices[rface.vertices[1]].vec
                         );
-                        rface.normal = vec3_unit(vec3_cross(term1, term2));
+                        rface.normal = vec3_cross(term1, term2);
+                        if (!vec3_iszero(rface.normal)) {
+                            vec3_unit_ip(&rface.normal);
+                        }
                         mdl->faces[mdl->nfaces].normal = rface.normal;
                         for (size_t k = 0; k < 3; k++) {
-                            if (SDL_isnan(rface.normal.x)
-                                || SDL_isnan(rface.normal.y)
-                                || SDL_isnan(rface.normal.z)) {
-                                continue;
-                            } // i spent weeks debugging this
                             vec3_add_ip(
                                 &mdl->vertices[rface.vertices[k]].normal,
                                 rface.normal
                             );
                         }
                     }
-                    else { vec3_unit_ip(&mdl->faces[mdl->nfaces].normal); }
+                    else if (!vec3_iszero(mdl->faces[mdl->nfaces].normal)) {
+                        vec3_unit_ip(&mdl->faces[mdl->nfaces].normal);
+                    }
                     mdl->faces[mdl->nfaces].vertices[0] = rface.vertices[0];
                     mdl->faces[mdl->nfaces].vertices[1] = rface.vertices[1];
                     mdl->faces[mdl->nfaces].vertices[2] = rface.vertices[2];
@@ -894,9 +896,14 @@ model *parse_obj(const char *path) {
                             mdl->vertices[rface.vertices[3]].vec
                         );
                         // average both cross product normals
-                        rface.normal = vec3_unit(vec3_add(
-                            normal, vec3_unit(vec3_cross(term1, term2))
-                        ));
+                        rface.normal = vec3_cross(term1, term2);
+                        if (!vec3_iszero(rface.normal)) {
+                            vec3_unit_ip(&rface.normal);
+                        }
+                        vec3_add_ip(&rface.normal, normal);
+                        if (!vec3_iszero(rface.normal)) {
+                            vec3_unit_ip(&rface.normal);
+                        }
                         for (size_t k = 0; k < 3; k++) {
                             vec3_sub_ip( // remove old normal from overall
                                 &mdl->vertices[rface.vertices[k]].normal,
@@ -904,18 +911,15 @@ model *parse_obj(const char *path) {
                             );
                         }
                         for (size_t k = 0; k < 4; k++) {
-                            if (SDL_isnan(rface.normal.x)
-                                || SDL_isnan(rface.normal.y)
-                                || SDL_isnan(rface.normal.z)) {
-                                continue;
-                            }
                             vec3_add_ip(
                                 &mdl->vertices[rface.vertices[k]].normal,
                                 rface.normal
                             );
                         }
                     }
-                    else { vec3_unit_ip(&rface.normal); }
+                    else if (!vec3_iszero(rface.normal)) {
+                        vec3_unit_ip(&rface.normal);
+                    }
                     mdl->faces[mdl->nfaces - 1].centroid = rface.centroid;
                     mdl->faces[mdl->nfaces - 1].normal = rface.normal;
                     mdl->faces[mdl->nfaces].centroid = rface.centroid;

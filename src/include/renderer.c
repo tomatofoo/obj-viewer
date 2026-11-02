@@ -576,11 +576,15 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                                 ));
                                 vec3_sub_ip(&rel, ctx->pos);
                                 if (ctx->quality > 2) {
-                                    normal = vec3_unit(vec3_add(vec3_add(
+                                    normal = vec3_add(vec3_add(
                                         vec3_mul(faces[j].normals[0], u),
                                         vec3_mul(faces[j].normals[1], v)),
-                                        vec3_mul(faces[j].normals[2], w))
+                                        vec3_mul(faces[j].normals[2], w)
                                     );
+                                    // dot will just be zero if yes
+                                    if (!vec3_iszero(normal)) {
+                                        vec3_unit_ip(&normal);
+                                    }
                                 }
                                 dot = vec3_dot(rel, normal);
                                 color = read_pixel(
