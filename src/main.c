@@ -18,7 +18,7 @@
 #define HEIGHT 480
 #define SCALE 1
 #define FLAGS 0
-#define GAMESPEED 1 // game speed
+#define GAMESPEED 1
 #define FONTSIZE 20
 
 #define SCANCODE_FORWARD SDL_SCANCODE_W

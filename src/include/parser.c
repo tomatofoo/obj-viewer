@@ -62,14 +62,14 @@ mtable *create_mtable() {
         SDL_OutOfMemory();
         return NULL;
     }
-    mt->entries = SDL_calloc(ARR_SIZE, sizeof(mentry));
+    mt->centries = ARR_SIZE;
+    mt->nentries = 0;
+    mt->entries = SDL_calloc(mt->centries, sizeof(mentry));
     if (mt->entries == NULL) {
         SDL_free(mt);
         SDL_OutOfMemory();
         return NULL;
     }
-    mt->nentries = 0;
-    mt->centries = ARR_SIZE;
     for (size_t i = 0; i < mt->centries; i++) { mt->entries[i].dex = -1; }
 
     return mt;
@@ -510,7 +510,10 @@ model *parse_obj(const char *path) {
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begin; // finished parsing element type; now will parse elem
     size_t n = 0; // index for arrays (resets at start)
-    int32_t *dex = NULL; // material index for faces
+    // using two values instead of one pointer value because if mtable is 
+    // expanded when parsing the one pointer value would point to nothing
+    int32_t *dex_ptr = NULL; // temporary pointer value 
+    int32_t dex = -1; // material index for faces
     char *key = SDL_malloc(sizeof(char) * ARR_SIZE);
     if (key == NULL) { goto oom; }
     size_t nchars = 0;
@@ -555,13 +558,15 @@ model *parse_obj(const char *path) {
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
                     nchars++;
-                    dex = mtable_dex(mt, key);
-                    if (dex == NULL) {
+                    dex_ptr = mtable_dex(mt, key);
+                    if (dex_ptr == NULL) {
                         SDL_SetError("Invalid material received");
                         goto invalid;
                     }
-                    if (*dex == -1) {
-                        *dex = mdl->nmats;
+                    dex = *dex_ptr;
+                    if (dex == -1) {
+                        dex = mdl->nmats;
+                        *dex_ptr = dex;
                         // won't equal NULL since we have the dex check
                         mdl->mats[mdl->nmats] = *mtable_get(mt, key);
                         mdl->nmats++;
@@ -851,7 +856,7 @@ model *parse_obj(const char *path) {
                     mdl->faces[mdl->nfaces].normals[0] = rface.normals[0];
                     mdl->faces[mdl->nfaces].normals[1] = rface.normals[1];
                     mdl->faces[mdl->nfaces].normals[2] = rface.normals[2];
-                    mdl->faces[mdl->nfaces].mat = dex == NULL ? -1 : *dex;
+                    mdl->faces[mdl->nfaces].mat = dex;
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
                         mdl->faces = SDL_realloc(
@@ -928,7 +933,7 @@ model *parse_obj(const char *path) {
                     mdl->faces[mdl->nfaces].normals[0] = rface.normals[2];
                     mdl->faces[mdl->nfaces].normals[1] = rface.normals[3];
                     mdl->faces[mdl->nfaces].normals[2] = rface.normals[0];
-                    mdl->faces[mdl->nfaces].mat = dex == NULL ? -1 : *dex;
+                    mdl->faces[mdl->nfaces].mat = dex;
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
                         mdl->faces = SDL_realloc(
