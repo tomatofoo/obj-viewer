@@ -31,6 +31,7 @@
 #define ZEROVEC3 ((vec3) {0, 0, 0})
 
 #define arr_sizeof(arr) (sizeof(arr) / sizeof((arr)[0]))
+#define unused(arg) do { (void) arg; } while (0)
 
 
 typedef struct vec2 {

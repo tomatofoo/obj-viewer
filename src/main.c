@@ -60,18 +60,28 @@ static SDL_FRect rects[3]; // for textures
 
 
 void SDLCALL quality_down(void *userdata) {
+    unused(userdata);
+
     quality = SDL_max(quality - 1, QUALITY_MIN);
     ctx->quality = quality;
 }
 
 void SDLCALL quality_up(void *userdata) {
+    unused(userdata);
+
     quality = SDL_min(quality + 1, QUALITY_MAX);
     ctx->quality = quality;
 }
 
-void SDLCALL toggle_cull(void *userdata) { ctx->cull = !ctx->cull; }
+void SDLCALL toggle_cull(void *userdata) {
+    unused(userdata);
+
+    ctx->cull = !ctx->cull;
+}
 
 void SDLCALL toggle_clip(void *userdata) {
+    unused(userdata);
+
     if (ctx->near == 0) { ctx->near = clip; }
     else { ctx->near = 0; }
 }
@@ -143,7 +153,12 @@ error:
 
 void SDLCALL save_scrshot_thread(
     void *userdata, const char * const *filelist, int filter
-) { SDL_RunOnMainThread(*save_scrshot, (void *) filelist, true); }
+) {
+    unused(userdata);
+    unused(filter);
+
+    SDL_RunOnMainThread(*save_scrshot, (void *) filelist, true);
+}
 
 bool load_file(const char *path) {
     if (ctx != NULL) { destroy_context(ctx); }
@@ -247,6 +262,10 @@ error:
 
 // APP FUNCTIONS
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
+    unused(appstate);
+    unused(argc);
+    unused(argv);
+
     SDL_SetAppMetadata(APPNAME, APPVERSION, APPIDENTIFIER);
 
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
@@ -366,6 +385,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 }
 
 SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
+    unused(appstate);
+
     switch (event->type) {
         case SDL_EVENT_QUIT:
             return SDL_APP_SUCCESS;
@@ -406,13 +427,14 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
+    unused(appstate);
+
     // DELTA TIME
     double now = SDL_GetPerformanceCounter();
     double freq = SDL_GetPerformanceFrequency();
-    double timer = now / freq;
     double dt = (now - last) / freq * GAMESPEED;
     last = now;
-    
+
     // Recommended to clear even if overwriting every px
     if (!SDL_RenderClear(renderer)) {
         SDL_LogError(
@@ -490,6 +512,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 }
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+    unused(appstate);
+    unused(result);
+
     for (size_t i = 0; i < arr_sizeof(textures); i++) {
         SDL_DestroyTexture(textures[i]);
     }
