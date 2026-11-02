@@ -454,18 +454,18 @@ bool inrange(double x, double l, double h, bool incl, bool inch) {
 const char *filename_ext(const char *filename) {
     if (filename == NULL) { return NULL; }
     while (*filename) {
-        if (*filename == '.' && filename[1] != '\0') { return filename + 1; }
+        if (*filename == '.' && filename[1]) { return filename + 1; }
         filename++;
     }
     return NULL;
 }
 
-// last extension (e.g. .obj.zip will be .zip)
+// last extension (e.g. .obj.zip will be zip)
 const char *filename_lext(const char *filename) {
     if (filename == NULL) { return NULL; }
     const char *lext = NULL;
     while (*filename) {
-        if (*filename == '.' && filename[1] != '\0') { lext = filename + 1; }
+        if (*filename == '.' && filename[1]) { lext = filename + 1; }
         filename++;
     }
     return lext;
