@@ -62,12 +62,16 @@ static SDL_FRect rects[3]; // for textures
 void SDLCALL quality_down(void *userdata) {
     unused(userdata);
 
+    if (ctx == NULL) { return; }
+
     quality = SDL_max(quality - 1, QUALITY_MIN);
     ctx->quality = quality;
 }
 
 void SDLCALL quality_up(void *userdata) {
     unused(userdata);
+
+    if (ctx == NULL) { return; }
 
     quality = SDL_min(quality + 1, QUALITY_MAX);
     ctx->quality = quality;
@@ -76,11 +80,15 @@ void SDLCALL quality_up(void *userdata) {
 void SDLCALL toggle_cull(void *userdata) {
     unused(userdata);
 
+    if (ctx == NULL) { return; }
+
     ctx->cull = !ctx->cull;
 }
 
 void SDLCALL toggle_clip(void *userdata) {
     unused(userdata);
+
+    if (ctx == NULL) { return; }
 
     if (ctx->near == 0) { ctx->near = clip; }
     else { ctx->near = 0; }

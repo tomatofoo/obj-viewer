@@ -185,9 +185,9 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     etype elem = NONE;
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begin; // finished parsing element type; now will parse elem
-    size_t n = 0; // index for arrays (resets at start)
+    size_t n = 0; // index for array elems (resets at start)
     // PER ITEM AND MORE
-    bool start = true; // start of new item (inside element)
+    bool first = true; // is first character of item
     bool end; // if is last char of current item
     bool neg; // if number value (see below) is negative
     uint32_t whole; // whole part of value
@@ -259,11 +259,11 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             begin = false; // waits until next whitespace to be true
             n = 0;
             elem = NONE;
-            start = true;
+            first = true;
             continue;
         }
         if (SDL_isspace(data[i]) || cont) {
-            start = true;
+            first = true;
             begin = true;
             continue;
         }
@@ -286,7 +286,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             else if (streq_space(data + i, "Tr")) { elem = TRAN; }
             else if (streq_space(data + i, "map_d")) { cont = true; }
             else if (streq_space(data + i, "map_Tr")) { cont = true; }
-            start = false;
+            first = false;
             begin = false;
             continue;
         }
@@ -315,14 +315,14 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                 SDL_SetError("Invalid material");
                 goto invalid;
             }
-            if (start) {
+            if (first) {
                 neg = false;
                 whole = 0;
                 decimal = 0;
                 dpower = -1;
                 epower = -1;
                 value = 0;
-                start = false;
+                first = false;
                 if (data[i] == '-') {
                     neg = true;
                     continue;
@@ -507,7 +507,7 @@ model *parse_obj(const char *path) {
     uface rface; // raw face; used when parsing faces
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begin; // finished parsing element type; now will parse elem
-    size_t n = 0; // index for arrays (resets at start)
+    size_t n = 0; // index for array elems (resets at start)
     // using two values instead of one pointer value because if mtable is 
     // expanded when parsing the one pointer value would point to nothing
     int32_t *dex_ptr; // temporary pointer value 
@@ -517,7 +517,7 @@ model *parse_obj(const char *path) {
     char *key = SDL_malloc(sizeof(char) * cchars);
     if (key == NULL) { goto oom; }
     // PER ITEM AND MORE
-    bool start = true; // start of new item (inside element)
+    bool first = true; // is first character of item
     bool end; // if is last char of current item
     bool neg; // if number value (see below) is negative
     uint32_t whole; // whole part of value
@@ -586,11 +586,11 @@ model *parse_obj(const char *path) {
             begin = false; // waits until next whitespace to be true
             n = 0;
             elem = NONE;
-            start = true;
+            first = true;
             continue;
         }
         if (SDL_isspace(data[i]) || cont) {
-            start = true;
+            first = true;
             begin = true;
             continue;
         }
@@ -609,7 +609,7 @@ model *parse_obj(const char *path) {
             else if (streq_space(data + i, "f")) { elem = FACE; }
             // maybe implement later
             else if (streq_space(data + i, "s")) { cont = true; }
-            start = false; // fixes leading spaces
+            first = false; // fixes leading spaces
             begin = false;
             continue;
         }
@@ -617,14 +617,14 @@ model *parse_obj(const char *path) {
         end = isempty(data[i + 1]) || cont; // check if is end (won't overflow)
         // Floating-point Number Parsing
         if (elem == VERTEX || elem == NORMAL || elem == UV) {
-            if (start) {
+            if (first) {
                 neg = false;
                 whole = 0;
                 decimal = 0;
                 dpower = -1;
                 epower = -1;
                 value = 0;
-                start = false;
+                first = false;
                 if (data[i] == '-') {
                     neg = true;
                     continue;
@@ -742,12 +742,12 @@ model *parse_obj(const char *path) {
             n++;
         }
         else if (elem == FACE) {
-            if (start) {
+            if (first) {
                 j = 0;
                 d = 0;
                 rface.uvs[n] = -1;
                 rface.normals[n] = -1;
-                start = false;
+                first = false;
             }
             if (data[i] == '/') {
                 if (j == 0) {
