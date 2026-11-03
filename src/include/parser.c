@@ -228,6 +228,11 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                 (elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX)
                 && dirlen < sizeof(imgpath) - 2 // because of lines 228-9
             ) {
+                // not putting in string parse because that also parses newmat
+                if (mat == NULL) {
+                    SDL_SetError("Invalid material");
+                    goto invalid;
+                }
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
                     SDL_strlcpy(imgpath, dirname, sizeof(imgpath));
