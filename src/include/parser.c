@@ -184,7 +184,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     // PER ELEMENT
     etype elem = NONE;
     bool cont = false; // continue (e.g. comment, group, etc.)
-    bool begin; // finished parsing element type; now will parse elem
+    bool begun; // finished parsing element type; now will parse elem
     size_t n = 0; // index for array elems (resets at start)
     // PER ITEM AND MORE
     bool first = true; // is first character of item
@@ -256,7 +256,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                 if (key == NULL) { goto oom; }
             }
             cont = false;
-            begin = false; // waits until next whitespace to be true
+            begun = false; // waits until next whitespace to be true
             n = 0;
             elem = NONE;
             first = true;
@@ -264,7 +264,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
         }
         if (SDL_isspace(data[i]) || cont) {
             first = true;
-            begin = true;
+            begun = true;
             continue;
         }
         if (data[i] == '#') { // comment
@@ -287,10 +287,10 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             else if (streq_space(data + i, "map_d")) { cont = true; }
             else if (streq_space(data + i, "map_Tr")) { cont = true; }
             first = false;
-            begin = false;
+            begun = false;
             continue;
         }
-        if (!begin) { continue; } // has parsed elem, but char isn't space yet
+        if (!begun) { continue; } // has parsed elem, but char isn't space yet
         end = isempty(data[i + 1]) || cont; // check if is end (won't overflow)
 
         if (elem == NEWMAT
@@ -506,7 +506,7 @@ model *parse_obj(const char *path) {
     etype elem = NONE;
     uface rface; // raw face; used when parsing faces
     bool cont = false; // continue (e.g. comment, group, etc.)
-    bool begin; // finished parsing element type; now will parse elem
+    bool begun; // finished parsing element type; now will parse elem
     size_t n = 0; // index for array elems (resets at start)
     // using two values instead of one pointer value because if mtable is 
     // expanded when parsing the one pointer value would point to nothing
@@ -583,7 +583,7 @@ model *parse_obj(const char *path) {
                 if (key == NULL) { goto oom; }
             }
             cont = false;
-            begin = false; // waits until next whitespace to be true
+            begun = false; // waits until next whitespace to be true
             n = 0;
             elem = NONE;
             first = true;
@@ -591,7 +591,7 @@ model *parse_obj(const char *path) {
         }
         if (SDL_isspace(data[i]) || cont) {
             first = true;
-            begin = true;
+            begun = true;
             continue;
         }
         if (data[i] == '#') { // comment
@@ -610,10 +610,10 @@ model *parse_obj(const char *path) {
             // maybe implement later
             else if (streq_space(data + i, "s")) { cont = true; }
             first = false; // fixes leading spaces
-            begin = false;
+            begun = false;
             continue;
         }
-        if (!begin) { continue; } // has parsed elem, but char isn't space yet
+        if (!begun) { continue; } // has parsed elem, but char isn't space yet
         end = isempty(data[i + 1]) || cont; // check if is end (won't overflow)
         // Floating-point Number Parsing
         if (elem == VERTEX || elem == NORMAL || elem == UV) {
