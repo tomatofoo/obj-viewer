@@ -226,7 +226,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             }
             else if (
                 (elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX)
-                && dirlen < sizeof(imgpath) - 2 // because of lines 228-9
+                && dirlen < arr_sizeof(imgpath) - 2 // because i add sep and \0
             ) {
                 // not putting in string parse because that also parses newmat
                 if (mat == NULL) {
@@ -235,10 +235,10 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                 }
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
-                    SDL_strlcpy(imgpath, dirname, sizeof(imgpath));
+                    SDL_strlcpy(imgpath, dirname, arr_sizeof(imgpath));
                     imgpath[dirlen] = DIR_SEP;
                     imgpath[dirlen + 1] = '\0';
-                    SDL_strlcat(imgpath, key, sizeof(imgpath));
+                    SDL_strlcat(imgpath, key, arr_sizeof(imgpath));
                     surf = IMG_Load(imgpath);
                     if (surf == NULL) {
                         SDL_SetError(
@@ -535,14 +535,14 @@ model *parse_obj(const char *path) {
     int32_t d; // an element inDex value (faces) (int because need -1)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
-            if (elem == MATLIB && dirlen < sizeof(mtlpath) - 2) {
-                // dirlen check because of lines 506-507
+            if (elem == MATLIB && dirlen < arr_sizeof(mtlpath) - 2) {
+                // dirlen check because of adding sep and null term
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
-                    SDL_strlcpy(mtlpath, dirname, sizeof(mtlpath));
+                    SDL_strlcpy(mtlpath, dirname, arr_sizeof(mtlpath));
                     mtlpath[dirlen] = DIR_SEP;
                     mtlpath[dirlen + 1] = '\0';
-                    SDL_strlcat(mtlpath, key, sizeof(mtlpath));
+                    SDL_strlcat(mtlpath, key, arr_sizeof(mtlpath));
                     if (!parse_mtl(mtlpath, mt, dirname, dirlen)) {
                         SDL_SetError(
                             "Failed to load MTL file: %s", SDL_GetError()
