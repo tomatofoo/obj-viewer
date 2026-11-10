@@ -451,6 +451,14 @@ bool inrange(double x, double l, double h, bool incl, bool inch) {
     return inch ? x <= h : x < h;
 }
 
+bool isnewline(const char c) {
+    return c == '\r' || c == '\n';
+}
+
+bool isempty(const char c) {
+    return !c || SDL_isspace(c) || isnewline(c);
+}
+
 const char *filename_ext(const char *filename) {
     if (filename == NULL) { return NULL; }
     while (*filename) {

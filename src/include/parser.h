@@ -7,9 +7,6 @@
 #include "renderer.h"
 
 
-bool isnewline(const char c);
-bool isempty(const char c);
-
 model *parse_obj(const char *path);
 
 #endif

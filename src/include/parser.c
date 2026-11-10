@@ -139,14 +139,6 @@ int32_t *mtable_dex(mtable *mt, char *key) { // get pointer dex component
 }
 
 
-bool isnewline(const char c) {
-    return c == '\r' || c == '\n';
-}
-
-bool isempty(const char c) {
-    return !c || SDL_isspace(c) || isnewline(c);
-}
-
 bool streq_space(const char *str1, const char *str2) {
     while (*str1 == *str2) {
         str1++;

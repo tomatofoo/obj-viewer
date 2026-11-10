@@ -131,6 +131,8 @@ float pfmodf(float x, float y);
 float nfmodf(float x, float y);
 double hypot(double x, double y);
 bool inrange(double x, double l, double h, bool incl, bool inch);
+bool isnewline(const char c);
+bool isempty(const char c);
 const char *filename_ext(const char *filename);
 const char *filename_lext(const char *filename);
 char *dirname_2048(const char *path);
