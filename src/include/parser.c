@@ -85,6 +85,7 @@ void destroy_mtable(mtable *mt) {
 }
 
 bool mtable_set(mtable *mt, char *key, material mat) {
+    if (mt == NULL || key == NULL) { return NULL; }
     size_t i = fnv1a32(key) % mt->centries;
     while (mt->entries[i].key != NULL) { i = (i + 1) % mt->centries; }
     mt->entries[i].key = key;
@@ -114,28 +115,28 @@ bool mtable_set(mtable *mt, char *key, material mat) {
     return true;
 }
 
-material *mtable_get(mtable *mt, char *key) {
-    if (key == NULL) { return NULL; }
+mentry *mtable_entry(mtable *mt, char *key) {
+    if (mt == NULL || key == NULL) { return NULL; }
     size_t i = fnv1a32(key) % mt->centries;
     for (size_t j = 0; mt->entries[i].key != NULL && j < mt->centries; j++) {
         if (SDL_strcmp(mt->entries[i].key, key)) {
             i = (i + 1) % mt->centries;
         }
-        else { return &mt->entries[i].mat; }
+        else { return mt->entries + i; }
     }
     return NULL;
 }
 
+material *mtable_get(mtable *mt, char *key) {
+    mentry *entry = mtable_entry(mt, key);
+    if (entry == NULL) { return NULL; }
+    return &entry->mat;
+}
+
 int32_t *mtable_dex(mtable *mt, char *key) { // get pointer dex component
-    if (key == NULL) { return NULL; }
-    size_t i = fnv1a32(key) % mt->centries;
-    for (size_t j = 0; mt->entries[i].key != NULL && j < mt->centries; j++) {
-        if (SDL_strcmp(mt->entries[i].key, key)) {
-            i = (i + 1) % mt->centries;
-        }
-        else { return &mt->entries[i].dex; }
-    }
-    return NULL;
+    mentry *entry = mtable_entry(mt, key);
+    if (entry == NULL) { return NULL; }
+    return &entry->dex;
 }
 
 
