@@ -153,7 +153,7 @@ bool streq_space(const char *str1, const char *str2) {
 bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     if (path == NULL) { return false; }
     if (mt == NULL) { return false; }
-    if (char == NULL) { return false; }
+    if (dirname == NULL) { return false; }
     const char *ext = filename_lext(path);
     if (!(SDL_strcmp(ext, "mtl") == 0 || SDL_strcmp(ext, "MTL") == 0)) {
         SDL_SetError("Filename extension is not mtl or MTL");
