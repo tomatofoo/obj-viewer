@@ -698,7 +698,7 @@ model *parse_obj(const char *path) {
                 }
             }
             // w is scaling divisor
-            else {
+            else if (n == 3) {
                 vec3_div_ip(&mdl->vertices[mdl->nvertices - 1].vec, value);
             }
             n++;
@@ -804,6 +804,7 @@ model *parse_obj(const char *path) {
                     }
                     rface.normals[n] = d;
                 }
+                else { continue; } // ignore anything else
                 if (n == 2) {
                     mdl->faces[mdl->nfaces].centroid = vec3_add(vec3_add(
                         mdl->vertices[rface.vertices[0]].vec,
