@@ -776,6 +776,9 @@ model *parse_obj(const char *path) {
             }
             d = d * 10 + (data[i] - '0');
             if (end) {
+                // not checking this caused a segfault
+                // that took >1MONTH to debug
+                if (n > 3) { continue; } 
                 // repeated; not sure if there is better way
                 if (j == 0) {
                     d = d >= 0 ? d - 1 : (int32_t) mdl->nvertices + d;
