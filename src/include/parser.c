@@ -503,7 +503,7 @@ model *parse_obj(const char *path) {
 
     // PER ELEMENT
     etype elem = NONE;
-    uface rface; // raw face; used when parsing faces
+    uface uf; // raw face; used when parsing faces
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begun; // finished parsing element type; now will parse elem
     size_t j = 0; // index for array elems (resets at start)
@@ -744,8 +744,8 @@ model *parse_obj(const char *path) {
             if (first) {
                 k = 0;
                 d = 0;
-                rface.uvs[j] = -1;
-                rface.normals[j] = -1;
+                uf.uvs[j] = -1;
+                uf.normals[j] = -1;
                 first = false;
             }
             if (data[i] == '/') {
@@ -755,7 +755,7 @@ model *parse_obj(const char *path) {
                         SDL_SetError("Invalid vertex index received");
                         goto invalid;
                     }
-                    rface.vertices[j] = d;
+                    uf.vertices[j] = d;
                 }
                 else if (k == 1) {
                     d = d >= 0 ? d - 1 : (int32_t) mdl->nuvs + d;
@@ -764,7 +764,7 @@ model *parse_obj(const char *path) {
                         SDL_SetError("Invalid UV index received");
                         goto invalid;
                     }
-                    rface.uvs[j] = d;
+                    uf.uvs[j] = d;
                 }
                 k++; // only need to increment in this if statement
                 d = 0;
@@ -786,7 +786,7 @@ model *parse_obj(const char *path) {
                         SDL_SetError("Invalid vertex index received");
                         goto invalid;
                     }
-                    rface.vertices[j] = d;
+                    uf.vertices[j] = d;
                 }
                 else if (k == 1) {
                     d = d >= 0 ? d - 1 : (int32_t) mdl->nuvs + d;
@@ -794,7 +794,7 @@ model *parse_obj(const char *path) {
                         SDL_SetError("Invalid UV index received");
                         goto invalid;
                     }
-                    rface.uvs[j] = d;
+                    uf.uvs[j] = d;
                 }
                 else if (k == 2) {
                     d = d >= 0 ? d - 1 : (int32_t) mdl->nnormals + d;
@@ -802,61 +802,61 @@ model *parse_obj(const char *path) {
                         SDL_SetError("Invalid normal index received");
                         goto invalid;
                     }
-                    rface.normals[j] = d;
+                    uf.normals[j] = d;
                 }
                 else { continue; } // ignore anything else
                 if (j == 2) {
                     mdl->faces[mdl->nfaces].centroid = vec3_add(vec3_add(
-                        mdl->vertices[rface.vertices[0]].vec,
-                        mdl->vertices[rface.vertices[1]].vec),
-                        mdl->vertices[rface.vertices[2]].vec
+                        mdl->vertices[uf.vertices[0]].vec,
+                        mdl->vertices[uf.vertices[1]].vec),
+                        mdl->vertices[uf.vertices[2]].vec
                     );
                     vec3_div_ip(&mdl->faces[mdl->nfaces].centroid, 3);
                     // repurposing k
                     mdl->faces[mdl->nfaces].normal = ZEROVEC3;
                     k = 0;
                     for (size_t l = 0; l < 3; l++) {
-                        if (rface.normals[l] == -1) { continue; }
+                        if (uf.normals[l] == -1) { continue; }
                         vec3_add_ip(
                             &mdl->faces[mdl->nfaces].normal,
-                            mdl->normals[rface.normals[l]]
+                            mdl->normals[uf.normals[l]]
                         );
                         k++;
                     }
                     // ^ don't need to divide by j because normalizing anyway
                     if (k < 3) { // calculate normal vector using cross product
                         vec3 term1 = vec3_sub(
-                            mdl->vertices[rface.vertices[1]].vec,
-                            mdl->vertices[rface.vertices[0]].vec
+                            mdl->vertices[uf.vertices[1]].vec,
+                            mdl->vertices[uf.vertices[0]].vec
                         );
                         vec3 term2 = vec3_sub(
-                            mdl->vertices[rface.vertices[2]].vec,
-                            mdl->vertices[rface.vertices[1]].vec
+                            mdl->vertices[uf.vertices[2]].vec,
+                            mdl->vertices[uf.vertices[1]].vec
                         );
-                        rface.normal = vec3_cross(term1, term2);
-                        if (!vec3_iszero(rface.normal)) {
-                            vec3_unit_ip(&rface.normal);
+                        uf.normal = vec3_cross(term1, term2);
+                        if (!vec3_iszero(uf.normal)) {
+                            vec3_unit_ip(&uf.normal);
                         }
-                        mdl->faces[mdl->nfaces].normal = rface.normal;
+                        mdl->faces[mdl->nfaces].normal = uf.normal;
                         for (size_t l = 0; l < 3; l++) {
                             vec3_add_ip(
-                                &mdl->vertices[rface.vertices[l]].normal,
-                                rface.normal
+                                &mdl->vertices[uf.vertices[l]].normal,
+                                uf.normal
                             );
                         }
                     }
                     else if (!vec3_iszero(mdl->faces[mdl->nfaces].normal)) {
                         vec3_unit_ip(&mdl->faces[mdl->nfaces].normal);
                     }
-                    mdl->faces[mdl->nfaces].vertices[0] = rface.vertices[0];
-                    mdl->faces[mdl->nfaces].vertices[1] = rface.vertices[1];
-                    mdl->faces[mdl->nfaces].vertices[2] = rface.vertices[2];
-                    mdl->faces[mdl->nfaces].uvs[0] = rface.uvs[0];
-                    mdl->faces[mdl->nfaces].uvs[1] = rface.uvs[1];
-                    mdl->faces[mdl->nfaces].uvs[2] = rface.uvs[2];
-                    mdl->faces[mdl->nfaces].normals[0] = rface.normals[0];
-                    mdl->faces[mdl->nfaces].normals[1] = rface.normals[1];
-                    mdl->faces[mdl->nfaces].normals[2] = rface.normals[2];
+                    mdl->faces[mdl->nfaces].vertices[0] = uf.vertices[0];
+                    mdl->faces[mdl->nfaces].vertices[1] = uf.vertices[1];
+                    mdl->faces[mdl->nfaces].vertices[2] = uf.vertices[2];
+                    mdl->faces[mdl->nfaces].uvs[0] = uf.uvs[0];
+                    mdl->faces[mdl->nfaces].uvs[1] = uf.uvs[1];
+                    mdl->faces[mdl->nfaces].uvs[2] = uf.uvs[2];
+                    mdl->faces[mdl->nfaces].normals[0] = uf.normals[0];
+                    mdl->faces[mdl->nfaces].normals[1] = uf.normals[1];
+                    mdl->faces[mdl->nfaces].normals[2] = uf.normals[2];
                     mdl->faces[mdl->nfaces].mat = mdex;
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
@@ -871,71 +871,71 @@ model *parse_obj(const char *path) {
                 // quadrilateral splitting (only works with convex quads)
                 // split into 012 and 230
                 else if (j == 3) {
-                    rface.centroid = vec3_add(vec3_add(vec3_add(
-                        mdl->vertices[rface.vertices[0]].vec,
-                        mdl->vertices[rface.vertices[1]].vec),
-                        mdl->vertices[rface.vertices[2]].vec),
-                        mdl->vertices[rface.vertices[3]].vec
+                    uf.centroid = vec3_add(vec3_add(vec3_add(
+                        mdl->vertices[uf.vertices[0]].vec,
+                        mdl->vertices[uf.vertices[1]].vec),
+                        mdl->vertices[uf.vertices[2]].vec),
+                        mdl->vertices[uf.vertices[3]].vec
                     );
-                    vec3_div_ip(&rface.centroid, 4);
+                    vec3_div_ip(&uf.centroid, 4);
                     // copy the normal in case j is 0
-                    vec3 normal = rface.normal;
-                    rface.normal = ZEROVEC3;
+                    vec3 normal = uf.normal;
+                    uf.normal = ZEROVEC3;
                     k = 0;
                     for (size_t l = 0; l < 4; l++) {
-                        if (rface.normals[l] == -1) { continue; }
+                        if (uf.normals[l] == -1) { continue; }
                         vec3_add_ip(
-                            &rface.normal, mdl->normals[rface.normals[l]]
+                            &uf.normal, mdl->normals[uf.normals[l]]
                         );
                         k++;
                     }
                     if (k < 3) {
                         vec3 term1 = vec3_sub(
-                            mdl->vertices[rface.vertices[3]].vec,
-                            mdl->vertices[rface.vertices[2]].vec
+                            mdl->vertices[uf.vertices[3]].vec,
+                            mdl->vertices[uf.vertices[2]].vec
                         );
                         vec3 term2 = vec3_sub(
-                            mdl->vertices[rface.vertices[0]].vec,
-                            mdl->vertices[rface.vertices[3]].vec
+                            mdl->vertices[uf.vertices[0]].vec,
+                            mdl->vertices[uf.vertices[3]].vec
                         );
                         // average both cross product normals
-                        rface.normal = vec3_cross(term1, term2);
-                        if (!vec3_iszero(rface.normal)) {
-                            vec3_unit_ip(&rface.normal);
+                        uf.normal = vec3_cross(term1, term2);
+                        if (!vec3_iszero(uf.normal)) {
+                            vec3_unit_ip(&uf.normal);
                         }
-                        vec3_add_ip(&rface.normal, normal);
-                        if (!vec3_iszero(rface.normal)) {
-                            vec3_unit_ip(&rface.normal);
+                        vec3_add_ip(&uf.normal, normal);
+                        if (!vec3_iszero(uf.normal)) {
+                            vec3_unit_ip(&uf.normal);
                         }
                         for (size_t l = 0; l < 3; l++) {
                             vec3_sub_ip( // remove old normal from overall
-                                &mdl->vertices[rface.vertices[l]].normal,
+                                &mdl->vertices[uf.vertices[l]].normal,
                                 normal
                             );
                         }
                         for (size_t l = 0; l < 4; l++) {
                             vec3_add_ip(
-                                &mdl->vertices[rface.vertices[l]].normal,
-                                rface.normal
+                                &mdl->vertices[uf.vertices[l]].normal,
+                                uf.normal
                             );
                         }
                     }
-                    else if (!vec3_iszero(rface.normal)) {
-                        vec3_unit_ip(&rface.normal);
+                    else if (!vec3_iszero(uf.normal)) {
+                        vec3_unit_ip(&uf.normal);
                     }
-                    mdl->faces[mdl->nfaces - 1].centroid = rface.centroid;
-                    mdl->faces[mdl->nfaces - 1].normal = rface.normal;
-                    mdl->faces[mdl->nfaces].centroid = rface.centroid;
-                    mdl->faces[mdl->nfaces].normal = rface.normal;
-                    mdl->faces[mdl->nfaces].vertices[0] = rface.vertices[2];
-                    mdl->faces[mdl->nfaces].vertices[1] = rface.vertices[3];
-                    mdl->faces[mdl->nfaces].vertices[2] = rface.vertices[0];
-                    mdl->faces[mdl->nfaces].uvs[0] = rface.uvs[2];
-                    mdl->faces[mdl->nfaces].uvs[1] = rface.uvs[3];
-                    mdl->faces[mdl->nfaces].uvs[2] = rface.uvs[0];
-                    mdl->faces[mdl->nfaces].normals[0] = rface.normals[2];
-                    mdl->faces[mdl->nfaces].normals[1] = rface.normals[3];
-                    mdl->faces[mdl->nfaces].normals[2] = rface.normals[0];
+                    mdl->faces[mdl->nfaces - 1].centroid = uf.centroid;
+                    mdl->faces[mdl->nfaces - 1].normal = uf.normal;
+                    mdl->faces[mdl->nfaces].centroid = uf.centroid;
+                    mdl->faces[mdl->nfaces].normal = uf.normal;
+                    mdl->faces[mdl->nfaces].vertices[0] = uf.vertices[2];
+                    mdl->faces[mdl->nfaces].vertices[1] = uf.vertices[3];
+                    mdl->faces[mdl->nfaces].vertices[2] = uf.vertices[0];
+                    mdl->faces[mdl->nfaces].uvs[0] = uf.uvs[2];
+                    mdl->faces[mdl->nfaces].uvs[1] = uf.uvs[3];
+                    mdl->faces[mdl->nfaces].uvs[2] = uf.uvs[0];
+                    mdl->faces[mdl->nfaces].normals[0] = uf.normals[2];
+                    mdl->faces[mdl->nfaces].normals[1] = uf.normals[3];
+                    mdl->faces[mdl->nfaces].normals[2] = uf.normals[0];
                     mdl->faces[mdl->nfaces].mat = mdex;
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
