@@ -69,9 +69,7 @@ bool scale_model(model *mdl, double scale) {
 
 
 context *create_context(
-    const char *path,
-    SDL_Renderer *renderer,
-    int w, int h
+    const char *path, SDL_Renderer *renderer, int w, int h
 ) {
     context *ctx = SDL_malloc(sizeof(context));
     if (ctx == NULL) {
