@@ -16,6 +16,7 @@ files.
 - Convex faces up to four vertices
 
 ### Materials
+The following material properties are supported:
 - `Ka`
 - `Kd`
 - `Ks`
