@@ -179,7 +179,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     etype elem = NONE;
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begun; // finished parsing element type; now will parse elem
-    size_t n = 0; // index for array elems (resets at start)
+    size_t j = 0; // index for array elems (resets at start)
     // PER ITEM AND MORE
     bool first = true; // is first character of item
     bool end; // if is last char of current item
@@ -256,7 +256,7 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             }
             cont = false;
             begun = false; // waits until next whitespace to be true
-            n = 0;
+            j = 0;
             elem = NONE;
             first = true;
             continue;
@@ -367,22 +367,22 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
             }
         }
         if (elem == AMB && end) {
-            if (n == 0) { mat->ambient = (vec3) {value, value, value}; }
-            else if (n == 1) { mat->ambient.y = value; }
-            else if (n == 2) { mat->ambient.z = value; }
-            n++;
+            if (j == 0) { mat->ambient = (vec3) {value, value, value}; }
+            else if (j == 1) { mat->ambient.y = value; }
+            else if (j == 2) { mat->ambient.z = value; }
+            j++;
         }
         else if (elem == DIFF && end) {
-            if (n == 0) { mat->diffuse = (vec3) {value, value, value}; }
-            else if (n == 1) { mat->diffuse.y = value; }
-            else if (n == 2) { mat->diffuse.z = value; }
-            n++;
+            if (j == 0) { mat->diffuse = (vec3) {value, value, value}; }
+            else if (j == 1) { mat->diffuse.y = value; }
+            else if (j == 2) { mat->diffuse.z = value; }
+            j++;
         }
         else if (elem == SPEC && end) {
-            if (n == 0) { mat->specular = (vec3) {value, value, value}; }
-            else if (n == 1) { mat->specular.y = value; }
-            else if (n == 2) { mat->specular.z = value; }
-            n++;
+            if (j == 0) { mat->specular = (vec3) {value, value, value}; }
+            else if (j == 1) { mat->specular.y = value; }
+            else if (j == 2) { mat->specular.z = value; }
+            j++;
         }
         else if (elem == GLOSS && end) { mat->glossiness = value; }
         else if (elem == DISS && end) { mat->transparency = 1 - value; }
@@ -506,11 +506,11 @@ model *parse_obj(const char *path) {
     uface rface; // raw face; used when parsing faces
     bool cont = false; // continue (e.g. comment, group, etc.)
     bool begun; // finished parsing element type; now will parse elem
-    size_t n = 0; // index for array elems (resets at start)
+    size_t j = 0; // index for array elems (resets at start)
     // using two values instead of one pointer value because if mtable is 
     // expanded when parsing the one pointer value would point to nothing
-    int32_t *dex_ptr; // temporary pointer value 
-    int32_t dex = -1; // material index for faces
+    int32_t *mdex_ptr; // temporary material index pointer value 
+    int32_t mdex = -1; // material index for faces
     size_t cchars = ARR_SIZE;
     size_t nchars = 0;
     char *key = SDL_malloc(sizeof(char) * cchars);
@@ -525,7 +525,7 @@ model *parse_obj(const char *path) {
     bool eneg; // if epower is negative
     int32_t epower = -1; // general power (for vertices with e in them)
     double value = 0; // a number value (vertices, normals, etc.)
-    size_t j; // index value
+    size_t k; // index value
     int32_t d; // an element inDex value (faces) (int because need -1)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
@@ -553,15 +553,15 @@ model *parse_obj(const char *path) {
             if (elem == MAT) {
                 if (nchars) { // no capacity check because it is at end
                     key[nchars] = '\0';
-                    dex_ptr = mtable_dex(mt, key);
-                    if (dex_ptr == NULL) {
+                    mdex_ptr = mtable_dex(mt, key);
+                    if (mdex_ptr == NULL) {
                         SDL_SetError("Invalid material received");
                         goto invalid;
                     }
-                    dex = *dex_ptr;
-                    if (dex == -1) {
-                        dex = mdl->nmats;
-                        *dex_ptr = dex;
+                    mdex = *mdex_ptr;
+                    if (mdex == -1) {
+                        mdex = mdl->nmats;
+                        *mdex_ptr = mdex;
                         // won't equal NULL since we have the dex check
                         mdl->mats[mdl->nmats] = *mtable_get(mt, key);
                         mdl->nmats++;
@@ -583,7 +583,7 @@ model *parse_obj(const char *path) {
             }
             cont = false;
             begun = false; // waits until next whitespace to be true
-            n = 0;
+            j = 0;
             elem = NONE;
             first = true;
             continue;
@@ -682,9 +682,9 @@ model *parse_obj(const char *path) {
             }
         }
         if (elem == VERTEX && end) { // don't need to initialize item in array
-            if (n == 0) { mdl->vertices[mdl->nvertices].vec.x = value; }
-            else if (n == 1) { mdl->vertices[mdl->nvertices].vec.y = value; }
-            else if (n == 2) {
+            if (j == 0) { mdl->vertices[mdl->nvertices].vec.x = value; }
+            else if (j == 1) { mdl->vertices[mdl->nvertices].vec.y = value; }
+            else if (j == 2) {
                 mdl->vertices[mdl->nvertices].normal = ZEROVEC3;
                 mdl->vertices[mdl->nvertices].vec.z = value;
                 mdl->nvertices++;
@@ -698,15 +698,15 @@ model *parse_obj(const char *path) {
                 }
             }
             // w is scaling divisor
-            else if (n == 3) {
+            else if (j == 3) {
                 vec3_div_ip(&mdl->vertices[mdl->nvertices - 1].vec, value);
             }
-            n++;
+            j++;
         }
         else if (elem == NORMAL && end) {
-            if (n == 0) { mdl->normals[mdl->nnormals].x = value; }
-            else if (n == 1) { mdl->normals[mdl->nnormals].y = value; }
-            else if (n == 2) {
+            if (j == 0) { mdl->normals[mdl->nnormals].x = value; }
+            else if (j == 1) { mdl->normals[mdl->nnormals].y = value; }
+            else if (j == 2) {
                 mdl->normals[mdl->nnormals].z = value;
                 // .obj doesn't guarantee normalized
                 if (!vec3_iszero(mdl->normals[mdl->nnormals])) {
@@ -721,10 +721,10 @@ model *parse_obj(const char *path) {
                     mdl->cnormals *= ARR_FACTOR;
                 }
             }
-            n++;
+            j++;
         }
         else if (elem == UV && end) {
-            if (n == 0) {
+            if (j == 0) {
                 mdl->uvs[mdl->nuvs].x = value;
                 mdl->uvs[mdl->nuvs].y = 0; // y is optional (default 0)
                 mdl->nuvs++; // y is optional, so incrementing here
@@ -737,36 +737,36 @@ model *parse_obj(const char *path) {
                 }
             }
             // -1 because nuvs was incremented
-            else if (n == 1) { mdl->uvs[mdl->nuvs - 1].y = value; }
-            n++;
+            else if (j == 1) { mdl->uvs[mdl->nuvs - 1].y = value; }
+            j++;
         }
         else if (elem == FACE) {
             if (first) {
-                j = 0;
+                k = 0;
                 d = 0;
-                rface.uvs[n] = -1;
-                rface.normals[n] = -1;
+                rface.uvs[j] = -1;
+                rface.normals[j] = -1;
                 first = false;
             }
             if (data[i] == '/') {
-                if (j == 0) {
+                if (k == 0) {
                     d = d >= 0 ? d - 1 : (int32_t) mdl->nvertices + d;
                     if (d < 0 || d >= (int32_t) mdl->nvertices) {
                         SDL_SetError("Invalid vertex index received");
                         goto invalid;
                     }
-                    rface.vertices[n] = d;
+                    rface.vertices[j] = d;
                 }
-                else if (j == 1) {
+                else if (k == 1) {
                     d = d >= 0 ? d - 1 : (int32_t) mdl->nuvs + d;
                     // avoid negative and postive size_t comparison stuff
                     if (d < -1 || d >= (int32_t) mdl->nuvs) {
                         SDL_SetError("Invalid UV index received");
                         goto invalid;
                     }
-                    rface.uvs[n] = d;
+                    rface.uvs[j] = d;
                 }
-                j++; // only need to increment in this if statement
+                k++; // only need to increment in this if statement
                 d = 0;
                 continue;
             }
@@ -778,53 +778,53 @@ model *parse_obj(const char *path) {
             if (end) {
                 // not checking this caused a segfault
                 // that took >1MONTH to debug
-                if (n > 3) { continue; } 
+                if (j > 3) { continue; } 
                 // repeated; not sure if there is better way
-                if (j == 0) {
+                if (k == 0) {
                     d = d >= 0 ? d - 1 : (int32_t) mdl->nvertices + d;
                     if (d < 0 || d >= (int32_t) mdl->nvertices) {
                         SDL_SetError("Invalid vertex index received");
                         goto invalid;
                     }
-                    rface.vertices[n] = d;
+                    rface.vertices[j] = d;
                 }
-                else if (j == 1) {
+                else if (k == 1) {
                     d = d >= 0 ? d - 1 : (int32_t) mdl->nuvs + d;
                     if (d < -1 || d >= (int32_t) mdl->nuvs) {
                         SDL_SetError("Invalid UV index received");
                         goto invalid;
                     }
-                    rface.uvs[n] = d;
+                    rface.uvs[j] = d;
                 }
-                else if (j == 2) {
+                else if (k == 2) {
                     d = d >= 0 ? d - 1 : (int32_t) mdl->nnormals + d;
                     if (d < -1 || d >= (int32_t) mdl->nnormals) {
                         SDL_SetError("Invalid normal index received");
                         goto invalid;
                     }
-                    rface.normals[n] = d;
+                    rface.normals[j] = d;
                 }
                 else { continue; } // ignore anything else
-                if (n == 2) {
+                if (j == 2) {
                     mdl->faces[mdl->nfaces].centroid = vec3_add(vec3_add(
                         mdl->vertices[rface.vertices[0]].vec,
                         mdl->vertices[rface.vertices[1]].vec),
                         mdl->vertices[rface.vertices[2]].vec
                     );
                     vec3_div_ip(&mdl->faces[mdl->nfaces].centroid, 3);
-                    // repurposing j
+                    // repurposing k
                     mdl->faces[mdl->nfaces].normal = ZEROVEC3;
-                    j = 0;
-                    for (size_t k = 0; k < 3; k++) {
-                        if (rface.normals[k] == -1) { continue; }
+                    k = 0;
+                    for (size_t l = 0; l < 3; l++) {
+                        if (rface.normals[l] == -1) { continue; }
                         vec3_add_ip(
                             &mdl->faces[mdl->nfaces].normal,
-                            mdl->normals[rface.normals[k]]
+                            mdl->normals[rface.normals[l]]
                         );
-                        j++;
+                        k++;
                     }
                     // ^ don't need to divide by j because normalizing anyway
-                    if (j < 3) { // calculate normal vector using cross product
+                    if (k < 3) { // calculate normal vector using cross product
                         vec3 term1 = vec3_sub(
                             mdl->vertices[rface.vertices[1]].vec,
                             mdl->vertices[rface.vertices[0]].vec
@@ -838,9 +838,9 @@ model *parse_obj(const char *path) {
                             vec3_unit_ip(&rface.normal);
                         }
                         mdl->faces[mdl->nfaces].normal = rface.normal;
-                        for (size_t k = 0; k < 3; k++) {
+                        for (size_t l = 0; l < 3; l++) {
                             vec3_add_ip(
-                                &mdl->vertices[rface.vertices[k]].normal,
+                                &mdl->vertices[rface.vertices[l]].normal,
                                 rface.normal
                             );
                         }
@@ -857,7 +857,7 @@ model *parse_obj(const char *path) {
                     mdl->faces[mdl->nfaces].normals[0] = rface.normals[0];
                     mdl->faces[mdl->nfaces].normals[1] = rface.normals[1];
                     mdl->faces[mdl->nfaces].normals[2] = rface.normals[2];
-                    mdl->faces[mdl->nfaces].mat = dex;
+                    mdl->faces[mdl->nfaces].mat = mdex;
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
                         mdl->faces = SDL_realloc(
@@ -870,7 +870,7 @@ model *parse_obj(const char *path) {
                 }
                 // quadrilateral splitting (only works with convex quads)
                 // split into 012 and 230
-                else if (n == 3) {
+                else if (j == 3) {
                     rface.centroid = vec3_add(vec3_add(vec3_add(
                         mdl->vertices[rface.vertices[0]].vec,
                         mdl->vertices[rface.vertices[1]].vec),
@@ -881,15 +881,15 @@ model *parse_obj(const char *path) {
                     // copy the normal in case j is 0
                     vec3 normal = rface.normal;
                     rface.normal = ZEROVEC3;
-                    j = 0;
-                    for (size_t k = 0; k < 4; k++) {
-                        if (rface.normals[k] == -1) { continue; }
+                    k = 0;
+                    for (size_t l = 0; l < 4; l++) {
+                        if (rface.normals[l] == -1) { continue; }
                         vec3_add_ip(
-                            &rface.normal, mdl->normals[rface.normals[k]]
+                            &rface.normal, mdl->normals[rface.normals[l]]
                         );
-                        j++;
+                        k++;
                     }
-                    if (j < 3) {
+                    if (k < 3) {
                         vec3 term1 = vec3_sub(
                             mdl->vertices[rface.vertices[3]].vec,
                             mdl->vertices[rface.vertices[2]].vec
@@ -907,15 +907,15 @@ model *parse_obj(const char *path) {
                         if (!vec3_iszero(rface.normal)) {
                             vec3_unit_ip(&rface.normal);
                         }
-                        for (size_t k = 0; k < 3; k++) {
+                        for (size_t l = 0; l < 3; l++) {
                             vec3_sub_ip( // remove old normal from overall
-                                &mdl->vertices[rface.vertices[k]].normal,
+                                &mdl->vertices[rface.vertices[l]].normal,
                                 normal
                             );
                         }
-                        for (size_t k = 0; k < 4; k++) {
+                        for (size_t l = 0; l < 4; l++) {
                             vec3_add_ip(
-                                &mdl->vertices[rface.vertices[k]].normal,
+                                &mdl->vertices[rface.vertices[l]].normal,
                                 rface.normal
                             );
                         }
@@ -936,7 +936,7 @@ model *parse_obj(const char *path) {
                     mdl->faces[mdl->nfaces].normals[0] = rface.normals[2];
                     mdl->faces[mdl->nfaces].normals[1] = rface.normals[3];
                     mdl->faces[mdl->nfaces].normals[2] = rface.normals[0];
-                    mdl->faces[mdl->nfaces].mat = dex;
+                    mdl->faces[mdl->nfaces].mat = mdex;
                     mdl->nfaces++;
                     if (mdl->nfaces >= mdl->cfaces) {
                         mdl->faces = SDL_realloc(
@@ -947,7 +947,7 @@ model *parse_obj(const char *path) {
                         mdl->cfaces *= ARR_FACTOR;
                     }
                 }
-                n++;
+                j++;
             }
         }
     }
