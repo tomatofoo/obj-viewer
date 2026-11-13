@@ -86,7 +86,9 @@ void destroy_model(model *mdl);
 bool normalize_model(model *mdl);
 bool scale_model(model *mdl, double scale);
 
-context *create_context(const char *path, SDL_Renderer *renderer, int w, int h);
+context *create_context(
+    const char *path, SDL_Renderer *renderer, int w, int h
+);
 void destroy_context(context *ctx);
 
 bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect);

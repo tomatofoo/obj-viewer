@@ -419,7 +419,9 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
                 );
                 faces[1].points[ks[1]] = project(ctx, rel);
                 faces[1].uvs[ks[1]] = vec2_lerp(uvs[ks[0]], uvs[j], t);
-                faces[1].normals[ks[1]] = vec3_lerp(normals[ks[0]], normals[j], t);
+                faces[1].normals[ks[1]] = vec3_lerp(
+                    normals[ks[0]], normals[j], t
+                );
                 faces[1].vertices[j] = (
                     mdl->vertices[mdl->faces[i].vertices[ks[0]]].vec
                 );
