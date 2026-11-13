@@ -9,7 +9,8 @@ management. There is NO security guarantee for this project.
 
 ## Support
 Despite all of the following constraints, many OBJ files will be fully 
-supported by this program; these are the most common attributes in OBJ files.
+supported by this program; these are the most common attributes in OBJ and MTL 
+files.
 
 ### Faces
 - Convex faces up to four vertices
