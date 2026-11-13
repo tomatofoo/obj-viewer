@@ -13,7 +13,7 @@ supported by this program; these are the most common attributes in OBJ and MTL
 files.
 
 ### Faces
-- Convex faces up to four vertices
+Convex faces up to four vertices are supported.
 
 ### Materials
 The following material properties are supported:
