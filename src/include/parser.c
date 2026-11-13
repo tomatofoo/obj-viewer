@@ -34,12 +34,11 @@ typedef enum etype { // Element Types for both OBj and MTL
 } etype;
 
 typedef struct uface { // unconverted face (could be quad)
-    // all are indices
     size_t vertices[4];
     vec3 centroid;
-    int32_t uvs[4]; // int because need -1
-    int32_t normals[4];
-    vec3 normal; // average of all normals
+    int32_t uvs[4];     // int because need -1
+    int32_t normals[4]; // individual normal indices
+    vec3 normal;        // average of all normals
 } uface;
 
 // based on https://benhoyt.com/writings/hash-table-in-c/
@@ -133,7 +132,7 @@ material *mtable_get(mtable *mt, char *key) {
     return &entry->mat;
 }
 
-int32_t *mtable_dex(mtable *mt, char *key) { // get pointer dex component
+int32_t *mtable_dex(mtable *mt, char *key) {
     mentry *entry = mtable_entry(mt, key);
     if (entry == NULL) { return NULL; }
     return &entry->dex;
@@ -168,33 +167,34 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     }
     
     // PER MATERIAL
-    size_t cchars = ARR_SIZE;
-    size_t nchars = 0;
-    char *mkey = SDL_malloc(sizeof(char) * cchars);
+    size_t cmchars = ARR_SIZE;
+    size_t nmchars = 0;
+    char *mkey = SDL_malloc(sizeof(char) * cmchars);
     if (mkey == NULL) { goto oom; }
     material *mat = NULL;
-    SDL_Surface *surf = NULL; // original
+    SDL_Surface *surf = NULL;    // original
     SDL_Surface *texture = NULL; // converted
     // PER ELEMENT
     etype elem = NONE;
-    bool cont = false; // continue (e.g. comment, group, etc.)
-    bool begun; // finished parsing element type; now will parse elem
-    size_t j = 0; // index for array elems (resets at start)
+    bool cont = false;   // continue (e.g. comment, group, etc.)
+    bool begun;          // finished parsing element type; now will parse elem
+    size_t j = 0;        // index for array elems (resets at start)
     // PER ITEM AND MORE
-    bool first = true; // is first character of item
-    bool end; // if is last char of current item
-    bool neg; // if number value (see below) is negative
-    uint32_t whole; // whole part of value
-    uint64_t decimal; // decmial part of value (not power)
+    bool first = true;   // is first character of item
+    bool end;            // if is last char of current item
+    bool neg;            // if number value (see below) is negative
+    uint32_t whole;      // whole part of value
+    uint64_t decimal;    // decmial part of value (not power)
     int32_t dpower = -1; // power for decimal numbers
-    bool eneg; // if epower is negative
+    bool eneg;           // if epower is negative
     int32_t epower = -1; // general power (for values with e in them)
-    double value = 0; // a number value (factor, exponent, etc.)
+    double value = 0;    // a number value (factor, exponent, etc.)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
             if (elem == NEWMAT) {
-                if (nchars) { // no capacity check because it is at end
-                    mkey[nchars] = '\0';
+                // no capacity check because there is always >=1 available
+                if (nmchars) {
+                    mkey[nmchars] = '\0';
                     mtable_set(
                         mt,
                         mkey,
@@ -211,12 +211,11 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                         }
                     );
                     mat = mtable_get(mt, mkey);
-                } // key will be freed by the destroy_mtable
-                else { SDL_free(mkey); }
-                cchars = ARR_SIZE;
-                nchars = 0;
-                mkey = SDL_malloc(sizeof(char) * cchars);
-                if (mkey == NULL) { goto oom; }
+                    cmchars = ARR_SIZE;
+                    nmchars = 0;
+                    mkey = SDL_malloc(sizeof(char) * cmchars);
+                    if (mkey == NULL) { goto oom; }
+                } // key will be freed by the destroy_mtable call
             }
             else if (
                 (elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX)
@@ -227,8 +226,8 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                     SDL_SetError("Invalid material");
                     goto invalid;
                 }
-                if (nchars) { // no capacity check because it is at end
-                    mkey[nchars] = '\0';
+                if (nmchars) {
+                    mkey[nmchars] = '\0';
                     SDL_strlcpy(imgpath, dirname, arr_sizeof(imgpath));
                     imgpath[dirlen] = DIR_SEP;
                     imgpath[dirlen + 1] = '\0';
@@ -249,9 +248,9 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                     else if (elem == GTEX) { mat->gtexture = texture; }
                 }
                 SDL_free(mkey);
-                cchars = ARR_SIZE;
-                nchars = 0;
-                mkey = SDL_malloc(sizeof(char) * cchars);
+                cmchars = ARR_SIZE;
+                nmchars = 0;
+                mkey = SDL_malloc(sizeof(char) * cmchars);
                 if (mkey == NULL) { goto oom; }
             }
             cont = false;
@@ -294,14 +293,14 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
 
         if (elem == NEWMAT
             || elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX) {
-            mkey[nchars] = data[i];
+            mkey[nmchars] = data[i];
             if (elem != NEWMAT && SDL_strchr(DIR_SEPS, data[i]) != NULL) {
-                mkey[nchars] = DIR_SEP;
+                mkey[nmchars] = DIR_SEP;
             }
-            nchars++;
-            if (nchars >= cchars) {
-                cchars *= ARR_FACTOR;
-                mkey = SDL_realloc(mkey, sizeof(char) * cchars);
+            nmchars++;
+            if (nmchars >= cmchars) {
+                cmchars *= ARR_FACTOR;
+                mkey = SDL_realloc(mkey, sizeof(char) * cmchars);
                 if (mkey == NULL) { goto oom; }
             }
         }
@@ -503,36 +502,36 @@ model *parse_obj(const char *path) {
 
     // PER ELEMENT
     etype elem = NONE;
-    uface uf; // raw face; used when parsing faces
+    uface uf;
     bool cont = false; // continue (e.g. comment, group, etc.)
-    bool begun; // finished parsing element type; now will parse elem
-    size_t j = 0; // index for array elems (resets at start)
+    bool begun;        // finished parsing element type; now will parse elem
+    size_t j = 0;      // index for array elems (resets at start)
     // using two values instead of one pointer value because if mtable is 
     // expanded when parsing the one pointer value would point to nothing
     int32_t *mdex_ptr; // temporary material index pointer value 
     int32_t mdex = -1; // material index for faces
-    size_t cchars = ARR_SIZE;
-    size_t nchars = 0;
-    char *mkey = SDL_malloc(sizeof(char) * cchars);
+    size_t cmchars = ARR_SIZE;
+    size_t nmchars = 0;
+    char *mkey = SDL_malloc(sizeof(char) * cmchars);
     if (mkey == NULL) { goto oom; }
     // PER ITEM AND MORE
-    bool first = true; // is first character of item
-    bool end; // if is last char of current item
-    bool neg; // if number value (see below) is negative
-    uint32_t whole; // whole part of value
-    uint64_t decimal; // decmial part of value (not power)
+    bool first = true;   // is first character of item
+    bool end;            // if is last char of current item
+    bool neg;            // if number value (see below) is negative
+    uint32_t whole;      // whole part of value
+    uint64_t decimal;    // decmial part of value (not power)
     int32_t dpower = -1; // power for decimal numbers
-    bool eneg; // if epower is negative
+    bool eneg;           // if epower is negative
     int32_t epower = -1; // general power (for vertices with e in them)
-    double value = 0; // a number value (vertices, normals, etc.)
-    size_t k; // index value
-    int32_t d; // an element inDex value (faces) (int because need -1)
+    double value = 0;    // a number value (vertices, normals, etc.)
+    size_t k;            // index value
+    int32_t d;           // element inDex value (faces) (int because need -1)
     for (size_t i = 0; i < datasize; i++) {
         if (isnewline(data[i])) {
             if (elem == MATLIB && dirlen < arr_sizeof(mtlpath) - 2) {
                 // dirlen check because of adding sep and null term
-                if (nchars) { // no capacity check because it is at end
-                    mkey[nchars] = '\0';
+                if (nmchars) {
+                    mkey[nmchars] = '\0';
                     SDL_strlcpy(mtlpath, dirname, arr_sizeof(mtlpath));
                     mtlpath[dirlen] = DIR_SEP;
                     mtlpath[dirlen + 1] = '\0';
@@ -545,14 +544,14 @@ model *parse_obj(const char *path) {
                     }
                 }
                 SDL_free(mkey);
-                cchars = ARR_SIZE;
-                nchars = 0;
-                mkey = SDL_malloc(sizeof(char) * cchars);
+                cmchars = ARR_SIZE;
+                nmchars = 0;
+                mkey = SDL_malloc(sizeof(char) * cmchars);
                 if (mkey == NULL) { goto oom; }
             }
             if (elem == MAT) {
-                if (nchars) { // no capacity check because it is at end
-                    mkey[nchars] = '\0';
+                if (nmchars) {
+                    mkey[nmchars] = '\0';
                     mdex_ptr = mtable_dex(mt, mkey);
                     if (mdex_ptr == NULL) {
                         SDL_SetError("Invalid material received");
@@ -576,9 +575,9 @@ model *parse_obj(const char *path) {
                     }
                 }
                 SDL_free(mkey);
-                cchars = ARR_SIZE;
-                nchars = 0;
-                mkey = SDL_malloc(sizeof(char) * cchars);
+                cmchars = ARR_SIZE;
+                nmchars = 0;
+                mkey = SDL_malloc(sizeof(char) * cmchars);
                 if (mkey == NULL) { goto oom; }
             }
             cont = false;
@@ -670,14 +669,14 @@ model *parse_obj(const char *path) {
             }
         }
         else if (elem == MATLIB || elem == MAT) {
-            mkey[nchars] = data[i];
+            mkey[nmchars] = data[i];
             if (elem == MATLIB && SDL_strchr(DIR_SEPS, data[i]) != NULL) {
-                mkey[nchars] = DIR_SEP;
+                mkey[nmchars] = DIR_SEP;
             }
-            nchars++;
-            if (nchars >= cchars) {
-                cchars *= ARR_FACTOR;
-                mkey = SDL_realloc(mkey, sizeof(char) * cchars);
+            nmchars++;
+            if (nmchars >= cmchars) {
+                cmchars *= ARR_FACTOR;
+                mkey = SDL_realloc(mkey, sizeof(char) * cmchars);
                 if (mkey == NULL) { goto oom; }
             }
         }

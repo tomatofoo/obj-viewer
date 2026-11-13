@@ -12,7 +12,7 @@
 
 
 typedef struct vertex {
-    vec3 vec; // for consistency
+    vec3 vec;
     vec3 normal; 
 } vertex;
 
@@ -32,10 +32,10 @@ typedef struct face {
     // all are indices
     size_t vertices[3];
     vec3 centroid;
-    int32_t uvs[3]; // int because need -1
-    int32_t normals[3];
-    vec3 normal; // average of all normals
-    int32_t mat; // -1 means none
+    int32_t uvs[3];     // int because need -1
+    int32_t normals[3]; // individual normals
+    vec3 normal;        // average of all normals
+    int32_t mat;        // -1 means none
 } face;
 
 typedef struct model {
@@ -64,19 +64,19 @@ typedef struct point {
 } point;
 
 typedef struct context {
-    point *proj; // projected vertices in last frame (also includes depth as z)
-    double *zbuf; // depth buffer; inverse z
+    point *proj;       // projected vertices in last frame
+    double *zbuf;      // depth buffer; inverse z
     model *mdl;
-    double flength; // focal length
-    double near; // near clipping length
-    double far; // far clipping length
-    bool cull;
-    bool blinn; // if using blinn-phong
-    uint8_t quality;
-    material mat; // default material
-    double brightness;
+    double flength;    // focal length
+    double near;       // near clipping length
+    double far;        // far clipping length
+    bool cull;         // backface culling
+    bool blinn;        // if using blinn-phong
+    uint8_t quality;   // quality level (1 is least, 2 is highest)
+    material mat;      // default material
+    double brightness; // -1 for "special" brightness
     vec3 pos;
-    vec3 rot; // rot around x, y, z axes respectively
+    vec3 rot;          // rot around x, y, z axes respectively
     SDL_Renderer *renderer;
     SDL_Texture *texture;
 } context;
