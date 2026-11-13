@@ -170,8 +170,8 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     // PER MATERIAL
     size_t cchars = ARR_SIZE;
     size_t nchars = 0;
-    char *key = SDL_malloc(sizeof(char) * cchars);
-    if (key == NULL) { goto oom; }
+    char *mkey = SDL_malloc(sizeof(char) * cchars);
+    if (mkey == NULL) { goto oom; }
     material *mat = NULL;
     SDL_Surface *surf = NULL; // original
     SDL_Surface *texture = NULL; // converted
@@ -194,10 +194,10 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
         if (isnewline(data[i])) {
             if (elem == NEWMAT) {
                 if (nchars) { // no capacity check because it is at end
-                    key[nchars] = '\0';
+                    mkey[nchars] = '\0';
                     mtable_set(
                         mt,
-                        key,
+                        mkey,
                         (material) {
                             .ambient = ZEROVEC3,
                             .diffuse = ZEROVEC3,
@@ -210,13 +210,13 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                             .gtexture = NULL,
                         }
                     );
-                    mat = mtable_get(mt, key);
+                    mat = mtable_get(mt, mkey);
                 } // key will be freed by the destroy_mtable
-                else { SDL_free(key); }
+                else { SDL_free(mkey); }
                 cchars = ARR_SIZE;
                 nchars = 0;
-                key = SDL_malloc(sizeof(char) * cchars);
-                if (key == NULL) { goto oom; }
+                mkey = SDL_malloc(sizeof(char) * cchars);
+                if (mkey == NULL) { goto oom; }
             }
             else if (
                 (elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX)
@@ -228,11 +228,11 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                     goto invalid;
                 }
                 if (nchars) { // no capacity check because it is at end
-                    key[nchars] = '\0';
+                    mkey[nchars] = '\0';
                     SDL_strlcpy(imgpath, dirname, arr_sizeof(imgpath));
                     imgpath[dirlen] = DIR_SEP;
                     imgpath[dirlen + 1] = '\0';
-                    SDL_strlcat(imgpath, key, arr_sizeof(imgpath));
+                    SDL_strlcat(imgpath, mkey, arr_sizeof(imgpath));
                     surf = IMG_Load(imgpath);
                     if (surf == NULL) {
                         SDL_SetError(
@@ -248,11 +248,11 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
                     else if (elem == STEX) { mat->stexture = texture; }
                     else if (elem == GTEX) { mat->gtexture = texture; }
                 }
-                SDL_free(key);
+                SDL_free(mkey);
                 cchars = ARR_SIZE;
                 nchars = 0;
-                key = SDL_malloc(sizeof(char) * cchars);
-                if (key == NULL) { goto oom; }
+                mkey = SDL_malloc(sizeof(char) * cchars);
+                if (mkey == NULL) { goto oom; }
             }
             cont = false;
             begun = false; // waits until next whitespace to be true
@@ -294,15 +294,15 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
 
         if (elem == NEWMAT
             || elem == ATEX || elem == DTEX || elem == STEX || elem == GTEX) {
-            key[nchars] = data[i];
+            mkey[nchars] = data[i];
             if (elem != NEWMAT && SDL_strchr(DIR_SEPS, data[i]) != NULL) {
-                key[nchars] = DIR_SEP;
+                mkey[nchars] = DIR_SEP;
             }
             nchars++;
             if (nchars >= cchars) {
                 cchars *= ARR_FACTOR;
-                key = SDL_realloc(key, sizeof(char) * cchars);
-                if (key == NULL) { goto oom; }
+                mkey = SDL_realloc(mkey, sizeof(char) * cchars);
+                if (mkey == NULL) { goto oom; }
             }
         }
         // Floating-point Number Parsing
@@ -391,19 +391,19 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
 
     // FREE UP DATA AFTER PARSING
     SDL_free(data);
-    SDL_free(key);
+    SDL_free(mkey);
 
     return true;
 
 invalid:
     SDL_free(data);
-    SDL_free(key);
+    SDL_free(mkey);
     SDL_SetError("Invalid MTL data: %s", SDL_GetError());
     return false;
 
 oom:
     SDL_free(data);
-    SDL_free(key);
+    SDL_free(mkey);
     SDL_OutOfMemory();
     return false;
 }
@@ -513,8 +513,8 @@ model *parse_obj(const char *path) {
     int32_t mdex = -1; // material index for faces
     size_t cchars = ARR_SIZE;
     size_t nchars = 0;
-    char *key = SDL_malloc(sizeof(char) * cchars);
-    if (key == NULL) { goto oom; }
+    char *mkey = SDL_malloc(sizeof(char) * cchars);
+    if (mkey == NULL) { goto oom; }
     // PER ITEM AND MORE
     bool first = true; // is first character of item
     bool end; // if is last char of current item
@@ -532,11 +532,11 @@ model *parse_obj(const char *path) {
             if (elem == MATLIB && dirlen < arr_sizeof(mtlpath) - 2) {
                 // dirlen check because of adding sep and null term
                 if (nchars) { // no capacity check because it is at end
-                    key[nchars] = '\0';
+                    mkey[nchars] = '\0';
                     SDL_strlcpy(mtlpath, dirname, arr_sizeof(mtlpath));
                     mtlpath[dirlen] = DIR_SEP;
                     mtlpath[dirlen + 1] = '\0';
-                    SDL_strlcat(mtlpath, key, arr_sizeof(mtlpath));
+                    SDL_strlcat(mtlpath, mkey, arr_sizeof(mtlpath));
                     if (!parse_mtl(mtlpath, mt, dirname, dirlen)) {
                         SDL_SetError(
                             "Failed to load MTL file: %s", SDL_GetError()
@@ -544,16 +544,16 @@ model *parse_obj(const char *path) {
                         goto invalid;
                     }
                 }
-                SDL_free(key);
+                SDL_free(mkey);
                 cchars = ARR_SIZE;
                 nchars = 0;
-                key = SDL_malloc(sizeof(char) * cchars);
-                if (key == NULL) { goto oom; }
+                mkey = SDL_malloc(sizeof(char) * cchars);
+                if (mkey == NULL) { goto oom; }
             }
             if (elem == MAT) {
                 if (nchars) { // no capacity check because it is at end
-                    key[nchars] = '\0';
-                    mdex_ptr = mtable_dex(mt, key);
+                    mkey[nchars] = '\0';
+                    mdex_ptr = mtable_dex(mt, mkey);
                     if (mdex_ptr == NULL) {
                         SDL_SetError("Invalid material received");
                         goto invalid;
@@ -563,7 +563,7 @@ model *parse_obj(const char *path) {
                         mdex = mdl->nmats;
                         *mdex_ptr = mdex;
                         // won't equal NULL since we have the dex check
-                        mdl->mats[mdl->nmats] = *mtable_get(mt, key);
+                        mdl->mats[mdl->nmats] = *mtable_get(mt, mkey);
                         mdl->nmats++;
                         if (mdl->nmats >= mdl->cmats) {
                             mdl->mats = SDL_realloc(
@@ -575,11 +575,11 @@ model *parse_obj(const char *path) {
                         }
                     }
                 }
-                SDL_free(key);
+                SDL_free(mkey);
                 cchars = ARR_SIZE;
                 nchars = 0;
-                key = SDL_malloc(sizeof(char) * cchars);
-                if (key == NULL) { goto oom; }
+                mkey = SDL_malloc(sizeof(char) * cchars);
+                if (mkey == NULL) { goto oom; }
             }
             cont = false;
             begun = false; // waits until next whitespace to be true
@@ -670,15 +670,15 @@ model *parse_obj(const char *path) {
             }
         }
         else if (elem == MATLIB || elem == MAT) {
-            key[nchars] = data[i];
+            mkey[nchars] = data[i];
             if (elem == MATLIB && SDL_strchr(DIR_SEPS, data[i]) != NULL) {
-                key[nchars] = DIR_SEP;
+                mkey[nchars] = DIR_SEP;
             }
             nchars++;
             if (nchars >= cchars) {
                 cchars *= ARR_FACTOR;
-                key = SDL_realloc(key, sizeof(char) * cchars);
-                if (key == NULL) { goto oom; }
+                mkey = SDL_realloc(mkey, sizeof(char) * cchars);
+                if (mkey == NULL) { goto oom; }
             }
         }
         if (elem == VERTEX && end) { // don't need to initialize item in array
@@ -987,7 +987,7 @@ model *parse_obj(const char *path) {
 
     // FREE UP DATA AFTER PARSING
     SDL_free(data);
-    SDL_free(key);
+    SDL_free(mkey);
     destroy_mtable(mt);
 
     return mdl;
@@ -1000,7 +1000,7 @@ invalid: // invalid data
     SDL_free(mdl->faces);
     SDL_free(mdl->mats);
     SDL_free(mdl);
-    SDL_free(key);
+    SDL_free(mkey);
     destroy_mtable(mt);
     SDL_SetError("Invalid OBJ data: %s", SDL_GetError());
     return NULL;
@@ -1013,7 +1013,7 @@ oom:
     SDL_free(mdl->faces);
     SDL_free(mdl->mats);
     SDL_free(mdl);
-    SDL_free(key);
+    SDL_free(mkey);
     destroy_mtable(mt);
     SDL_OutOfMemory();
     return NULL;
