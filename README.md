@@ -5,16 +5,28 @@
 An OBJ file viewer that uses software rasterization. This was my first time 
 making an actual project in C, and I tried to make the code good. This includes
 error checking (SO MUCH ERROR CHECKING), thread safety, and decent memory 
-management. The code is still pretty shitty though.
+management. There is NO security guarantee for this project.
 
 ## Support
-This viewer supports OBJ files with convex faces up to four vertices. Only 
-basic geometry is supported. Only the basic material properties are supported 
-(Ka, Kd, Ks, Ns, map_Ka, map_Kd, map_Ks, map_Ns) In addition, in files with 
-textures, spaces in filenames are not supported. Materials and textures with 
-spaces in their name will be equivalent to materials without them 
-(e.g. "1 2 3" == "123"). Despite all these constraints, most OBJ files would be
-fully supported as these are advanced features.
+Despite all of the following constraints, many OBJ files will be fully 
+supported by this program; these are the most common attributes in OBJ files.
+
+### Faces
+- Convex faces up to four vertices
+
+### Materials
+- `Ka`
+- `Kd`
+- `Ks`
+- `Ns`
+- `map_Ka`
+- `map_Kd`
+- `map_Ks`
+- `map_Ns`
+
+### Filenames
+Spaces in file and material names are not supported. Names spaces in their name
+will be equivalent to materials without them (e.g. "1 2 3" == "123").
 
 ## Features
 - Screenshots
@@ -44,19 +56,19 @@ mv build/main.out .
 Drag an OBJ file to the app window. The program will open the file.
 
 ### Keys
-- W: Move forward
-- A: Strafe left
-- S: Move backward
-- D: Strafe right
-- Space: Move up
-- Left Shift: Move down
-- Left: Look left
-- Right: Look right
-- Up: Look up
-- Down: Look down 
-- [: Increase quality
-- ]: Increase quality
-- B: Toggle backface culling
-- C: Toggle near clipping
-- F2: Take a screenshot (supports PNG and JPEG, default PNG)
+- `W`: Move forward
+- `A`: Strafe left
+- `S`: Move backward
+- `D`: Strafe right
+- `Space`: Move up
+- `Left Shift`: Move down
+- `Left`: Look left
+- `Right`: Look right
+- `Up`: Look up
+- `Down`: Look down 
+- `[`: Increase quality
+- `]`: Increase quality
+- `B`: Toggle backface culling
+- `C`: Toggle near clipping
+- `F2`: Take a screenshot (supports PNG and JPEG, default PNG)
 
