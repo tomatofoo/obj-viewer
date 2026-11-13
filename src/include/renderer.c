@@ -111,7 +111,7 @@ context *create_context(
     ctx->pos = ZEROVEC3;
     ctx->rot = ZEROVEC3;
     ctx->flength = w / 2;
-    ctx->near = 0.01;
+    ctx->near = 0.01; // smallest it can go without fucking up precision
     ctx->far = 100;
     ctx->cull = true;
     ctx->blinn = true;
