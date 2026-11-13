@@ -174,12 +174,12 @@ bool parse_mtl(const char *path, mtable *mt, char *dirname, size_t dirlen) {
     material *mat = NULL;
     SDL_Surface *surf = NULL;    // original
     SDL_Surface *texture = NULL; // converted
-    // PER ELEMENT
+    // PER ELEMENT (line)
     etype elem = NONE;
     bool cont = false;   // continue (e.g. comment, group, etc.)
     bool begun;          // finished parsing element type; now will parse elem
     size_t j = 0;        // index for array elems (resets at start)
-    // PER ITEM AND MORE
+    // PER ITEM AND MORE (parts of line)
     bool first = true;   // is first character of item
     bool end;            // if is last char of current item
     bool neg;            // if number value (see below) is negative
@@ -416,7 +416,7 @@ model *parse_obj(const char *path) {
     }
     char *dirname = dirname_2048(path); // used for relative files
     size_t dirlen = SDL_strlen(dirname);
-    char mtlpath[2048]; // buffer for mtl paths
+    char mtlpath[2048];
     size_t datasize;
     char *data = SDL_LoadFile(path, &datasize);
     if (data == NULL) {
@@ -429,19 +429,20 @@ model *parse_obj(const char *path) {
         SDL_OutOfMemory();
         return NULL;
     }
-    // Using malloc instead of calloc because we have nvertices
-    // malloc is adequate and faster
+    
+    // Model properties
+    mdl->cvertices = ARR_SIZE;
     mdl->nvertices = 0;
-    mdl->vertices = SDL_malloc(sizeof(vertex) * ARR_SIZE);
+    mdl->vertices = SDL_malloc(sizeof(vertex) * mdl->cvertices);
     if (mdl->vertices == NULL) {
         SDL_free(data);
         SDL_free(mdl);
         SDL_OutOfMemory();
         return NULL;
     }
-    mdl->cvertices = ARR_SIZE;
+    mdl->cnormals = ARR_SIZE;
     mdl->nnormals = 0;
-    mdl->normals = SDL_malloc(sizeof(vec3) * ARR_SIZE);
+    mdl->normals = SDL_malloc(sizeof(vec3) * mdl->cnormals);
     if (mdl->normals == NULL) {
         SDL_free(data);
         SDL_free(mdl->vertices);
@@ -449,9 +450,9 @@ model *parse_obj(const char *path) {
         SDL_OutOfMemory();
         return NULL;
     }
-    mdl->cnormals = ARR_SIZE;
+    mdl->cuvs = ARR_SIZE;
     mdl->nuvs = 0;
-    mdl->uvs = SDL_malloc(sizeof(vec2) * ARR_SIZE);
+    mdl->uvs = SDL_malloc(sizeof(vec2) * mdl->cuvs);
     if (mdl->uvs == NULL) {
         SDL_free(data);
         SDL_free(mdl->vertices);
@@ -460,9 +461,9 @@ model *parse_obj(const char *path) {
         SDL_OutOfMemory();
         return NULL;
     }
-    mdl->cuvs = ARR_SIZE;
+    mdl->cfaces = ARR_SIZE;
     mdl->nfaces = 0;
-    mdl->faces = SDL_malloc(sizeof(face) * ARR_SIZE);
+    mdl->faces = SDL_malloc(sizeof(face) * mdl->cfaces);
     if (mdl->faces == NULL) {
         SDL_free(data);
         SDL_free(mdl->vertices);
@@ -472,9 +473,9 @@ model *parse_obj(const char *path) {
         SDL_OutOfMemory();
         return NULL;
     }
-    mdl->cfaces = ARR_SIZE;
+    mdl->cmats = ARR_SIZE;
     mdl->nmats = 0;
-    mdl->mats = SDL_malloc(sizeof(material) * ARR_SIZE);
+    mdl->mats = SDL_malloc(sizeof(material) * mdl->cmats);
     if (mdl->mats == NULL) {
         SDL_free(data);
         SDL_free(mdl->vertices);
@@ -485,8 +486,8 @@ model *parse_obj(const char *path) {
         SDL_OutOfMemory();
         return NULL;
     }
-    mdl->cmats = ARR_SIZE;
-
+    
+    // Material hash table
     mtable *mt = create_mtable();
     if (mt == NULL) {
         SDL_free(data);
@@ -500,7 +501,7 @@ model *parse_obj(const char *path) {
         return NULL;
     }
 
-    // PER ELEMENT
+    // PER ELEMENT (line)
     etype elem = NONE;
     uface uf;
     bool cont = false; // continue (e.g. comment, group, etc.)
@@ -514,7 +515,7 @@ model *parse_obj(const char *path) {
     size_t nmchars = 0;
     char *mkey = SDL_malloc(sizeof(char) * cmchars);
     if (mkey == NULL) { goto oom; }
-    // PER ITEM AND MORE
+    // PER ITEM AND MORE (parts of line)
     bool first = true;   // is first character of item
     bool end;            // if is last char of current item
     bool neg;            // if number value (see below) is negative
