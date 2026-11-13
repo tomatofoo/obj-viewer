@@ -6,11 +6,11 @@
 #include "utils.h"
 
 
-#define ARR_SIZE 8 // begninning array size for model and mats
+#define ARR_SIZE 8   // begninning array size for model and mats
 #define ARR_FACTOR 2 // factor when resizing
 
 
-typedef enum etype { // Element Types for both OBj and MTL
+typedef enum etype { // Element Types for both OBJ and MTL
     NONE,
     // OBJ
     MATLIB,
