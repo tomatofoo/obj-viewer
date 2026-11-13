@@ -290,14 +290,14 @@ bool render(context *ctx, const SDL_FRect *srcrect, const SDL_FRect *dstrect) {
     double invdenom;
     // for clipping
     size_t ks[2];    // dex-values used for clipping
-    vec2 uvs[3];
-    vec3 normals[3];
+    vec2 uvs[3];     // uv cache
+    vec3 normals[3]; // normal cache
     rface faces[2];  // clipping faces
     double t;        // lerp value for clipping
     size_t nfaces;   // number of faces (1 or 2) to render
     size_t behind;   // amount of vertices behind nearclip
     for (size_t i = 0; i < mdl->nfaces; i++) {
-        // Clipping
+        // clipping
         behind = 0;
         for (size_t j = 0; j < 3; j++) {
             z = ctx->proj[mdl->faces[i].vertices[j]].rel.z;
